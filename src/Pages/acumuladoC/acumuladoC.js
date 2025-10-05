@@ -110,7 +110,7 @@ const acumuladoC = () => {
           </Link>
 
           {/* Tarjeta 5: Gestión de Carga */}
-          <Link to="/panel/logistica" className="block h-full">
+          <Link to="/tarea" className="block h-full">
             <Card
               icon={<Truck className="w-7 h-7 sm:w-8 sm:h-8 text-yellow-600" />}
               title="Logística y Gestión de Carga"
