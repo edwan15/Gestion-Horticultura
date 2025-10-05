@@ -104,7 +104,6 @@
 
 // export default DashBoard;
 
-
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ProductList from "../../components/product/product+/ProductList";
@@ -114,20 +113,21 @@ import useRedirectLoggedOutUser from "../../custom/useRedirect";
 import { 
     selectIsLoggedIn, 
     selectRole,
-    selectUserId, // ID del usuario logueado (Admin o Estándar)
+    selectUserId, 
 } from "../../features/auth/authSlice/authSlice"; 
 import { getProducts } from "../../features/product/ProductSlice";
 
+// ID que se usaría para obtener los productos de otro usuario si el Admin lo necesita
 const ADMIN_VIEWING_TARGET_ID = "user_target_abc_123"; 
 
 const DashBoard = () => {
     // ----------------------------------------------------
-    // ✅ 1. REGLA DE HOOKS: TODAS LAS LLAMADAS VAN AQUÍ (INCONDICIONALMENTE)
+    // 1. REGLA DE HOOKS: TODAS LAS LLAMADAS VAN AQUÍ
     // ----------------------------------------------------
     useRedirectLoggedOutUser("/login"); 
     const dispatch = useDispatch();
 
-    // Selectores de Redux (Hooks)
+    // Selectores de Redux
     const isLoggedIn = useSelector(selectIsLoggedIn);
     const userRole = useSelector(selectRole); 
     const currentUserId = useSelector(selectUserId); 
@@ -135,31 +135,45 @@ const DashBoard = () => {
         (state) => state.product
     );
 
-    // useEffect: Aunque tiene lógica condicional dentro, LA LLAMADA AL HOOK es incondicional.
+    // ----------------------------------------------------
+    // 2. LÓGICA DE CÁLCULO (Se ejecuta en cada render, después de los hooks)
+    // ----------------------------------------------------
+    let finalIdToFetch = currentUserId; // Valor por defecto: el ID del usuario actual
+    let isAdminViewingAnotherUser = false; 
+
+    if (userRole === "admin") {
+        // En un caso real, este ID vendría de la URL (query param) o de otro estado,
+        // pero usamos el constante por el ejemplo.
+        finalIdToFetch = ADMIN_VIEWING_TARGET_ID; 
+        
+        // Determinar si el admin está viendo productos que no son los suyos (modo "own")
+        if (finalIdToFetch !== currentUserId) {
+            isAdminViewingAnotherUser = true;
+        } else {
+            // Si el admin ve su propio ID (usando "own"), asumimos que quiere ver "all"
+            // si el backend lo permite. Esto es solo para lógica de presentación.
+        }
+    }
+
+    // ----------------------------------------------------
+    // 3. useEffect (Dispara la acción de obtención de productos)
+    // ----------------------------------------------------
     useEffect(() => { 
-        // 4. Lógica de obtención de productos: Se ejecuta SÓLO cuando las dependencias cambian
-        // y la condición interna es verdadera.
+        // 🛑 CONDICIÓN CLAVE: Si no está logueado o el ID final es nulo, salir.
         if (!isLoggedIn || !finalIdToFetch) return; 
         
         let fetchMode = "own"; 
-        let isAdminViewingAnotherUser = false; // Se recalcula internamente si es necesario
-
-        // Recalcular la lógica aquí para usar las dependencias
-        let idToFetch = currentUserId;
-
-        if (userRole === "admin") {
-            idToFetch = ADMIN_VIEWING_TARGET_ID; 
-            if (idToFetch !== currentUserId) {
-                 isAdminViewingAnotherUser = true;
-            }
-        }
         
-        if (userRole === "admin" && !isAdminViewingAnotherUser) {
+        // Si el usuario es admin y el ID a buscar es su propio ID, cambia a modo "all"
+        if (userRole === "admin" && finalIdToFetch === currentUserId) {
             fetchMode = "all";
         }
         
+        // Si es un admin viendo a otro usuario (isAdminViewingAnotherUser = true),
+        // el modo es "own" para ese otro usuario.
+
         dispatch(getProducts({ 
-            userId: idToFetch, // Usamos el ID recalculado o el finalIdToFetch del estado
+            userId: finalIdToFetch, // Usamos la variable calculada
             mode: fetchMode 
         }));
 
@@ -173,14 +187,18 @@ const DashBoard = () => {
         message, 
         dispatch, 
         userRole,
-        currentUserId, // Lo usamos como dependencia para disparar el efecto
+        currentUserId, 
+        finalIdToFetch, // ⬅️ IMPORTANTE: Ahora es una dependencia
     ]); 
-    // ----------------------------------------------------
-
+    
     // -----------------------------------------------------------
-    // 🛑 2. BLOQUEO DE RENDERIZADO: VA DESPUÉS DE TODOS LOS HOOKS
+    // 🛑 4. BLOQUEO DE RENDERIZADO: Verifica los valores de Redux
     // -----------------------------------------------------------
+    // Si el usuario no está logueado O si el ID del usuario no se ha cargado aún, 
+    // muestra el mensaje de carga.
     if (!isLoggedIn || !currentUserId) {
+        // 💡 Sugerencia de depuración: 
+        // console.log("Bloqueado. isLoggedIn:", isLoggedIn, "currentUserId:", currentUserId);
         return (
             <div className="text-center p-10 text-xl text-gray-500">
                 Verificando su sesión y cargando el Panel...
@@ -189,19 +207,7 @@ const DashBoard = () => {
     }
     // -----------------------------------------------------------
 
-    // 3. LÓGICA NO-HOOK (Ejecución segura, porque currentUserId ya está definido)
-    let finalIdToFetch = currentUserId; // Valor por defecto
-    let isAdminViewingAnotherUser = false; 
-
-    if (userRole === "admin") {
-        finalIdToFetch = ADMIN_VIEWING_TARGET_ID; 
-        
-        if (finalIdToFetch !== currentUserId) {
-             isAdminViewingAnotherUser = true;
-        }
-    }
-    
-
+    // 5. RENDERIZADO
     return (
         <div className="">
             {isAdminViewingAnotherUser && (

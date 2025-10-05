@@ -214,7 +214,7 @@ const ExportToPDF = async () => {
         doc.text(`Fecha de Exportación: ${day}/${month}/${year}`, centerPoint, 32, { align: 'center' }); 
 
     } catch (error) {
-        console.error("Error al cargar o añadir la imagen del logo:", error);
+        // console.error("Error al cargar o añadir la imagen del logo:", error);
         // Si falla la imagen, al menos pon el texto en la posición por defecto (izquierda)
         doc.setFontSize(14);
         doc.setFont(undefined, 'bold');
@@ -506,7 +506,6 @@ const ExportToPDF = async () => {
   
   
   const delProduct = async (id) => {
-    console.log(id);
     await dispatch(deleteProduct(id));
     
     // Determinar el modo de recarga después de eliminar (para mantener la vista actual)
