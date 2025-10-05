@@ -1,49 +1,49 @@
-// // import { createSlice } from "@reduxjs/toolkit";
+// import { createSlice } from "@reduxjs/toolkit";
 
-// // const name = JSON.parse(localStorage.getItem("name"))
+// const name = JSON.parse(localStorage.getItem("name"))
 
-// // const initialState = {
-// //   isLoggedIn: false,
-// //   name: name ? name : "",
+// const initialState = {
+//   isLoggedIn: false,
+//   name: name ? name : "",
 
-// //   user: {
-// //     name: "",
-// //     email: "",
-// //     phone: "",
-// //     bio: "",
-// //     photo: "",
-// //   },
-// // };
+//   user: {
+//     name: "",
+//     email: "",
+//     phone: "",
+//     bio: "",
+//     photo: "",
+//   },
+// };
 
-// // const authSlice = createSlice({
-// //   name: "auth",
-// //   initialState,
-// //   reducers: {
-// //     SET_LOGIN(state, action) {
-// //       state.isLoggedIn = action.payload;
-// //     },
-// //     SET_NAME(state, action) {
-// //       localStorage.setItem("name", JSON.stringify(action.payload));
-// //       state.name = action.payload;
-// //     },
-// //     SET_USER(state, action) {
-// //       const profile = action.payload;
-// //       state.user.name = profile.name;
-// //       state.user.email = profile.email;
-// //       state.user.phone = profile.phone;
-// //       state.user.bio = profile.bio;
-// //       state.user.photo = profile.photo;
-// //     },
-// //   },
-// // });
+// const authSlice = createSlice({
+//   name: "auth",
+//   initialState,
+//   reducers: {
+//     SET_LOGIN(state, action) {
+//       state.isLoggedIn = action.payload;
+//     },
+//     SET_NAME(state, action) {
+//       localStorage.setItem("name", JSON.stringify(action.payload));
+//       state.name = action.payload;
+//     },
+//     SET_USER(state, action) {
+//       const profile = action.payload;
+//       state.user.name = profile.name;
+//       state.user.email = profile.email;
+//       state.user.phone = profile.phone;
+//       state.user.bio = profile.bio;
+//       state.user.photo = profile.photo;
+//     },
+//   },
+// });
 
-// // export const { SET_LOGIN, SET_NAME, SET_USER } = authSlice.actions;
+// export const { SET_LOGIN, SET_NAME, SET_USER } = authSlice.actions;
 
-// // export const selectIsLoggedIn = (state) => state.auth.isLoggedIn;
-// // export const selectName = (state) => state.auth.name;
-// // export const selectUser = (state) => state.auth.user;
+// export const selectIsLoggedIn = (state) => state.auth.isLoggedIn;
+// export const selectName = (state) => state.auth.name;
+// export const selectUser = (state) => state.auth.user;
 
-// // export default authSlice.reducer
+// export default authSlice.reducer
 
 
 
@@ -732,3 +732,61 @@ export const selectUserId = (state) => {
     // 2. Si no estamos impersonando, devolvemos el ID de la sesión activa
     return state.auth.user?._id || state.auth.user?.id || state.auth.user?.userId || null;
 };
+
+
+// import { createSlice } from "@reduxjs/toolkit";
+
+// // Intenta leer el nombre desde localStorage
+// const name = JSON.parse(localStorage.getItem("name"))
+
+// const initialState = {
+//   isLoggedIn: false,
+//   name: name ? name : "",
+//   // El objeto 'user' completo
+//   user: {
+//     name: "",
+//     email: "",
+//     phone: "",
+//     bio: "",
+//     photo: "",
+//     role: "", // Añadido 'role' ya que tu backend lo devuelve
+//   },
+// };
+
+// const authSlice = createSlice({
+//   name: "auth",
+//   initialState,
+//   reducers: {
+//     SET_LOGIN(state, action) {
+//       state.isLoggedIn = action.payload;
+//     },
+//     SET_NAME(state, action) {
+//       localStorage.setItem("name", JSON.stringify(action.payload));
+//       state.name = action.payload;
+//     },
+//     SET_USER(state, action) {
+//       // 🔥 CORRECCIÓN CRÍTICA: Asegurarse de que action.payload exista
+//       const profile = action.payload;
+
+//       if (profile && typeof profile === 'object') {
+//         state.user.name = profile.name || "";
+//         state.user.email = profile.email || "";
+//         state.user.phone = profile.phone || "";
+//         state.user.bio = profile.bio || "";
+//         state.user.photo = profile.photo || "";
+//         state.user.role = profile.role || ""; // Asegúrate de que esto se actualice si tu backend devuelve el rol
+//       } else {
+//         // Si no hay payload válido, limpiamos el objeto user
+//         state.user = initialState.user;
+//       }
+//     },
+//   },
+// });
+
+// export const { SET_LOGIN, SET_NAME, SET_USER } = authSlice.actions;
+
+// export const selectIsLoggedIn = (state) => state.auth.isLoggedIn;
+// export const selectName = (state) => state.auth.name;
+// export const selectUser = (state) => state.auth.user;
+
+// export default authSlice.reducer;
