@@ -1,81 +1,58 @@
-import { useEffect, useState } from "react";
+import React, { useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { selectIsLoggedIn, selectRole } from '../../features/auth/authSlice/authSlice';
 
-import React from "react";
-import useRedirectLoggedOutUser from "../../custom/useRedirect";
-import { useDispatch } from "react-redux";
-import { getUser } from "../../services/Services";
-import { SET_NAME, SET_USER } from "../../features/auth/authSlice/authSlice";
-import Loader from "../../Util/Loader";
-import { Link } from "react-router-dom";
+// Este componente protege las rutas basándose en el rol requerido.
+// Si no se especifica un rol (como en /panel, donde solo requiere estar logeado), 
+// se asume que cualquier usuario autenticado puede acceder.
+const RequireAuth = ({ children, allowedRoles = ['admin', 'usuario'] }) => {
+    const isLoggedIn = useSelector(selectIsLoggedIn);
+    const userRole = useSelector(selectRole); 
+    const navigate = useNavigate();
 
-const Profile = () => {
-  useRedirectLoggedOutUser("/login");
-  const dispatch = useDispatch();
+    useEffect(() => {
+        // 1. Verificar si el usuario está logeado
+        if (!isLoggedIn) {
+            // Si no está logeado, redirigir al login
+            navigate('/login');
+            return;
+        }
 
-  const [profile, setProfile] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+        // 2. Verificar si el rol del usuario está permitido en esta ruta
+        // Nota: Solo aplicamos esta restricción si la ruta es explícitamente protegida (ej: /produccionC)
+        if (allowedRoles.length > 0) {
+            // Convierte el rol a minúsculas por si acaso
+            const currentRole = userRole ? userRole.toLowerCase() : '';
 
-  useEffect(() => {
-    setIsLoading(true);
-    async function getUserData() {
-      const data = await getUser();
-      console.log(data);
-      setProfile(data);
-      setIsLoading(false);
-      await dispatch(SET_USER(data));
-      await dispatch(SET_NAME(data.name));
-    }
-    getUserData();
-  }, [dispatch]);
+            // Comprueba si el rol del usuario está en la lista de roles permitidos para esta ruta
+            if (!allowedRoles.includes(currentRole)) {
+                // Si el rol no está permitido, redirigir a la página de No Autorizado
+                console.log(`Acceso denegado: Rol actual (${userRole}) no permitido.`);
+                navigate('/unauthorized');
+                return;
+            }
+        }
+    }, [isLoggedIn, userRole, navigate, allowedRoles]);
 
-  return (
-    <div className="flex justify-center   min-h-50vh ">
-      {isLoading && <Loader />}
-      <>
-        {!isLoading && profile === null ? (
-          <p>Something went wrong, please reload the page...</p>
-        ) : (
-          <div className="justify-center  items-start grid ">
-            <div className="rounded-3xl  self-end overflow-hidden shadow-xl max-w-xs my-3 bg-blue-500">
-              <img src={"https://i.imgur.com/dYcYQ7E.png"} alt="profile" className="w-full" />
-              <div className="flex justify-center -mt-8">
-                <img
-                  src={profile?.photo}
-                  alt="profil"
-                  className="rounded-full border-solid  w-40 border-white border-2 -mt-3"
-                />
-              </div>
-              <div className="text-center px-3 pb-6 pt-2">
-                <h3 className="text-white text-sm bold font-sans">
-                  {profile?.name}
-                </h3>
-                <p className="mt-2 font-sans font-light text-white">
-                  {profile?.bio}
-                </p>
-              </div>
-              <div className="flex justify-center pb-3 text-white">
-                <div className="text-center mr-3 border-r pr-3">
-                  <h2>{profile?.phone}</h2>
-                  <span>Telefono</span>
-                </div>
-                <div className="text-center">
-                  <h2>{profile?.email}</h2>
-                  <span>Email</span>
-                </div>
-              </div>
-            </div>
-            <div className="flex justify-center items-center">
-
-              <Link to={"/edit-profile"}>
-            <button className="px-1 p-2 bg-red-400 rounded-lg text-white">Editar Perfil</button>
-              </Link>
-
-            </div>
-          </div>
-        )}
-      </>
-    </div>
-  );
+    // Si está logeado y el rol es correcto o no se requiere restricción de rol, muestra el componente hijo (la ruta)
+    if (isLoggedIn && allowedRoles.includes((userRole || '').toLowerCase())) {
+        return children;
+    } 
+    
+    // Fallback: Si el rol es correcto pero Redux tarda en cargar, devuelve null temporalmente
+    // o si el usuario no ha pasado la verificación inicial.
+    return null;
 };
 
-export default Profile;
+// Componente Wrapper para rutas que SOLO requieren ser 'admin' (ej. /produccionC)
+export const RequireAdmin = ({ children }) => {
+    return <RequireAuth allowedRoles={['admin']}>{children}</RequireAuth>;
+};
+
+// Componente Wrapper para rutas que requieren 'admin' o 'usuario' (ej. /panel si es la ruta principal)
+export const RequireUserOrAdmin = ({ children }) => {
+    return <RequireAuth allowedRoles={['admin', 'usuario']}>{children}</RequireAuth>;
+};
+
+export default RequireAuth;

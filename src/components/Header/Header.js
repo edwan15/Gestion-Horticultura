@@ -15,24 +15,61 @@ const Header = () => {
     navigate("/");
   };
 
+  const panel = async () => {
+    // await logoutUser();
+    // await dispath(SET_LOGIN(false));
+    navigate("/acumuladoC");
+  };
+
   return (
-    <div>
-      <div className="flex justify-between px-4 py-9">
-        <div className="text-3xl">
-          Welcome , <span className="font-bold text-red-500">{name}</span>
-        </div>
-        <div>
-          <motion.button
-          whileHover={{scale:1.1}}
-          whileTap={{scale:0.9}}
-            className="p-1 px-2 rounded-lg bg-red-400 text-white "
-            onClick={logout}
-          >
-            Logout
-          </motion.button>
-        </div>
-      </div>
+ <div className="flex justify-between items-center px-4 py-4"> {/* CLAVE 1: Añadir items-center aquí y reducir padding vertical */}
+    {/* Contenedor del Título */}
+    <div className="text-xl sm:text-3xl"> {/* CLAVE 2: Adaptar el tamaño de fuente para móvil (text-xl) */}
+        Welcome, <span className="font-bold text-red-500">{name}</span>
     </div>
+
+    {/* Contenedor de Botones (Limpiado) */}
+    <div className="flex items-center"> {/* CLAVE 3: Eliminar el 'p-4' redundante que desalineaba */}
+        <div className="flex space-x-2 sm:space-x-4"> {/* Reducir el espacio para móvil (space-x-2) */}
+            
+            <motion.button
+                whileHover={{ scale: 1.05 }} 
+                whileTap={{ scale: 0.95 }} 
+                className="
+                    px-3 py-1.5 sm:px-4 sm:py-2 /* Ajustar padding para móvil */
+                    rounded-full
+                    bg-blue-600
+                    hover:bg-blue-700
+                    text-white 
+                    font-medium 
+                    text-sm sm:text-base /* Ajustar el tamaño del texto del botón */
+                    shadow-md transition-colors 
+                "
+                onClick={panel}
+            >
+                Panel
+            </motion.button>
+
+            <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="
+                    px-3 py-1.5 sm:px-4 sm:py-2 /* Ajustar padding para móvil */
+                    rounded-full
+                    bg-red-600
+                    hover:bg-red-700
+                    text-white 
+                    font-medium 
+                    text-sm sm:text-base /* Ajustar el tamaño del texto del botón */
+                    shadow-md transition-colors
+                "
+                onClick={logout}
+            >
+                Logout
+            </motion.button>
+        </div>
+    </div>
+</div>
   );
 };
 

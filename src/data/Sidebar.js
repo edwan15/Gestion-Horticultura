@@ -1,10 +1,12 @@
 import { RxDashboard } from "react-icons/rx";
 import { AiFillFileAdd } from "react-icons/ai";
 import { MdManageAccounts, MdOutlineSupportAgent } from "react-icons/md";
+import { SiAdafruit } from "react-icons/si";
+import { WiHumidity } from "react-icons/wi";
 
 const Menu = [
   {
-    title: "Panel",
+    title: "Inventario",
     icon: <RxDashboard />,
     path: "/panel",
   },
@@ -14,12 +16,38 @@ const Menu = [
     path: "/add-product",
   },
   {
+    title: "Riego",
+    icon: <WiHumidity />,
+    path: "/riego",
+  },
+  {
+    title: "Calabacin",
+    icon: <SiAdafruit />,
+    path: "/produccionC",
+  },
+
+  {
+    title: "pimientos",
+    icon: <MdManageAccounts />,
+    path: "/produccion",
+  },
+  {
+    title: "Carga-Trailer",
+    icon: <AiFillFileAdd />,
+    path: "/tarea",
+  },
+  {
+    title: "H.Trabajadores",
+    icon: <AiFillFileAdd />,
+    path: "/add-product",
+  },
+  {
     title: "Cuenta",
     icon: <MdManageAccounts />,
     childrens: [
       {
         title: "profile",
-        path: "/profile",
+        path: "/profiles",
       },
       {
         title: "Editar Perfil",
@@ -34,4 +62,4 @@ const Menu = [
   },
 ];
 
-export default Menu
+export default Menu;

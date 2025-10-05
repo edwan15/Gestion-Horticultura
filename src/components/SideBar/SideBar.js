@@ -11,7 +11,7 @@ import { CgProfile } from "react-icons/cg";
 import Menu from "../../data/Sidebar";
 import SideBarItem from "./SideBarItem";
 import { Link } from "react-router-dom";
-import Agro from "../../asset/agro.png";
+import Agro from "../../asset/LOGOS.svg";
 
 const SideBar = ({ children }) => {
   const [isOpen, setIsOpen] = useState(true);
@@ -31,10 +31,10 @@ const SideBar = ({ children }) => {
   };
 
   return (
-    <header className="grid sm:flex ">
+    <header className="grid sm:flex min-h-screen   ">
       {" "}
       <div
-        className={` hidden sm:block bg-blue-300 p-5 pt-8   ${
+        className={`min-h-scree hidden sm:block bg-blue-300 p-5 pt-8   ${
           isOpen ? " w-30  md:w-72 " : " w-0 sm:w-24  "
         } relative duration-500`}
       >
@@ -88,20 +88,8 @@ const SideBar = ({ children }) => {
         </div>
       </div>
       <div className="flex bg-blue-300  sm:hidden justify-between p-4 py-5">
-        {/* <div className="flex  items-center px-4 ">
-          <Link to={"/panel"}>
-            <div className="p-2  text-2xl rounded-full bg-white">
-              <MdAgriculture />
-            </div>
-          </Link>
-        </div> */}
-
         <div>
-          <img
-            src={Agro}
-            alt="agro"
-            className="absolute -top-32 right-20 w-[330px]  "
-          />
+          <img src={Agro} alt="agro" className="absolute -top-2  w-[160px]  " />
         </div>
 
         {isMenu && (
@@ -117,7 +105,7 @@ const SideBar = ({ children }) => {
                 className="px-4 py-2 flex jus items-center gap-3 cursor-pointer hover:bg-boton hover:rounded-lg transition-all duration-100 ease-in-out  "
               >
                 <GrDashboard />
-                Panel
+                Inventario
               </motion.p>
             </Link>
             <Link to={"/add-product"} onClick={() => setIsMenu(!isMenu)}>
@@ -131,7 +119,7 @@ const SideBar = ({ children }) => {
                 Product+
               </motion.p>
             </Link>
-            <Link to={"/profile"}>
+            <Link to={"/profiles"}>
               <motion.p
                 initial="hidden"
                 animate="visible"
@@ -139,6 +127,16 @@ const SideBar = ({ children }) => {
                 className="px-4 py-2 flex items-center gap-3 cursor-pointer hover:bg-boton hover:rounded-lg transition-all duration-100 ease-in-out "
               >
                 <CgProfile /> Profile
+              </motion.p>
+            </Link>
+            <Link to={"/produccionC"}>
+              <motion.p
+                initial="hidden"
+                animate="visible"
+                variants={variants}
+                className="px-4 py-2 flex items-center gap-3 cursor-pointer hover:bg-boton hover:rounded-lg transition-all duration-100 ease-in-out "
+              >
+                <BiSupport /> Support
               </motion.p>
             </Link>
             <Link to={"/contact-us"}>

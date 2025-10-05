@@ -4,7 +4,8 @@ import { GoLocation } from "react-icons/go";
 import { HiSwitchHorizontal, HiSwitchVertical } from "react-icons/hi";
 import { toast } from "react-toastify";
 import axios from "axios";
-import {motion} from "framer-motion"
+import { motion } from "framer-motion";
+import { SERVER_URL } from "../../App";
 
 const Contact = () => {
   const [subject, setSubject] = useState("");
@@ -17,11 +18,8 @@ const Contact = () => {
   const sendEmail = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        `http://localhost:4500/api/contactus`,
-        data
-      );
-      console.log(response)
+      const response = await axios.post(`${SERVER_URL}/api/contactus`, data);
+      console.log(response);
       setSubject("");
       setMessage("");
       toast.success(response.data.message);
@@ -107,14 +105,14 @@ const Contact = () => {
         <HiSwitchVertical className="text-7xl" />
       </div>
 
-      <div className=" col-start-6 col-span-3 mt-14">
+      <div className=" col-start-6 col-span-3  ">
         <div className="relative w-full group max-w-xl min-w-0 mx-auto mt-6 mb-6 break-words  border shadow-2xl dark:bg-gray-800 bg-cardOverlay dark:border-gray-700 md:max-w-sm rounded-xl">
           <div className="pb-6">
             <div className="flex flex-wrap justify-center">
               <div className="flex justify-center w-full">
                 <div className="relative">
                   <img
-                    src="https://scontent-mad1-1.xx.fbcdn.net/v/t39.30808-6/279048882_10227479949486516_1805614642169991555_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=174925&_nc_ohc=VuEVKPy21tYAX-qCT0I&_nc_ht=scontent-mad1-1.xx&oh=00_AfC6zwshuskXgo6vJPOjW0Crz3FKdIX3hSAMU4cLyONqbA&oe=63DBE201"
+                    src="https://res.cloudinary.com/ddoeotuge/image/upload/v1675027783/Captura_m6wl0p.png"
                     alt="Nombre"
                     className="dark:shadow-xl border-white dark:border-gray-800 rounded-full align-middle border-8 absolute -m-16 -ml-18 lg:-ml-16 max-w-[150px]"
                   />
@@ -222,7 +220,7 @@ const Contact = () => {
                 </div>
               </div>
             </div>
-            <div className="pt-6 mx-6 mt-6 text-center border-t border-gray-200 dark:border-gray-700/50">
+            <div className="pt-6 mx-6 mt-6 text-center border-t border-gray-200 text-gray-700 dark:text-gray-300 dark:border-gray-700/50">
               <div className="flex flex-wrap justify-center">
                 <div className="w-full px-6">
                   <div className="details">

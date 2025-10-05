@@ -39,7 +39,7 @@ const SideBarItem = ({ isOpen, product }) => {
         >
           {product.childrens.map((child, index) => {
             return (
-              <div key={index} className=" border-2 rounded-md mt-2">
+              <div key={index} className=" border-2 rounded-md mt-2 ">
                 <NavLink to={child.path}>
                   <div className="">
                     <div>
