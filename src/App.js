@@ -42,6 +42,7 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 // 🚨 IMPORTACIÓN CLAVE: Solo importamos el contenedor de datos de Producción
 import ProduccionPage from './ProduccionPimientos/ProduccionPage' 
 import Tarea from "./components/Carga/Tarea";
+import HoraTrabajador from "./components/HoraTrabajadores/HoraTrabajador";
 // 🚨 Nota: Eliminé las importaciones erróneas de ProduccionCalendar, DayDetails y fetchCosechaData
 
 
@@ -212,6 +213,10 @@ function App() {
          <Route
             path="/tarea"
             element={<RoleRoute allowedRoles={["admin", "usuario"]}><ProtectedLayout><Tarea /></ProtectedLayout></RoleRoute>}
+         />
+         <Route
+            path="/trabajador"
+            element={<RoleRoute allowedRoles={["admin", "usuario"]}><ProtectedLayout><HoraTrabajador /></ProtectedLayout></RoleRoute>}
          />
          <Route
             path="/user-management"

@@ -362,10 +362,18 @@ const CalendarView = ({
 
     const selectedCalendarColor = calendars.find(c => c.id === selectedCalendarId)?.color || 'bg-blue-600';
 
+
     return (
-        <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
-            {/* Selector de Registro y Botones de Acción */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 pb-4 border-b">
+
+
+        <div class="bg-white p-4 sm:p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-100 mx-3 my-6 sm:mx-auto max-w-sm sm:max-w-md lg:max-w-xl transition-all duration-300 transform hover:scale-[1.01]">
+    <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
+        Contenedor Principal ✨
+    </h2>
+
+    <div class="space-y-4">
+        <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800 font-medium">
+             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 pb-4 border-b">
                 <div className="flex items-center mb-4 sm:mb-0">
                     <Zap className="w-6 h-6 text-yellow-600 mr-3 hidden sm:block" />
                     <label htmlFor="calendar-select" className="text-lg font-semibold text-gray-700 mr-3 whitespace-nowrap">Registro:</label>
@@ -423,36 +431,17 @@ const CalendarView = ({
                     </button>
                 </div>
             </div>
-            
+        </div>
+
+        <div class="p-4 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800 font-medium">
+                  
             {selectedCalendarId ? (
                 <>
                     {/* Totales Globales del Registro Seleccionado */}
-                    <div className="mb-8 p-4 bg-purple-50 rounded-xl border-2 border-purple-200 shadow-md">
-                        <h3 className="text-xl font-bold text-purple-800 mb-3 flex items-center">
-                             <Activity size={20} className="text-purple-600 mr-2" />
-                            Acumulado Total del Registro
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                            
-                            <div className='p-3 bg-purple-100 rounded-lg'>
-                                <p className='font-medium text-xs text-purple-700 uppercase'>Total Valor A</p>
-                                <p className="font-semibold text-purple-900 text-xl mt-1">{globalTotals.totalA.toFixed(2)}</p>
-                            </div>
-                            
-                            <div className='p-3 bg-purple-100 rounded-lg'>
-                                <p className='font-medium text-xs text-purple-700 uppercase'>Total Valor B</p>
-                                <p className="font-semibold text-purple-900 text-xl mt-1">{globalTotals.totalB.toFixed(2)}</p>
-                            </div>
-                            
-                            <div className='p-3 bg-purple-600 rounded-lg text-white shadow-lg'>
-                                <p className='font-medium text-xs uppercase'>RESULTADO GLOBAL ($A \times B$)</p>
-                                <p className="font-extrabold text-2xl mt-1">{globalTotals.totalResult.toFixed(2)}</p>
-                            </div>
-                        </div>
-                    </div>
+                   
                     
                     {/* Navegación del Calendario */}
-                    <div className="flex justify-between items-center mb-6">
+                    <div className="flex justify-between items-center mb-6 ">
                         <button 
                             onClick={() => navigateMonth(-1)} 
                             className="p-2 bg-gray-200 hover:bg-gray-300 rounded-full transition"
@@ -520,10 +509,200 @@ const CalendarView = ({
                 </div>
             )}
         </div>
+
+        <div class="p-4 bg-purple-50 border border-purple-200 rounded-lg text-sm text-purple-800 font-medium">
+           <div className="mb-8 p-4 bg-purple-50 rounded-xl border-2 border-purple-200 shadow-md">
+                        <h3 className="text-xl font-bold text-purple-800 mb-3 flex items-center">
+                             <Activity size={20} className="text-purple-600 mr-2" />
+                            Acumulado Total del Registro
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                            
+                            <div className='p-3 bg-purple-100 rounded-lg'>
+                                <p className='font-medium text-xs text-purple-700 uppercase'>Total Valor A</p>
+                                <p className="font-semibold text-purple-900 text-xl mt-1">{globalTotals.totalA.toFixed(2)}</p>
+                            </div>
+                            
+                            <div className='p-3 bg-purple-100 rounded-lg'>
+                                <p className='font-medium text-xs text-purple-700 uppercase'>Total Valor B</p>
+                                <p className="font-semibold text-purple-900 text-xl mt-1">{globalTotals.totalB.toFixed(2)}</p>
+                            </div>
+                            
+                            <div className='p-3 bg-purple-600 rounded-lg text-white shadow-lg'>
+                                <p className='font-medium text-xs uppercase'>RESULTADO GLOBAL ($A \times B$)</p>
+                                <p className="font-extrabold text-2xl mt-1">{globalTotals.totalResult.toFixed(2)}</p>
+                            </div>
+                        </div>
+                    </div>
+        </div>
+    </div>
+</div>
+        // <div className="bg-white p-4 sm:p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-100 mx-3 my-6 sm:mx-auto max-w-sm sm:max-w-md lg:max-w-xl transition-all duration-300 transform hover:scale-[1.01]">
+        //     {/* Selector de Registro y Botones de Acción */}
+        //     <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 pb-4 border-b">
+        //         <div className="flex items-center mb-4 sm:mb-0">
+        //             <Zap className="w-6 h-6 text-yellow-600 mr-3 hidden sm:block" />
+        //             <label htmlFor="calendar-select" className="text-lg font-semibold text-gray-700 mr-3 whitespace-nowrap">Registro:</label>
+        //             <select
+        //                 id="calendar-select"
+        //                 value={selectedCalendarId || ''}
+        //                 onChange={(e) => setSelectedCalendarId(e.target.value)}
+        //                 className={`p-2 border rounded-lg shadow-sm text-lg font-medium bg-gray-50 focus:ring-blue-500 focus:border-blue-500 transition 
+        //                 ${selectedCalendarId ? 'text-gray-800' : 'text-gray-500'}`}
+        //                 disabled={!isAuthReady || calendars.length === 0}
+        //             >
+        //                 {calendars.length === 0 ? (
+        //                     <option value="">Crea un registro</option>
+        //                 ) : (
+        //                     calendars.map(c => (
+        //                         <option key={c.id} value={c.id}>{c.name}</option>
+        //                     ))
+        //                 )}
+        //             </select>
+        //         </div>
+                
+        //         <div className="flex flex-wrap space-x-2 space-y-2 sm:space-y-0 w-full sm:w-auto">
+        //              {/* Botón de Exportar Día Único (NUEVO BOTÓN) */}
+        //             <button
+        //                 onClick={openExportModalInSingleDayMode}
+        //                 disabled={!selectedCalendarId || globalTotals.totalResult === 0}
+        //                 className={`flex items-center px-4 py-2 text-sm font-semibold rounded-full transition duration-150 shadow-md w-full sm:w-auto justify-center
+        //                 ${selectedCalendarId && globalTotals.totalResult !== 0 ? 'bg-orange-600 hover:bg-orange-700 text-white shadow-orange-500/50' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+        //                 title="Exportar registros de un día específico"
+        //             >
+        //                 <Clock size={16} className="mr-1" />
+        //                 Exportar Día Específico
+        //             </button>
+                    
+        //             {/* Botón de Exportar Rango/Global */}
+        //             <button
+        //                 onClick={() => setIsExportModalOpen('range')} // 'range' es el modo inicial por defecto
+        //                 disabled={!selectedCalendarId || globalTotals.totalResult === 0}
+        //                 className={`flex items-center px-4 py-2 text-sm font-semibold rounded-full transition duration-150 shadow-md w-full sm:w-auto justify-center
+        //                 ${selectedCalendarId && globalTotals.totalResult !== 0 ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/50' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+        //                 title="Exportar todos los registros filtrados (Rango de Fechas)"
+        //             >
+        //                 <Upload size={16} className="mr-1" />
+        //                 Exportar Global
+        //             </button>
+                    
+        //             {/* Botón de Nuevo Registro */}
+        //             <button
+        //                 onClick={() => setIsCalendarModalOpen(true)}
+        //                 className="flex items-center px-4 py-2 text-sm font-semibold rounded-full transition duration-150 shadow-md bg-green-600 hover:bg-green-700 text-white shadow-green-500/50 w-full sm:w-auto justify-center"
+        //                 title="Crear Nuevo Registro/Calendario"
+        //             >
+        //                 <Plus size={16} className="mr-1" />
+        //                 Nuevo Registro
+        //             </button>
+        //         </div>
+        //     </div>
+            
+        //     {selectedCalendarId ? (
+        //         <>
+        //             {/* Totales Globales del Registro Seleccionado */}
+                   
+                    
+        //             {/* Navegación del Calendario */}
+        //             <div className="flex justify-between items-center mb-6">
+        //                 <button 
+        //                     onClick={() => navigateMonth(-1)} 
+        //                     className="p-2 bg-gray-200 hover:bg-gray-300 rounded-full transition"
+        //                     title="Mes Anterior"
+        //                 >
+        //                     <ArrowLeft size={20} />
+        //                 </button>
+        //                 <h2 className="text-2xl font-bold text-gray-800">
+        //                     {MONTHS[month]} {year}
+        //                 </h2>
+        //                 <button 
+        //                     onClick={() => navigateMonth(1)} 
+        //                     className="p-2 bg-gray-200 hover:bg-gray-300 rounded-full transition rotate-180"
+        //                     title="Mes Siguiente"
+        //                 >
+        //                     <ArrowLeft size={20} />
+        //                 </button>
+        //             </div>
+
+        //             {/* Días de la semana */}
+        //             <div className="grid grid-cols-7 text-center font-semibold text-gray-600 border-b pb-2">
+        //                 {DAYS_OF_WEEK.map(day => (
+        //                     <div key={day} className="text-sm sm:text-base">{day}</div>
+        //                 ))}
+        //             </div>
+
+        //             {/* Grid de Días del Mes */}
+        //             <div className="grid grid-cols-7 gap-1 mt-2">
+        //                 {days.map((dayData) => (
+        //                     <div 
+        //                         key={dayData.key}
+        //                         onClick={() => handleDayClick(dayData)}
+        //                         className={`
+        //                             h-24 sm:h-28 p-1 sm:p-2 flex flex-col cursor-pointer transition duration-150 rounded-lg 
+        //                             ${dayData.isCurrentMonth ? 'bg-white hover:bg-blue-50 border border-gray-200' : 'bg-gray-100 text-gray-400'}
+        //                             ${formatDate(dayData.fullDate) === today && dayData.isCurrentMonth ? 'border-2 border-red-500 ring-4 ring-red-200' : ''}
+        //                         `}
+        //                     >
+        //                         <span 
+        //                             className={`
+        //                                 font-bold text-lg text-right w-full
+        //                                 ${dayData.isCurrentMonth ? 'text-gray-800' : 'text-gray-400'}
+        //                             `}
+        //                         >
+        //                             {dayData.day}
+        //                         </span>
+        //                         {dayData.events.length > 0 && (
+        //                             <div className="flex-1 overflow-hidden mt-1 px-1">
+        //                                 <div className="text-center font-medium text-xs py-1 rounded-full text-white shadow-md"
+        //                                     style={{ backgroundColor: selectedCalendarColor }}
+        //                                 >
+        //                                     <span className='font-bold'>{dayData.events.length}</span> {dayData.events.length === 1 ? 'Producto' : 'Productos'}
+        //                                 </div>
+        //                             </div>
+        //                         )}
+        //                     </div>
+        //                 ))}
+        //             </div>
+        //         </>
+        //     ) : (
+        //         <div className="p-10 text-center text-gray-500">
+        //             <Package size={48} className="mx-auto text-blue-400 mb-4" />
+        //             <p className="text-xl font-semibold">Crea un registro para comenzar</p>
+        //             <p className="mt-2">Utiliza el botón **Nuevo Registro** para organizar tus productos.</p>
+        //         </div>
+        //     )}
+
+        //      <div className="mb-8 p-4 bg-purple-50 rounded-xl border-2 border-purple-200 shadow-md">
+        //                 <h3 className="text-xl font-bold text-purple-800 mb-3 flex items-center">
+        //                      <Activity size={20} className="text-purple-600 mr-2" />
+        //                     Acumulado Total del Registro
+        //                 </h3>
+        //                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                            
+        //                     <div className='p-3 bg-purple-100 rounded-lg'>
+        //                         <p className='font-medium text-xs text-purple-700 uppercase'>Total Valor A</p>
+        //                         <p className="font-semibold text-purple-900 text-xl mt-1">{globalTotals.totalA.toFixed(2)}</p>
+        //                     </div>
+                            
+        //                     <div className='p-3 bg-purple-100 rounded-lg'>
+        //                         <p className='font-medium text-xs text-purple-700 uppercase'>Total Valor B</p>
+        //                         <p className="font-semibold text-purple-900 text-xl mt-1">{globalTotals.totalB.toFixed(2)}</p>
+        //                     </div>
+                            
+        //                     <div className='p-3 bg-purple-600 rounded-lg text-white shadow-lg'>
+        //                         <p className='font-medium text-xs uppercase'>RESULTADO GLOBAL ($A \times B$)</p>
+        //                         <p className="font-extrabold text-2xl mt-1">{globalTotals.totalResult.toFixed(2)}</p>
+        //                     </div>
+        //                 </div>
+        //             </div>
+        // </div>
+        
     );
 };
 
 
+
+                    
 // =========================================================================
 // === Componentes de Lista y Detalles (Omitido por ser Boilerplate) =======
 // =========================================================================

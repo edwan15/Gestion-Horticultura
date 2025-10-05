@@ -71,23 +71,29 @@ const Home = () => {
             </ShowOnLogout>
 
             {/* BOTÓN 3: PANEL DE ADMINISTRACIÓN */}
-            <ShowOnLogin>
-              <Link
-                to="/panel"
-                className="py-2 px-4 bg-emerald-600 rounded-full text-white cursor-pointer font-bold text-lg shadow-lg transition duration-300 hover:bg-emerald-700 flex items-center gap-2"
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.boxShadow =
-                    "0 4px 20px rgba(16, 185, 129, 0.5)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.boxShadow =
-                    "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)")
-                }
-              >
-                <FiGrid className="text-xl" />
-                Panel de Administración
-              </Link>
-            </ShowOnLogin>
+          <ShowOnLogin>
+  <Link
+    to="/panel"
+    className="
+      py-2 px-3 sm:px-4                                
+      bg-emerald-600 rounded-full text-white cursor-pointer font-bold 
+      text-sm md:text-lg                             
+      shadow-lg transition duration-300 hover:bg-emerald-700 
+      flex items-center gap-2
+    "
+    onMouseEnter={(e) =>
+      (e.currentTarget.style.boxShadow =
+        "0 4px 20px rgba(16, 185, 129, 0.5)")
+    }
+    onMouseLeave={(e) =>
+      (e.currentTarget.style.boxShadow =
+        "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)")
+    }
+  >
+    <FiGrid className="text-xl" />
+    Panel de Administración
+  </Link>
+</ShowOnLogin>
           </div>
         </div>
       </header>

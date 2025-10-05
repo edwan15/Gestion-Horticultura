@@ -99,7 +99,7 @@ const acumuladoC = () => {
           </Link>
 
           {/* Tarjeta 2: Trabajadores */}
-          <Link to="/panel/horas-trabajo" className="block h-full">
+          <Link to="/trabajador" className="block h-full">
             <Card
               icon={<Clock className="w-7 h-7 sm:w-8 sm:h-8 text-indigo-500" />}
               title="Gestión de Tiempos y Carga Laboral"
