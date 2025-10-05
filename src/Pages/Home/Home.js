@@ -146,7 +146,7 @@ const Home = () => {
           </a>
         </p>
         <div className="flex justify-center">
-          <a href="#" target="_blank" rel="noopener noreferrer">
+          <a href="https://agrodolores.com/" target="_blank" rel="noopener noreferrer">
             <h1 className="text-3xl text-white hover:text-gray-300 transition">
               <AiFillGithub />
             </h1>

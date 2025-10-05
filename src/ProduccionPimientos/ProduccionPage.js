@@ -7,8 +7,7 @@ import { Route, Routes } from 'react-router-dom';
 
 // Importa los componentes
 import ProduccionCalendar from './ProduccionCalendar'; 
-import ProduccionDayDetails from './ProduccionDayDetails'; 
-import DailyProductionReport from './DailyProductionReport';
+import ProduccionDayDetails from './ProduccionDayDetails';
 
 function ProduccionPage() {
     const userId = useSelector(selectUserId);
@@ -73,7 +72,7 @@ function ProduccionPage() {
                 {/* 2. Detalle: refetchCalendar={fetchCosechaData} */}
                 <Route 
                     path="/produccion-day/:date" 
-                    element={<DailyProductionReport refetchCalendar={fetchCosechaData} />} 
+                    element={<ProduccionDayDetails refetchCalendar={fetchCosechaData} />} 
                 />
             </Routes>
         </div>

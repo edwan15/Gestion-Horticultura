@@ -8,7 +8,7 @@ import {
 } from 'firebase/firestore';
 import { 
     Plus, Trash2, X, Calendar as CalendarIcon, Loader, Zap, 
-    ArrowLeft, FileText, FileSpreadsheet, Activity, CheckCircle, Package, Edit, Upload, Minus, Filter, CalendarCheck, Clock
+    ArrowLeft, FileText, FileSpreadsheet, Activity, CheckCircle, Package, Edit, Upload,  Filter , Clock
 } from 'lucide-react';
 
 // --- Global Variables (Provided by Canvas Environment) ---

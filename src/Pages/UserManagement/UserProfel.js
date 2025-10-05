@@ -28,63 +28,6 @@ import DashBoard from "../DashBoard/DashBoard";
 
 const allowedRoles = ["admin", "usuario", "invitado"];
 
-const mockUsers = [
-  {
-    _id: "65e638d01",
-    name: "Alice Admin",
-    email: "alice@example.com",
-    role: "admin",
-    phone: "+34 600 123 456",
-    registrationDate: "2023-01-15",
-    lastLogin: "2025-10-02T10:30:00Z",
-    activityLog: ["Creación de 3 nuevos productos", "Actualización de precios"],
-    savedProducts: [{ id: 101, name: "Licencia Pro Anual" }],
-    databaseAccess: { db: "main_production_db", level: "Full Read/Write" },
-  },
-  {
-    _id: "65e638d02",
-    name: "Bob User",
-    email: "bob@example.com",
-    role: "usuario",
-    phone: "+34 600 987 654",
-    registrationDate: "2023-05-20",
-    lastLogin: "2025-10-02T14:45:00Z",
-    activityLog: [
-      "Compra finalizada (ID: #0045)",
-      "Producto añadido al carrito",
-    ],
-    savedProducts: [
-      { id: 201, name: "Kit Básico de Inicio" },
-      { id: 202, name: "Módulo de Reportes" },
-    ],
-    databaseAccess: { db: "user_data_002", level: "Limited Read Only" },
-  },
-  {
-    _id: "65e638d03",
-    name: "Charlie Guest",
-    email: "charlie@example.com",
-    role: "invitado",
-    phone: "N/A",
-    registrationDate: "2024-02-10",
-    lastLogin: "2025-09-15T09:10:00Z",
-    activityLog: ["Visita a la página de contacto", "Descarga de brochure"],
-    savedProducts: [],
-    databaseAccess: { db: "public_access_logs", level: "No Access" },
-  },
-  {
-    _id: "65e638d04",
-    name: "Diana User",
-    email: "diana@example.com",
-    role: "usuario",
-    phone: "+34 600 333 444",
-    registrationDate: "2024-07-01",
-    lastLogin: "2025-10-01T18:00:00Z",
-    activityLog: ["Inicio de sesión fallido", "Actualización de contraseña"],
-    savedProducts: [{ id: 301, name: "Paquete Premium Mensual" }],
-    databaseAccess: { db: "user_data_004", level: "Limited Read/Write" },
-  },
-];
-
 // SIMULADOR DE ROL: Devuelve 'admin' por defecto para pruebas de gestión.
 const useAuthSimulator = () => {
   return {
@@ -96,38 +39,38 @@ const useAuthSimulator = () => {
 // 1. COMPONENTES DE VISTA SIMULADA DEL USUARIO (Dashboard, Products, Settings)
 // =========================================================================
 
-const DashboardView = ({ user }) => (
-  <div className="p-4 bg-gray-100 rounded-lg border border-gray-200">
-    <h5 className="text-xl font-bold mb-3 text-indigo-700">
-      Resumen del Dashboard
-    </h5>
-    <p className="text-gray-600 mb-2">
-      Hola, <span className="font-bold">{user.name}</span>. Tu cuenta está
-      activa desde {user.registrationDate}.
-    </p>
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-      <div className="p-4 bg-white rounded-md shadow-sm border-l-4 border-blue-500">
-        <p className="text-sm text-gray-500">Productos Activos</p>
-        {/* Corrección: Uso de encadenamiento opcional para evitar error si savedProducts es undefined */}
-        <p className="text-2xl font-extrabold text-blue-800">
-          {user.savedProducts?.length || 0}
-        </p>
-      </div>
-      <div className="p-4 bg-white rounded-md shadow-sm border-l-4 border-green-500">
-        <p className="text-sm text-gray-500">Último Login</p>
-        <p className="text-base font-bold text-green-800">
-          {new Date(user.lastLogin).toLocaleDateString()}
-        </p>
-      </div>
-      <div className="p-4 bg-white rounded-md shadow-sm border-l-4 border-red-500">
-        <p className="text-sm text-gray-500">Rol</p>
-        <p className="text-xl font-bold text-red-800">
-          {user.role.toUpperCase()}
-        </p>
-      </div>
-    </div>
-  </div>
-);
+// const DashboardView = ({ user }) => (
+//   <div className="p-4 bg-gray-100 rounded-lg border border-gray-200">
+//     <h5 className="text-xl font-bold mb-3 text-indigo-700">
+//       Resumen del Dashboard
+//     </h5>
+//     <p className="text-gray-600 mb-2">
+//       Hola, <span className="font-bold">{user.name}</span>. Tu cuenta está
+//       activa desde {user.registrationDate}.
+//     </p>
+//     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+//       <div className="p-4 bg-white rounded-md shadow-sm border-l-4 border-blue-500">
+//         <p className="text-sm text-gray-500">Productos Activos</p>
+//         {/* Corrección: Uso de encadenamiento opcional para evitar error si savedProducts es undefined */}
+//         <p className="text-2xl font-extrabold text-blue-800">
+//           {user.savedProducts?.length || 0}
+//         </p>
+//       </div>
+//       <div className="p-4 bg-white rounded-md shadow-sm border-l-4 border-green-500">
+//         <p className="text-sm text-gray-500">Último Login</p>
+//         <p className="text-base font-bold text-green-800">
+//           {new Date(user.lastLogin).toLocaleDateString()}
+//         </p>
+//       </div>
+//       <div className="p-4 bg-white rounded-md shadow-sm border-l-4 border-red-500">
+//         <p className="text-sm text-gray-500">Rol</p>
+//         <p className="text-xl font-bold text-red-800">
+//           {user.role.toUpperCase()}
+//         </p>
+//       </div>
+//     </div>
+//   </div>
+// );
 
 const ProductsView = ({ user }) => (
   <div className="p-4 bg-gray-100 rounded-lg border border-gray-200">

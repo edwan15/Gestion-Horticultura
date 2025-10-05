@@ -41,7 +41,6 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 
 // 🚨 IMPORTACIÓN CLAVE: Solo importamos el contenedor de datos de Producción
 import ProduccionPage from './ProduccionPimientos/ProduccionPage' 
-import ProduccionDayDetails from "./ProduccionPimientos/ProduccionDayDetails";
 import Tarea from "./components/Carga/Tarea";
 // 🚨 Nota: Eliminé las importaciones erróneas de ProduccionCalendar, DayDetails y fetchCosechaData
 
