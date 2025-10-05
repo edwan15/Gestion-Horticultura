@@ -38,66 +38,36 @@
 // export default Layout;
 
 
-// import React from "react";
-// import Footer from "../Footer/Footer";
-// import Header from "../Header/Header";
-
-// const Layout = ({ children }) => {
-//   return (
-//     // 🛑 CAMBIO CLAVE: Usamos 'min-h-screen' para que ocupe al menos el 100% de la altura del viewport.
-//     // Usamos 'flex flex-col' para apilar Header, Contenido y Footer verticalmente.
-//     <div className="min-h-screen flex flex-col bg-gray-50">
-      
-//       {/* 1. Header (Fijo) */}
-//       {/* Se mantiene como un elemento normal, ocupando el espacio que necesita. */}
-//       <Header />
-
-//       {/* 2. Contenido Principal (Scrollable) */}
-//       {/* 🛑 CAMBIO CLAVE: 'flex-grow' hace que este div se estire para ocupar todo el espacio restante. 
-//          'overflow-y-auto' habilita el desplazamiento SOLAMENTE dentro de este contenedor.
-//          El padding 'p-4' es excelente para móviles, 'sm:p-6' para pantallas más grandes. 
-//          Añadimos 'w-full' para asegurar el ancho total.
-//       */}
-//       <main className="flex-grow w-full overflow-y-auto p-4 sm:p-6">
-//           {children}
-//       </main>
-
-//       {/* 3. Footer (Fijo) */}
-//       {/* Se mantiene como un elemento normal al final del Flex container. */}
-//       <Footer />
-//     </div>
-//   );
-// };
-
-// export default Layout;
-
 import React from "react";
 import Footer from "../Footer/Footer";
 import Header from "../Header/Header";
 
-const AppLayout = ({ children }) => {
+const Layout = ({ children }) => {
   return (
-    // 🔑 MÁXIMA RESPONSIVIDAD: Este contenedor define la estructura vertical de toda la app.
-    // 'min-h-screen' asegura que ocupa al menos el 100% de la altura del dispositivo.
+    // 🛑 CAMBIO CLAVE: Usamos 'min-h-screen' para que ocupe al menos el 100% de la altura del viewport.
+    // Usamos 'flex flex-col' para apilar Header, Contenido y Footer verticalmente.
     <div className="min-h-screen flex flex-col bg-gray-50">
       
-      {/* 1. Header (Se mantiene en la parte superior) */}
+      {/* 1. Header (Fijo) */}
+      {/* Se mantiene como un elemento normal, ocupando el espacio que necesita. */}
       <Header />
 
-      {/* 2. Contenido Principal (El área que se estira y hace scroll) */}
-      {/* ✅ 'flex-grow': Ocupa todo el espacio vertical restante.
-        ✅ 'w-full': Asegura el ancho total.
-        ✅ 'overflow-y-auto': Permite el desplazamiento vertical solo del contenido.
-        ✅ 'p-4 sm:p-6': Padding ideal para móviles (p-4) que escala a tablet/desktop (sm:p-6).
+      {/* 2. Contenido Principal (Scrollable) */}
+      {/* 🛑 CAMBIO CLAVE: 'flex-grow' hace que este div se estire para ocupar todo el espacio restante. 
+         'overflow-y-auto' habilita el desplazamiento SOLAMENTE dentro de este contenedor.
+         El padding 'p-4' es excelente para móviles, 'sm:p-6' para pantallas más grandes. 
+         Añadimos 'w-full' para asegurar el ancho total.
       */}
       <main className="flex-grow w-full overflow-y-auto p-4 sm:p-6">
           {children}
       </main>
 
-      {/* 3. Footer (Se mantiene pegado al fondo) */}
+      {/* 3. Footer (Fijo) */}
+      {/* Se mantiene como un elemento normal al final del Flex container. */}
       <Footer />
     </div>
   );
 };
 
-export default AppLayout;
+export default Layout;
+
