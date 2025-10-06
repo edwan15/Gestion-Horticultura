@@ -472,8 +472,8 @@ const ProductCard = React.memo(({ item }) => {
       <div className="p-3 mt-4 rounded-lg bg-white/70 shadow-inner border border-current/50">
         <p className="text-lg font-bold flex justify-between items-center">
           <span className="uppercase text-gray-600">Total Producido:</span>
-          <span className="text-2xl font-extrabold text-indigo-700">
-            {result.toFixed(2)}{" "}
+          <span className="text-lg font-extrabold text-indigo-700">
+            {result.toFixed(0)}{" "}
             <span className="text-base font-normal">Kg</span>
           </span>
         </p>

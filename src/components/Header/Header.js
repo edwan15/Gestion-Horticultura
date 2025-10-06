@@ -22,14 +22,10 @@ const Header = () => {
   };
 
   return (
-    // 🛑 CAMBIO CLAVE: Usa 'flex-col' por defecto (móvil) y 'sm:flex-row' para tablet/desktop.
-    // Además, aumenta el relleno (padding) en el eje Y para darle más aire.
+
     <header className="flex flex-col sm:flex-row justify-between items-center px-4 py-4 sm:py-6 border-b border-gray-200 shadow-sm">
       
-      {/* Contenedor del Título 
-        En móvil, ocupa todo el ancho ('w-full') y centra el texto. 
-        En 'sm' (tablet+), el texto se alinea a la izquierda ('sm:text-left').
-      */}
+    
       <div className="w-full text-center sm:text-left mb-3 sm:mb-0">
         {/* Usamos un tamaño de fuente que escala mejor: 'text-lg' para móvil, 'sm:text-xl' para tablet y 'lg:text-2xl' para desktop */}
         <p className="text-gray-700 text-lg sm:text-xl lg:text-2xl font-normal">
