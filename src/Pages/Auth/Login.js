@@ -268,7 +268,7 @@ const Login = () => {
       // -----------------------------
       console.log("Datos de Usuario recibidos después del login:", data.name);
 
-      navigate("/panel");
+      navigate("/acumuladoC");
       setIsLoading(false);
       setformData(initialState);
       toast.success("Inicio de sesión exitoso");
@@ -285,8 +285,9 @@ const Login = () => {
   return (
     <>
       {isLoading && <Loader />}
-      <div className="h-screen flex items-center justify-center bg-[url('https://s2.glbimg.com/aFWwcIq0YX0bvSyT4J1HliK7q78=/e.glbimg.com/og/ed/f/original/2015/12/16/thinkstockphotos-476743286.jpg')] bg-cover bg-center bg-no-repeat">
-        {/* Usamos motion.div con las variantes para la animación de entrada */}
+      <div className="min-h-screen flex items-center justify-center 
+                bg-[url('https://s2.glbimg.com/aFWwcIq0YX0bvSyT4J1HliK7q78=/e.glbimg.com/og/ed/f/original/2015/12/16/thinkstockphotos-476743286.jpg')] 
+                bg-cover bg-center bg-no-repeat">
         <motion.div
           variants={formVariants}
           initial="initial"

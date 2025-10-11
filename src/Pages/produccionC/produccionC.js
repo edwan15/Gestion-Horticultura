@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { initializeApp } from "firebase/app";
 import {
@@ -7,7 +8,7 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { getFirestore, doc, setDoc, onSnapshot } from "firebase/firestore";
-import {firebaseConfig} from "../../firebaseConfig"
+import { firebaseConfig } from "../../firebaseConfig";
 
 // 🔥 NUEVOS IMPORTS para la exportación a PDF
 import html2canvas from "html2canvas";
@@ -23,7 +24,6 @@ const getAppId = () => {
 };
 const appId = getAppId();
 
-
 // 🔥🔥 ¡IMPORTANTE! URL DE TU PROPIO ENDPOINT DE BACKEND 🔥🔥
 const YOUR_BACKEND_UPLOAD_URL = "http://localhost:4500/api/upload/image";
 
@@ -33,7 +33,6 @@ const YOUR_BACKEND_UPLOAD_URL = "http://localhost:4500/api/upload/image";
 const REPORT_CONFIG = {
   COMPANY_NAME: "REPORTE DE INVENTARIO DIARIO",
   REPORT_TITLE: "Finca Balsicas Producción S.A.",
-  LOGO_URL:"data:image/png;base64,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"
 };
 
 const formatDate = (date) => {
@@ -51,7 +50,7 @@ const getDocRef = (dbInstance, userId) => {
 // =======================================================================
 // === CONSTANTE DE COSTE DE HORA (MODIFICABLE) 💸
 // =======================================================================
-const HOURLY_COST_RATE = 25.5; // € o la moneda que uses. ¡Dato Fijo, Modificable en el código!
+const HOURLY_COST_RATE = 10; // € o la moneda que uses. ¡Dato Fijo, Modificable en el código!
 
 // =======================================================================
 // === FUNCIÓN DE EXPORTACIÓN CSV (Sin cambios)
@@ -105,8 +104,8 @@ const exportToCsv = (data, dateKeyToExport = null) => {
         dateKey,
         "DETALLE_PRODUCTO",
         item.productName || "",
-        parseFloat(item.factorA || 0).toFixed(2),
-        parseFloat(item.factorB || 0).toFixed(2),
+        parseFloat(item.factorA || 0).toFixed(0),
+        parseFloat(item.factorB || 0).toFixed(0),
         result.toFixed(2),
         imageUrlString,
         "", // N_Trabajadores
@@ -222,7 +221,7 @@ const InputField = ({
 // =======================================================================
 
 const ProductItemForm = React.memo(
-  ({ item, index, handleItemChange, handleItemBlur, deleteItem }) => {
+  ({ item, index, handleItemChange, handleItemBlur, deleteItem , handleDayClick}) => {
     const handleImageChange = (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -244,6 +243,7 @@ const ProductItemForm = React.memo(
     return (
       <div className="border border-indigo-200 bg-indigo-50 p-6 rounded-xl shadow-md space-y-4">
         <div className="flex justify-between items-center pb-2 border-b border-indigo-200">
+            
           <h4 className="text-xl font-bold text-indigo-700">
             Producto #{index + 1}
           </h4>
@@ -312,7 +312,7 @@ const ProductItemForm = React.memo(
             label="Factor B (Ingresar)"
             value={item.factorBInput}
             field="factorB"
-            placeholder="0.00"
+            placeholder="0"
             item={item}
             handleItemChange={handleItemChange}
             handleItemBlur={handleItemBlur}
@@ -400,9 +400,9 @@ const ProductItemForm = React.memo(
         <div className="p-3 bg-indigo-100 rounded-lg border border-indigo-300">
           <p className="text-sm font-medium text-indigo-800">Resultado:</p>
           <p className="text-xl font-bold text-indigo-900 mt-1">
-            {parseFloat(item.factorA || 0).toFixed(2)} *{" "}
-            {parseFloat(item.factorB || 0).toFixed(2)} ={" "}
-            <span className="text-green-700">{item.result.toFixed(2)}</span>
+            {parseFloat(item.factorA || 0)} *{" "}
+            {parseFloat(item.factorB || 0)} ={" "}
+            <span className="text-green-700">{item.result}</span>
             Kg
           </p>
         </div>
@@ -461,11 +461,11 @@ const ProductCard = React.memo(({ item }) => {
       <div className="space-y-2 mb-4 text-sm font-medium">
         <p className="flex justify-between">
           <span>Factor A:</span>
-          <span className="font-bold">{factorA.toFixed(2)}</span>
+          <span className="font-bold">{factorA}</span>
         </p>
         <p className="flex justify-between">
           <span>Factor B:</span>
-          <span className="font-bold">{factorB.toFixed(2)}</span>
+          <span className="font-bold">{factorB}</span>
         </p>
       </div>
 
@@ -671,6 +671,8 @@ const ProductionCostForm = React.memo(
       numWorkers: dayData.numWorkers || 0,
       hoursWorked: dayData.hoursWorked || 0,
     });
+      handleDayClick(dateKey, "cost-grid"); // Volver a la vista de costes
+
 
     // Función para manejar el cambio en los campos numéricos
     const handleCostChange = (field, value) => {
@@ -892,31 +894,70 @@ const ProduccionC = () => {
     }
   }, []);
 
-  useEffect(() => {
+
+useEffect(() => {
     if (db && userId && isAuthReady && userId !== "Anonimo_Sin_DB") {
-      const resultsDocRef = getDocRef(db, userId);
+        const resultsDocRef = getDocRef(db, userId);
 
-      const unsubscribe = onSnapshot(
-        resultsDocRef,
-        (docSnap) => {
-          if (docSnap.exists()) {
-            setDailyData(docSnap.data());
-          } else {
-            setDailyData({});
-          }
-          setLoading(false);
-        },
-        (error) => {
-          console.error("Error listening to document: ", error);
-          setLoading(false);
-        }
-      );
+        const unsubscribe = onSnapshot(
+            resultsDocRef,
+            (docSnap) => {
+                // 🔥 COMPLETAR AQUÍ 🔥
+                if (docSnap.exists()) {
+                    // Cargar los datos del documento si existe
+                    const loadedData = docSnap.data();
+                    setDailyData(loadedData);
+                    console.log("Datos cargados/actualizados desde Firestore.");
+                } else {
+                    // Si el documento NO existe (primera vez), inicializamos
+                    setDailyData({});
+                    console.log("Documento de datos no encontrado, inicializando localmente.");
+                }
+                setLoading(false); // Ocultar el loader una vez que se cargan los datos
+            },
+            (error) => {
+                console.error("Error al suscribirse a Firestore:", error);
+                setLoading(false);
+                showTemporaryMessage(
+                    "Error al cargar los datos en tiempo real.",
+                    "error"
+                );
+            }
+        );
 
-      return () => unsubscribe();
-    } else if (userId === "Anonimo_Sin_DB") {
-      setLoading(false);
+        return () => unsubscribe(); // Limpieza de la suscripción
     }
-  }, [db, userId, isAuthReady]);
+    // ... (El resto del useEffect de autenticación debe estar antes o separado)
+}, [db, userId, isAuthReady]);
+
+
+
+//   useEffect(() => {
+//     if (db && userId && isAuthReady && userId !== "Anonimo_Sin_DB") {
+//       const resultsDocRef = getDocRef(db, userId);
+
+//       const unsubscribe = onSnapshot(
+//         resultsDocRef,
+//         (docSnap) => {
+//           if (docSnap.exists()) {
+//             setDailyData(docSnap.data());
+//           } else {
+//             setDailyData({});
+//           }
+//           setLoading(false);
+//         },
+//         (error) => {
+//           console.error("Error listening to document: ", error);
+//           setLoading(false);
+//         }
+//       );
+
+//       return () => unsubscribe();
+//     } else if (userId === "Anonimo_Sin_DB") {
+//       setLoading(false);
+//     }
+//   }, [db, userId, isAuthReady]);
+  
 
   // Lógica de navegación principal (Sin cambios)
   const handleDayClick = (dateKey, action = "view") => {
@@ -1041,241 +1082,126 @@ const ProduccionC = () => {
   );
 
   // --- FUNCIÓN saveData (Sin cambios) ---
+//   const saveData = useCallback(
+//     async (dateKey, formData, isCostSave = false) => {
+//       if (!db || !userId || userId === "Anonimo_Sin_DB") {
+//         showTemporaryMessage(
+//           "Error: No se puede guardar. Firebase no inicializado.",
+//           "error"
+//         );
+//         return;
+//       }
+
+//       let cleanedItems = formData.items.filter(
+//         (item) => item.productName || item.factorA !== 0 || item.factorB !== 0
+//       );
+
+//       let dataToSave = { ...formData };
+//       dataToSave.items = cleanedItems;
+
+//       if (
+//         !isCostSave &&
+//         cleanedItems.length === 0 &&
+//         !formData.numWorkers &&
+//         !formData.hoursWorked
+//       ) {
+//         await deleteData(dateKey, true);
+//         showTemporaryMessage(`Datos borrados para ${dateKey} (vacíos).`);
+//         setView("calendar");
+//         return;
+//       }
+
+//       if (!isCostSave) {
+//         const itemsToSavePromises = cleanedItems.map(async (item) => {
+//           if (item.imageUrl && item.imageUrl.startsWith("data:image")) {
+//             const imageId = item.id || crypto.randomUUID();
+//             const publicUrl = await uploadImage(
+//               item.imageUrl,
+//               dateKey,
+//               imageId
+//             );
+//             return {
+//               ...item,
+//               imageUrl: publicUrl || "",
+//             };
+//           }
+//           return item;
+//         });
+//         dataToSave.items = (await Promise.all(itemsToSavePromises)).filter(
+//           (item) => item.productName || item.factorA !== 0 || item.factorB !== 0
+//         );
+//       }
+
+//       try {
+//         const resultsDocRef = getDocRef(db, userId);
+
+//         await setDoc(
+//           resultsDocRef,
+//           {
+//             ...dailyData,
+//             [dateKey]: dataToSave,
+//           },
+//           { merge: true }
+//         );
+
+//         showTemporaryMessage(
+//           `¡Datos ${
+//             isCostSave ? "de Coste" : "de Producción"
+//           } guardados para ${dateKey}!`
+//         );
+//         setView("detail");
+//       } catch (error) {
+//         console.error("Error saving data:", error);
+//         showTemporaryMessage(
+//           "Error al guardar los datos en Firestore. Revisa la consola.",
+//           "error"
+//         );
+//       }
+//     },
+//     [db, userId, dailyData, deleteData, showTemporaryMessage, uploadImage]
+//   );
   const saveData = useCallback(
-    async (dateKey, formData, isCostSave = false) => {
+    async (dateKey, dataToSave, isCostSave = false) => {
       if (!db || !userId || userId === "Anonimo_Sin_DB") {
         showTemporaryMessage(
-          "Error: No se puede guardar. Firebase no inicializado.",
+          "No se puede guardar: Firebase no está disponible.",
           "error"
         );
         return;
       }
 
-      let cleanedItems = formData.items.filter(
-        (item) => item.productName || item.factorA !== 0 || item.factorB !== 0
-      );
-
-      let dataToSave = { ...formData };
-      dataToSave.items = cleanedItems;
-
-      if (
-        !isCostSave &&
-        cleanedItems.length === 0 &&
-        !formData.numWorkers &&
-        !formData.hoursWorked
-      ) {
-        await deleteData(dateKey, true);
-        showTemporaryMessage(`Datos borrados para ${dateKey} (vacíos).`);
-        setView("calendar");
-        return;
-      }
-
-      if (!isCostSave) {
-        const itemsToSavePromises = cleanedItems.map(async (item) => {
-          if (item.imageUrl && item.imageUrl.startsWith("data:image")) {
-            const imageId = item.id || crypto.randomUUID();
-            const publicUrl = await uploadImage(
-              item.imageUrl,
-              dateKey,
-              imageId
-            );
-            return {
-              ...item,
-              imageUrl: publicUrl || "",
-            };
-          }
-          return item;
-        });
-        dataToSave.items = (await Promise.all(itemsToSavePromises)).filter(
-          (item) => item.productName || item.factorA !== 0 || item.factorB !== 0
-        );
-      }
+      // 1. Clonar el estado actual para evitar mutaciones directas
+      const newDailyData = { ...dailyData };
+      newDailyData[dateKey] = dataToSave;
 
       try {
-        const resultsDocRef = getDocRef(db, userId);
+        const docRef = getDocRef(db, userId);
 
-        await setDoc(
-          resultsDocRef,
-          {
-            ...dailyData,
-            [dateKey]: dataToSave,
-          },
-          { merge: true }
-        );
+        // 2. setDoc reemplaza/crea el documento completo. 
+        // Para actualizar solo el día específico, usamos la estructura anidada.
+        // Aquí guardamos el objeto completo 'newDailyData' que contiene todos los días.
+        // Esto crea el documento 'data' y la estructura de colecciones si no existe.
+        await setDoc(docRef, newDailyData);
 
+        // Opcional: Actualizar el estado local (aunque onSnapshot lo hará)
+        setDailyData(newDailyData);
+        
+        const typeMsg = isCostSave ? "Costes" : "Productos";
         showTemporaryMessage(
-          `¡Datos ${
-            isCostSave ? "de Coste" : "de Producción"
-          } guardados para ${dateKey}!`
+          `${typeMsg} guardados con éxito en Firebase.`,
+          "success"
         );
-        setView("detail");
       } catch (error) {
-        console.error("Error saving data:", error);
+        console.error("Error al guardar en Firestore:", error);
         showTemporaryMessage(
-          "Error al guardar los datos en Firestore. Revisa la consola.",
+          `Error al guardar ${isCostSave ? "costes" : "productos"}.`,
           "error"
         );
       }
     },
-    [db, userId, dailyData, deleteData, showTemporaryMessage, uploadImage]
+    [db, userId, dailyData]
   );
 
-  // === FUNCIÓN generatePDF (NUEVA IMPLEMENTACIÓN) 📄
-  // =======================================================================
-  //   const generatePDF = useCallback(async (dateKey) => {
-  //     // Objeto de día completo
-  //     const dailyDataEntry = dailyData[dateKey] || { items: [] };
-
-  //     // 1. Crear un contenedor temporal con el HTML que queremos capturar.
-  //     const pdfContent = document.createElement('div');
-  //     pdfContent.style.width = '210mm'; // Ancho A4
-  //     pdfContent.style.padding = '15mm 10mm';
-  //     pdfContent.style.position = 'absolute';
-  //     pdfContent.style.left = '-9999px'; // Ocultar
-  //     // Estilo global más profesional
-  //     pdfContent.style.fontFamily = 'Helvetica, Arial, sans-serif';
-  //     pdfContent.style.color = '#333333';
-  //     pdfContent.style.backgroundColor = '#FFFFFF';
-
-  //     // 2. Generar el HTML del reporte (Header + Cuerpo + Footer)
-  //     const totalProduccion = dailyDataEntry.items.reduce((sum, item) => sum + parseFloat(item.result || 0), 0).toFixed(2);
-  //     const costeFinal = (dailyDataEntry.finalProductionCost || 0).toFixed(4);
-  //     const dateDisplay = new Date(dateKey).toLocaleDateString("es-ES", {
-  //         weekday: "long", year: "numeric", month: "long", day: "numeric",
-  //     });
-
-  //     // --- 2.1. Header HTML (Estilo Limpio y Corporativo) ---
-  //     const headerHtml = `
-  //         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #E0E7FF; padding-bottom: 15px; margin-bottom: 25px;">
-  //             <div style="flex: 1;">
-  //                 <img src="${REPORT_CONFIG.LOGO_URL}" alt="Logo" style="height: 45px; width: auto; max-width: 100%; border-radius: 4px;">
-  //             </div>
-  //             <div style="flex: 2; text-align: center;">
-  //                 <h1 style="font-size: 26px; font-weight: 700; margin: 0; color: #1E3A8A;">${REPORT_CONFIG.REPORT_TITLE}</h1>
-  //                 <p style="font-size: 14px; margin: 3px 0 0 0; color: #6B7280; font-style: italic;">${REPORT_CONFIG.COMPANY_NAME}</p>
-  //             </div>
-  //             <div style="flex: 1; text-align: right;">
-  //                 <p style="font-size: 11px; margin: 0; color: #9CA3AF;">Fecha de Impresión:</p>
-  //                 <p style="font-size: 13px; font-weight: 600; margin: 2px 0 0 0; color: #4B5563;">${formatDate(new Date())}</p>
-  //             </div>
-  //         </div>
-  //         <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 20px; text-align: center; color: #059669; background-color: #F0FDF4; padding: 8px; border-radius: 4px;">Reporte Diario: ${dateDisplay}</h2>
-  //     `;
-
-  //     // --- 2.2. Resumen y Cuerpo HTML ---
-  //     let bodyHtml = `
-  //         <div style="display: flex; gap: 20px; margin-bottom: 30px; border: 1px solid #D1E5F7; background-color: #F8FBFF; padding: 15px; border-radius: 8px;">
-  //             <div style="flex: 1;">
-  //                 <p style="font-size: 14px; font-weight: 600; color: #4B5563; margin: 0;">PRODUCCIÓN TOTAL (Kg):</p>
-  //                 <p style="font-size: 28px; font-weight: 700; color: #10B981; margin: 5px 0 0 0;">${totalProduccion}</p>
-  //             </div>
-  //             <div style="width: 1px; background-color: #D1E5F7;"></div>
-  //             <div style="flex: 1;">
-  //                 <p style="font-size: 14px; font-weight: 600; color: #4B5563; margin: 0;">COSTE FINAL (Kg/€):</p>
-  //                 <p style="font-size: 28px; font-weight: 700; color: #2563EB; margin: 5px 0 0 0;">${costeFinal}</p>
-  //             </div>
-  //         </div>
-
-  //         <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 20px; border-bottom: 1px solid #E5E7EB; padding-bottom: 8px;">Productos Detallados:</h3>
-  //     `;
-
-  //     if (dailyDataEntry.items.length === 0) {
-  //         bodyHtml += `<p style="color: #9CA3AF;">No hay productos registrados para este día.</p>`;
-  //     } else {
-  //         // Contenedor de la cuadrícula de productos (Grid de 2 columnas)
-  //         bodyHtml += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">`;
-
-  //         dailyDataEntry.items.forEach((item, index) => {
-  //             const result = parseFloat(item.result || 0).toFixed(2);
-  //             bodyHtml += `
-  //                 <div style="
-  //                     border: 1px solid #E5E7EB;
-  //                     padding: 12px;
-  //                     border-radius: 8px;
-  //                     background-color: #FFFFFF;
-  //                     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-  //                     display: flex;
-  //                     align-items: flex-start;
-  //                 ">
-  //                     ${item.imageUrl ? `
-  //                         <img
-  //                             src="${item.imageUrl}"
-  //                             alt="Evidencia"
-  //                             style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; margin-right: 12px; flex-shrink: 0;"
-  //                         >` :
-  //                         `<div style="width: 50px; height: 50px; background-color: #F3F4F6; border-radius: 4px; margin-right: 12px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #9CA3AF; flex-shrink: 0;">
-  //                             No Img
-  //                         </div>`
-  //                     }
-  //                     <div style="flex-grow: 1;">
-  //                         <p style="font-size: 15px; font-weight: 700; color: #1F2937; margin: 0 0 5px 0;">
-  //                             ${item.productName || 'Producto sin nombre'}
-  //                         </p>
-  //                         <div style="display: flex; justify-content: space-between; font-size: 12px; color: #6B7280; margin-bottom: 5px;">
-  //                             <span>Factor A: ${parseFloat(item.factorA || 0).toFixed(2)}</span>
-  //                             <span>Factor B: ${parseFloat(item.factorB || 0).toFixed(2)}</span>
-  //                         </div>
-  //                         <div style="background-color: #ECFDF5; border-left: 3px solid #059669; padding: 5px 10px; border-radius: 4px;">
-  //                             <p style="font-size: 16px; font-weight: 700; color: #047857; margin: 0;">Resultado: ${result} Kg</p>
-  //                         </div>
-  //                     </div>
-  //                 </div>
-  //             `;
-  //         });
-  //         bodyHtml += `</div>`; // Cierre del contenedor grid
-  //     }
-
-  //     // --- 2.3. Footer HTML ---
-  //     const footerHtml = `
-  //         <div style="text-align: center; border-top: 1px dashed #D1D5DB; padding-top: 15px; margin-top: 40px;">
-  //             <p style="font-size: 10px; color: #9CA3AF; margin: 0;">Generado automáticamente por el Sistema de Inventario - Documento Confidencial | Page <span class="pageNumber"></span></p>
-  //         </div>
-  //     `;
-
-  //     pdfContent.innerHTML = headerHtml + bodyHtml + footerHtml;
-
-  //     // 3. Añadir el contenido oculto al body y capturarlo
-  //     document.body.appendChild(pdfContent);
-
-  //     try {
-  //         showTemporaryMessage("Generando PDF...", "info");
-  //         const canvas = await html2canvas(pdfContent, {
-  //                 scale: 2,
-  //                 useCORS: true,
-  //                 scrollY: -window.scrollY // Asegurar que html2canvas capture desde el inicio de la página
-  //         });
-
-  //         const imgData = canvas.toDataURL('image/jpeg', 1.0);
-  //         const pdf = new jsPDF('p', 'mm', 'a4');
-  //         const imgWidth = 210;
-  //         const pageHeight = 295;
-  //         const imgHeight = canvas.height * imgWidth / canvas.width;
-  //         let heightLeft = imgHeight;
-
-  //         let position = 0;
-
-  //         pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-  //         heightLeft -= pageHeight;
-
-  //         while (heightLeft >= 0) {
-  //             position = heightLeft - imgHeight;
-  //             pdf.addPage();
-  //             pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-  //             heightLeft -= pageHeight;
-  //         }
-
-  //         pdf.save(`Reporte_Produccion_${dateKey}.pdf`);
-  //         showTemporaryMessage("PDF generado con éxito.", "success");
-
-  //     } catch (error) {
-  //         console.error("Error al generar el PDF:", error);
-  //         showTemporaryMessage("Error al generar el PDF. Verifica que la URL del logo sea accesible (CORS).", "error");
-  //     } finally {
-  //         // 4. Limpiar el contenedor temporal
-  //         document.body.removeChild(pdfContent);
-  //     }
-
-  // }, [dailyData, showTemporaryMessage]);
 
   const generatePDF = useCallback(
     async (dateKey) => {
@@ -1375,10 +1301,10 @@ const ProduccionC = () => {
                         <div style="display: flex; justify-content: space-between; font-size: 12px; color: #6B7280; margin-bottom: 8px;">
                             <span style="background-color: #F0FDF4; padding: 3px 6px; border-radius: 4px;">Factor A: ${parseFloat(
                               item.factorA || 0
-                            ).toFixed(2)}</span>
+                            )}</span>
                             <span style="background-color: #F0FDF4; padding: 3px 6px; border-radius: 4px;">Factor B: ${parseFloat(
                               item.factorB || 0
-                            ).toFixed(2)}</span>
+                            )}</span>
                         </div>
                         <!-- Diseño de resultado con acento fuerte -->
                         <div style="background-color: #10B981; padding: 8px 10px; border-radius: 6px; text-align: center;">
@@ -1968,10 +1894,10 @@ const ProduccionC = () => {
               <div className="border-t pt-4">
                 <p className="text-sm text-gray-600">Total Acumulado:</p>
                 <p className="text-3xl font-extrabold text-green-700">
-                  {animatedProgress.toFixed(2)} Kg
+                  {animatedProgress} Kg
                 </p>
                 <p className="text-sm text-gray-600 mt-2">
-                  Progreso: {progressPercentage.toFixed(2)}%
+                  Progreso: {progressPercentage}%
                 </p>
                 <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
                   <div
@@ -2007,7 +1933,8 @@ const DayProductsForm = ({
   saveData,
   deleteData,
   showTemporaryMessage,
-  setShowConfirmModal, // 👈 Recibe la función
+  setShowConfirmModal,
+   // 👈 Recibe la función
 }) => {
   const itemsWithIds = useMemo(() => {
     return initialItems.map((item) => ({
@@ -2134,6 +2061,8 @@ const DayProductsForm = ({
     }
   };
 
+  
+      
   const handleCancel = () => {
     window.history.back();
   };
@@ -2148,6 +2077,7 @@ const DayProductsForm = ({
       onSubmit={handleSubmit}
       className="p-4 md:p-8 max-w-5xl mx-auto bg-white rounded-xl shadow-2xl space-y-8"
     >
+      
       <h2 className="text-3xl font-extrabold text-gray-900 border-b pb-3">
         Editar Producción para{" "}
         {new Date(dateKey).toLocaleDateString("es-ES", {
@@ -2224,6 +2154,7 @@ const DayProductsForm = ({
             </button>
           )} */}
 
+  
           <button
             type="submit"
             className={`py-3 px-8 text-white font-bold rounded-full shadow-lg transition transform ${
@@ -2238,17 +2169,9 @@ const DayProductsForm = ({
         </div>
       </div>
     </form>
+    
+    
   );
 };
 
 export default ProduccionC;
-
-
-
-
-
-
-
-
-
-

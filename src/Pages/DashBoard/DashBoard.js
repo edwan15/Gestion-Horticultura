@@ -211,7 +211,7 @@ const DashBoard = () => {
     return (
         <div className="">
             {isAdminViewingAnotherUser && (
-                <div className="p-2 bg-blue-100 text-blue-800 text-center font-bold mb-4 rounded">
+                <div className="p-2 bg-blue-100 text-blue-800 text-center font-bold mb-4 rounded **text-sm md:text-base**">
                     👁️ VISTA DE ADMINISTRADOR
                 </div>
             )}
