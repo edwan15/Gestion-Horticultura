@@ -29,12 +29,12 @@ const Menu = [
   {
     title: "pimientos",
     icon: <MdManageAccounts />,
-    path: "/produccion",
+    path: "/tarea",
   },
   {
     title: "Carga-Trailer",
     icon: <AiFillFileAdd />,
-    path: "/tarea",
+    path: "/produccion",
   },
   {
     title: "H.Trabajadores",

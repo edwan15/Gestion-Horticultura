@@ -13,22 +13,22 @@ const socialLinks = [
   {
     name: "Facebook",
     icon: <Facebook size={18} />,
-    href: "https://facebook.com/edwanz",
+    href: "https://www.facebook.com/edwan.zhapata/",
   },
   {
     name: "Twitter",
     icon: <Twitter size={18} />,
-    href: "https://twitter.com.com/edwanz",
+    href: "https://x.com/EdwanZhapata",
   },
   {
     name: "Instagram",
     icon: <Instagram size={18} />,
-    href: "https://instagram.com/edwanz",
+    href: "https://www.instagram.com/zapataedwan/",
   },
   {
     name: "LinkedIn",
     icon: <Linkedin size={18} />,
-    href: "https://linkedin.com/in/edwanz",
+    href: "https://www.linkedin.com/in/edwan-zapata-3825ba183/",
   },
 ];
 
