@@ -43,6 +43,8 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import ProduccionPage from './ProduccionPimientos/ProduccionPage' 
 import Tarea from "./components/Carga/Tarea";
 import HoraTrabajador from "./components/HoraTrabajadores/HoraTrabajador";
+import ProductivityAnalyzer from "./Pages/ProductividadTrabajador/ProductivityAnalyzer";
+import HomeContent from "./components/HomeContent.js/HomeContent";
 
 
 axios.defaults.withCredentials = true;
@@ -209,6 +211,14 @@ function App() {
           <Route
             path="/acumuladoC"
             element={<RoleRoute allowedRoles={["admin", "usuario"]}><ProtectedLayout><AcumuladoC /></ProtectedLayout></RoleRoute>}
+          />
+          <Route
+            path="/analizer"
+            element={<RoleRoute allowedRoles={["admin", "usuario"]}><ProtectedLayout><ProductivityAnalyzer /></ProtectedLayout></RoleRoute>}
+          />
+          <Route
+            path="/homeCard"
+            element={<RoleRoute allowedRoles={["admin", "usuario"]}><ProtectedLayout><HomeContent /></ProtectedLayout></RoleRoute>}
           />
 
           {/* Tareas / Horas */}

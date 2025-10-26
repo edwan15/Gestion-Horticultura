@@ -89,3 +89,107 @@ const Header = () => {
 };
 
 export default Header;
+
+
+// import React from "react";
+// import { useDispatch, useSelector } from "react-redux";
+// import { useNavigate } from "react-router-dom";
+// // Ajusta la ruta de importación de tu slice si es diferente
+// import { selectName, SET_LOGIN } from "../../features/auth/authSlice/authSlice"; 
+// import { logoutUser } from "../../services/Services";
+// import { motion } from "framer-motion";
+
+// // Importamos los iconos necesarios
+// import { MdOutlineDashboard, MdLogout, MdMenu } from 'react-icons/md'; 
+
+// // El componente ahora acepta 'onMenuToggle' para abrir/cerrar el menú móvil
+// const Header = ({ onMenuToggle }) => {
+//     const dispath = useDispatch();
+//     const navigate = useNavigate();
+//     const name = useSelector(selectName);
+
+//     const logout = async () => {
+//         // Lógica de logout (usando tu lógica existente)
+//         await logoutUser();
+//         await dispath(SET_LOGIN(false));
+//         navigate("/");
+//     };
+
+//     const panel = async () => {
+//         // Lógica de navegación al panel principal
+//         navigate("/acumuladoC");
+//     };
+
+//     return (
+//         // Barra Superior: Estilo limpio (fondo blanco, altura fija, sombra sutil)
+//         <header className="flex justify-between items-center h-16 px-4 sm:px-6 bg-white shadow-sm border-b border-gray-100 sticky top-0 z-30">
+            
+//             {/* 1. SECCIÓN IZQUIERDA (Botón Menú Móvil / Saludo Escritorio) */}
+//             <div className="flex items-center gap-4">
+                
+//                 {/* BOTÓN DE MENÚ (Solo visible en Móvil) */}
+//                 <div className="sm:hidden">
+//                     <MdMenu 
+//                         className="text-2xl text-gray-700 cursor-pointer hover:text-green-600 transition-colors"
+//                         onClick={onMenuToggle} // Función para abrir el SideBar
+//                     />
+//                 </div>
+                
+//                 {/* SALUDO DE USUARIO (Visible en todas partes, con ajuste de clase para centrado) */}
+//                 <p className="text-gray-600 text-sm sm:text-base">
+//                     Bienvenido, 
+//                     {/* Color Verde Corporativo para el nombre */}
+//                     <span className="font-bold text-green-700 ml-1">{name || "Invitado"}</span>
+//                 </p>
+//             </div>
+            
+
+//             {/* 2. SECCIÓN DERECHA (Botones de Acción) */}
+//             <div className="flex items-center space-x-3">
+                
+//                 {/* Botón "Panel" (Acción principal - Color Verde) */}
+//                 <motion.button
+//                     whileHover={{ scale: 1.05 }} 
+//                     whileTap={{ scale: 0.95 }} 
+//                     className="
+//                         flex items-center gap-2 
+//                         px-3 py-2 
+//                         rounded-lg
+//                         bg-green-600
+//                         hover:bg-green-700
+//                         text-white 
+//                         font-medium 
+//                         text-sm 
+//                         transition-all duration-200
+//                     "
+//                     onClick={panel}
+//                 >
+//                     <MdOutlineDashboard className="text-lg" />
+//                     <span className="hidden sm:inline">Panel</span> 
+//                 </motion.button>
+
+//                 {/* Botón "Logout" (Acción secundaria/Advertencia - Rojo con borde) */}
+//                 <motion.button
+//                     whileHover={{ scale: 1.05 }}
+//                     whileTap={{ scale: 0.95 }}
+//                     className="
+//                         flex items-center gap-2
+//                         px-3 py-2
+//                         rounded-lg
+//                         border border-red-500
+//                         text-red-500 
+//                         font-medium 
+//                         text-sm 
+//                         hover:bg-red-500 hover:text-white transition-colors duration-200
+//                     "
+//                     onClick={logout}
+//                 >
+//                     <MdLogout className="text-lg" />
+//                     <span className="hidden sm:inline">Logout</span>
+//                 </motion.button>
+//             </div>
+//         </header>
+//     );
+// };
+
+// export default Header;
