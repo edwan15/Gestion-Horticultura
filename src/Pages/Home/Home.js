@@ -232,7 +232,7 @@ const Home = () => {
 
             <ShowOnLogin>
               <Link
-                to="/panel"
+                to="/acumuladoC"
                 className="
                   py-2 px-3 sm:px-4                                
                   bg-emerald-600 rounded-full text-white cursor-pointer font-bold 
