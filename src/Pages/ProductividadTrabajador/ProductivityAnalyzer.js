@@ -1,483 +1,339 @@
-
-// import React, { useState, useMemo, useEffect } from 'react';
+// import React, { useState, useMemo, useEffect, useCallback, memo } from 'react';
 // import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 // import { initializeApp } from 'firebase/app';
 // import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 // import { getFirestore, collection, query, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 // import { firebaseConfig } from "../../firebaseConfig";
-
-// const getAppId = () => {
-//   if (typeof window.__app_id !== "undefined") {
-//     return window.__app_id;
-//   }
-//   return "default-calendar-app-id";
-// };
+// const getAppId = () => { if (typeof window.__app_id !== "undefined") { return window.__app_id; } return "default-calendar-app-id"; };
 // const appId = getAppId();
-
-// // ----------------------------------------------------
-// // DEFINICIÓN DEL GRÁFICO (ProductivityChart)
-// // ----------------------------------------------------
 // const ProductivityChart = ({ summaryArray }) => {
-//   const colors = {
-//     typeA: '#8884d8',
-//     typeB: '#82ca9d',
-//     typeC: '#ffc658',
-//     typeD: '#ff7300',
-//     typeE: '#00c49f',
-//   };
-
-//   if (!summaryArray || summaryArray.length === 0) {
-//     return (
-//       <div className="h-96 w-full p-4 flex items-center justify-center bg-white rounded-lg shadow-md border border-gray-100">
-//         <p className="text-gray-500 italic">No hay datos suficientes para generar el gráfico.</p>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="h-96 w-full p-4 bg-white rounded-lg shadow-md border border-gray-100">
-//       <ResponsiveContainer width="100%" height="100%">
-//         <BarChart
-//           data={summaryArray}
-//           margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-//         >
-//           <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-//           <XAxis dataKey="name" stroke="#333" tick={{ fill: '#4b5563', fontSize: 12 }} />
-//           <YAxis stroke="#333" tick={{ fill: '#4b5563', fontSize: 12 }} />
-//           <Tooltip 
-//             cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
-//             contentStyle={{ borderRadius: '8px', border: '1px solid #ccc', background: '#fff', fontSize: '14px' }}
-//             labelStyle={{ fontWeight: 'bold', color: '#1f2937' }}
-//             formatter={(value, name) => [value, name.replace('type', 'Caja ')]}
-//           />
-//           <Legend 
-//             wrapperStyle={{ paddingTop: '10px' }} 
-//             formatter={(value) => value.replace('type', 'Caja ')}
-//           />
-
-//           <Bar dataKey="typeA" stackId="a" fill={colors.typeA} name="Caja A" radius={[4, 4, 0, 0]} />
-//           <Bar dataKey="typeB" stackId="a" fill={colors.typeB} name="Caja B" radius={[4, 4, 0, 0]} />
-//           <Bar dataKey="typeC" stackId="a" fill={colors.typeC} name="Caja C" radius={[4, 4, 0, 0]} />
-//           <Bar dataKey="typeD" stackId="a" fill={colors.typeD} name="Caja D" radius={[4, 4, 0, 0]} />
-//           <Bar dataKey="typeE" stackId="a" fill={colors.typeE} name="Caja E" radius={[4, 4, 0, 0]} />
-//         </BarChart>
-//       </ResponsiveContainer>
-//     </div>
-//   );
+// const colors = {typeA: '#8884d8',typeB: '#82ca9d',typeC: '#ffc658',typeD: '#ff7300',typeE: '#00c49f',};
+// if (!summaryArray || summaryArray.length === 0) { return (<div className="h-64 sm:h-96 w-full p-4 flex items-center justify-center bg-white rounded-lg shadow-md border border-gray-100"><p className="text-gray-500 italic">No hay datos suficientes para generar el gráfico.</p></div>); }
+// return (<div className="h-64 sm:h-96 w-full p-4 bg-white rounded-lg shadow-md border border-gray-100">
+// <ResponsiveContainer width="100%" height="100%">
+// <BarChart data={summaryArray} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+// <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+// <XAxis dataKey="name" stroke="#333" tick={{ fill: '#4b5563', fontSize: 10 }} />
+// <YAxis stroke="#333" tick={{ fill: '#4b5563', fontSize: 10 }} />
+// <Tooltip cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }} contentStyle={{ borderRadius: '8px', border: '1px solid #ccc', background: '#fff', fontSize: '12px', padding: '5px' }} labelStyle={{ fontWeight: 'bold', color: '#1f2937' }} formatter={(value, name) => [value, name.replace('type', 'Caja ')]}/>
+// <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} formatter={(value) => value.replace('type', 'Caja ')} />
+// <Bar dataKey="typeA" stackId="a" fill={colors.typeA} name="Caja A" radius={[4, 4, 0, 0]} />
+// <Bar dataKey="typeB" stackId="a" fill={colors.typeB} name="Caja B" radius={[4, 4, 0, 0]} />
+// <Bar dataKey="typeC" stackId="a" fill={colors.typeC} name="Caja C" radius={[4, 4, 0, 0]} />
+// <Bar dataKey="typeD" stackId="a" fill={colors.typeD} name="Caja D" radius={[4, 4, 0, 0]} />
+// <Bar dataKey="typeE" stackId="a" fill={colors.typeE} name="Caja E" radius={[4, 4, 0, 0]} />
+// </BarChart>
+// </ResponsiveContainer>
+// </div>);
 // };
-
-// // ----------------------------------------------------
-// // COMPONENTE PRINCIPAL
-// // ----------------------------------------------------
+// const InputSectionComponent = ({ db, userId, isAuthReady, setErrorMessage, isLoading }) => {
+// const [newEntry, setNewEntry] = useState({
+// name: '',
+// date: new Date().toISOString().split('T')[0],
+// typeA: 0, typeB: 0, typeC: 0, typeD: 0, typeE: 0
+// });
+// const handleInputChange = useCallback((e) => {
+// const { name, value, type } = e.target;
+// setNewEntry(prev => ({
+// ...prev,
+// [name]: type === 'number' ? parseInt(value) || 0 : value,
+// }));
+// }, []);
+// const addProduction = useCallback(async (e) => {
+// e.preventDefault();
+// setErrorMessage('');
+// if (!newEntry.name || newEntry.name.trim() === '') { setErrorMessage('Por favor, ingresa un nombre.'); return; }
+// if (!db) { setErrorMessage('La base de datos no está lista.'); return; }
+// try {
+// const collectionPath = `artifacts/${appId}/public/data/productivityEntries`;
+// await addDoc(collection(db, collectionPath), {
+// ...newEntry,
+// typeA: newEntry.typeA || 0, typeB: newEntry.typeB || 0,
+// typeC: newEntry.typeC || 0, typeD: newEntry.typeD || 0,
+// typeE: newEntry.typeE || 0,
+// userId: userId,
+// createdAt: serverTimestamp(),
+// });
+// setNewEntry(prev => ({
+// name: prev.name,
+// date: prev.date,
+// typeA: 0, typeB: 0, typeC: 0, typeD: 0, typeE: 0
+// }));
+// } catch (error) {
+// console.error("Error adding document: ", error);
+// setErrorMessage('Error al registrar la producción: ' + error.message);
+// }
+// }, [db, newEntry, userId, setErrorMessage]);
+// return (
+// <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg border border-gray-200 mb-8 sm:mb-0">
+// <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">➕ Registrar Producción</h2>
+// <form onSubmit={addProduction} className="space-y-4 sm:space-y-6">
+// <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+// <div>
+// <label className="block text-sm font-medium text-gray-600 mb-1">Trabajador:</label>
+// <input type="text" name="name" placeholder="Nombre del Trabajador" value={newEntry.name} onChange={handleInputChange} required className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" />
+// </div>
+// <div>
+// <label className="block text-sm font-medium text-gray-600 mb-1">Fecha de Registro:</label>
+// <input type="date" name="date" value={newEntry.date} onChange={handleInputChange} className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" />
+// </div>
+// </div>
+// <div className="p-3 sm:p-4 bg-blue-50 rounded-lg">
+// <h3 className="text-base sm:text-lg font-medium text-blue-800 mb-3 sm:mb-4">Cajas por Tipo (Cantidad)</h3>
+// <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+// {['A', 'B', 'C', 'D', 'E'].map((type) => (
+// <div key={type}>
+// <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Tipo {type}:</label>
+// <input type="number" name={`type${type}`} value={newEntry[`type${type}`]} onChange={handleInputChange} min="0" className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" />
+// </div>
+// ))}
+// </div>
+// </div>
+// <button type="submit" disabled={!isAuthReady || isLoading} className={`w-full md:w-auto px-6 py-3 text-white font-bold rounded-lg transition duration-200 shadow-md ${!isAuthReady || isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}>
+// {isLoading ? 'Guardando...' : 'Registrar Entrada'}
+// </button>
+// </form>
+// </section>
+// );
+// };
+// const InputSection = memo(InputSectionComponent);
 // const ProductivityAnalyzer = () => {
-//   const [productionData, setProductionData] = useState([]);
-//   const [errorMessage, setErrorMessage] = useState('');
-//   const [isLoading, setIsLoading] = useState(true);
-//   const [db, setDb] = useState(null);
-//   const [auth, setAuth] = useState(null);
-//   const [userId, setUserId] = useState(null);
-//   const [isAuthReady, setIsAuthReady] = useState(false);
-  
-//   const [newEntry, setNewEntry] = useState({ 
-//     name: '', 
-//     date: new Date().toISOString().split('T')[0],
-//     typeA: 0, 
-//     typeB: 0, 
-//     typeC: 0, 
-//     typeD: 0, 
-//     typeE: 0 
-//   });
-
-//   const [selectedWorkerName, setSelectedWorkerName] = useState('');
-//   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-
-//   // Inicialización y Autenticación Anónima de Firebase
-//   useEffect(() => {
-//     try {
-//       if (Object.keys(firebaseConfig).length === 0) {
-//         throw new Error("Firebase config not available.");
-//       }
-//       const app = initializeApp(firebaseConfig);
-//       const firestore = getFirestore(app);
-//       const firebaseAuth = getAuth(app);
-//       setDb(firestore);
-//       setAuth(firebaseAuth);
-
-//       onAuthStateChanged(firebaseAuth, async (user) => {
-//         if (!user) {
-//           try {
-//             await signInAnonymously(firebaseAuth);
-//           } catch (e) {
-//             console.error("Firebase auth error:", e);
-//           }
-//         }
-//         setUserId(firebaseAuth.currentUser?.uid || 'anonymous');
-//         setIsAuthReady(true);
-//       });
-      
-//     } catch (e) {
-//       console.error("Firebase Initialization Error:", e);
-//       setErrorMessage("Error al inicializar la base de datos.");
-//       setIsAuthReady(true);
-//       setIsLoading(false);
-//     }
-//   }, []);
-
-//   // Suscripción a los datos de Firestore (onSnapshot)
-//   useEffect(() => {
-//     if (!db || !isAuthReady) return;
-
-//     const collectionPath = `artifacts/${appId}/public/data/productivityEntries`;
-//     const entriesCollection = collection(db, collectionPath);
-//     const q = query(entriesCollection); 
-
-//     const unsubscribe = onSnapshot(q, (snapshot) => {
-//       const entries = [];
-//       snapshot.forEach((doc) => {
-//         entries.push({ id: doc.id, ...doc.data() });
-//       });
-//       setProductionData(entries);
-//       setIsLoading(false);
-
-//       if (entries.length > 0 && !selectedWorkerName) {
-//         const uniqueNames = [...new Set(entries.map(e => e.name))];
-//         setSelectedWorkerName(uniqueNames[0]);
-//       }
-//     }, (error) => {
-//       console.error("Firestore data snapshot error:", error);
-//       setErrorMessage("Error al cargar los datos de la base de datos.");
-//       setIsLoading(false);
-//     });
-
-//     return () => unsubscribe();
-//   }, [db, isAuthReady]);
-
-//   // Handlers y Lógica
-//   const handleInputChange = (e) => {
-//     const { name, value, type } = e.target;
-//     setNewEntry({
-//       ...newEntry,
-//       [name]: type === 'number' ? parseInt(value) || 0 : value,
-//     });
-//   };
-
-//   const addProduction = async (e) => {
-//     e.preventDefault();
-//     setErrorMessage('');
-
-//     if (!newEntry.name || newEntry.name.trim() === '') {
-//       setErrorMessage('Por favor, ingresa un nombre.');
-//       return;
-//     }
-    
-//     if (!db) {
-//         setErrorMessage('La base de datos no está lista.');
-//         return;
-//     }
-    
-//     try {
-//         const collectionPath = `artifacts/${appId}/public/data/productivityEntries`;
-//         await addDoc(collection(db, collectionPath), {
-//             ...newEntry,
-//             typeA: newEntry.typeA || 0, 
-//             typeB: newEntry.typeB || 0,
-//             typeC: newEntry.typeC || 0,
-//             typeD: newEntry.typeD || 0,
-//             typeE: newEntry.typeE || 0,
-//             userId: userId,
-//             createdAt: serverTimestamp(),
-//         });
-
-//         setNewEntry(prev => ({ 
-//             name: prev.name, 
-//             date: prev.date, 
-//             typeA: 0, 
-//             typeB: 0, 
-//             typeC: 0, 
-//             typeD: 0, 
-//             typeE: 0 
-//         }));
-//     } catch (error) {
-//         console.error("Error adding document: ", error);
-//         setErrorMessage('Error al registrar la producción: ' + error.message);
-//     }
-//   };
-
-
-//   // Lógica de Análisis y Agrupación
-//   const summary = useMemo(() => {
-//     const uniqueNames = [...new Set(productionData.map(e => e.name))].sort();
-
-//     const totals = productionData.reduce((acc, entry) => {
-//       const entryA = Number(entry.typeA) || 0;
-//       const entryB = Number(entry.typeB) || 0;
-//       const entryC = Number(entry.typeC) || 0;
-//       const entryD = Number(entry.typeD) || 0;
-//       const entryE = Number(entry.typeE) || 0;
-
-//       if (!acc[entry.name]) {
-//         acc[entry.name] = { 
-//           total: 0, typeA: 0, typeB: 0, typeC: 0, typeD: 0, typeE: 0 
-//         };
-//       }
-
-//       acc[entry.name].typeA += entryA;
-//       acc[entry.name].typeB += entryB;
-//       acc[entry.name].typeC += entryC;
-//       acc[entry.name].typeD += entryD;
-//       acc[entry.name].typeE += entryE;
-
-//       acc[entry.name].total += entryA + entryB + entryC + entryD + entryE;
-
-//       return acc;
-//     }, {});
-
-//     const summaryArray = Object.entries(totals)
-//       .map(([name, data]) => ({ name, ...data }))
-//       .sort((a, b) => b.total - a.total);
-
-//     return { summaryArray, uniqueNames };
-//   }, [productionData]);
-
-//   const topPerformer = summary.summaryArray[0] || { name: 'N/A', total: 0 };
-  
-//   const getMaxByType = (type) => Math.max(...summary.summaryArray.map(w => w[type] || 0));
-
-//   const dailyEntries = useMemo(() => {
-//     if (!selectedWorkerName || !selectedDate) return [];
-
-//     return productionData
-//         .filter(entry => entry.name === selectedWorkerName && entry.date === selectedDate)
-//         .sort((a, b) => (new Date(a.date) - new Date(b.date))); 
-//   }, [productionData, selectedWorkerName, selectedDate]);
-  
-//   // ----------------------------------------------------
-//   // RENDERIZADO (JSX con Tailwind)
-//   // ----------------------------------------------------
-//   return (
-//     <div className="p-4 md:p-8 max-w-7xl mx-auto bg-gray-50 min-h-screen font-sans">
-//       <h1 className="text-3xl md:text-4xl font-extrabold text-blue-800 border-b-4 border-blue-200 pb-3 mb-8">
-//         📦 Analizador de Productividad (Real-Time)
-//       </h1>
-      
-//       {/* Mensajes de estado y error */}
-//       {isLoading && (
-//         <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mb-4" role="alert">
-//             Cargando datos...
-//         </div>
-//       )}
-//       {errorMessage && (
-//         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-//             <span className="font-bold">Error:</span> {errorMessage}
-//         </div>
-//       )}
-//       {userId && (
-//           <p className="text-xs text-gray-500 mb-4">
-//               ID de Sesión: <span className="font-mono text-gray-700">{userId}</span>
-//           </p>
-//       )}
-
-      
-//       {/* SECCIÓN 1: Ingreso de Datos */}
-//       <section className="bg-white p-6 shadow-xl rounded-lg border border-gray-200 mb-8">
-//         <h2 className="text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">➕ Registrar Producción</h2>
-//         <form onSubmit={addProduction} className="space-y-6">
-//           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-//             <div>
-//               <label className="block text-sm font-medium text-gray-600 mb-1">Trabajador:</label>
-//               <input
-//                 type="text"
-//                 name="name"
-//                 placeholder="Nombre del Trabajador"
-//                 value={newEntry.name}
-//                 onChange={handleInputChange}
-//                 required
-//                 className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-//               />
-//             </div>
-//             <div>
-//               <label className="block text-sm font-medium text-gray-600 mb-1">Fecha de Registro:</label>
-//               <input
-//                 type="date"
-//                 name="date"
-//                 value={newEntry.date}
-//                 onChange={handleInputChange}
-//                 className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-//               />
-//             </div>
-//           </div>
-          
-//           <div className="p-4 bg-blue-50 rounded-lg">
-//             <h3 className="text-lg font-medium text-blue-800 mb-4">Cajas por Tipo (Cantidad)</h3>
-//             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-//               {['A', 'B', 'C', 'D', 'E'].map((type) => (
-//                 <div key={type}>
-//                   <label className="block text-sm font-medium text-gray-700 mb-1">Tipo {type}:</label>
-//                   <input
-//                     type="number"
-//                     name={`type${type}`}
-//                     value={newEntry[`type${type}`]}
-//                     onChange={handleInputChange}
-//                     min="0"
-//                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-//                   />
-//                 </div>
-//               ))}
-//             </div>
-//           </div>
-          
-//           <button 
-//             type="submit" 
-//             disabled={!isAuthReady || isLoading}
-//             className={`w-full md:w-auto px-6 py-3 text-white font-bold rounded-lg transition duration-200 shadow-md ${
-//                 !isAuthReady || isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
-//             }`}
-//           >
-//             {isLoading ? 'Guardando...' : 'Registrar Entrada'}
-//           </button>
-//         </form>
-//       </section>
-
-//       <hr className="border-t-2 border-gray-300 my-8" />
-      
-//       {/* SECCIÓN 5: Vista de Historial Diario */}
-//       <section className="bg-white p-6 shadow-xl rounded-lg border border-gray-200 mb-8">
-//         <h2 className="text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">🗓️ Historial por Trabajador y Fecha</h2>
-        
-//         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-//             <div>
-//                 <label className="block text-sm font-medium text-gray-600 mb-1">Seleccionar Trabajador:</label>
-//                 <select
-//                     value={selectedWorkerName}
-//                     onChange={(e) => setSelectedWorkerName(e.target.value)}
-//                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-//                 >
-//                     <option value="">-- Seleccione un trabajador --</option>
-//                     {summary.uniqueNames.map(name => (
-//                         <option key={name} value={name}>{name}</option>
-//                     ))}
-//                 </select>
-//             </div>
-//             <div>
-//                 <label className="block text-sm font-medium text-gray-600 mb-1">Seleccionar Fecha:</label>
-//                 <input
-//                     type="date"
-//                     value={selectedDate}
-//                     onChange={(e) => setSelectedDate(e.target.value)}
-//                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-//                 />
-//             </div>
-//         </div>
-
-//         {selectedWorkerName && dailyEntries.length > 0 ? (
-//             <div className="border border-indigo-200 rounded-lg p-4 bg-indigo-50">
-//                 <h3 className="text-xl font-bold text-indigo-800 mb-3">
-//                     Producción de {selectedWorkerName} el {selectedDate}
-//                 </h3>
-//                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-//                     {['A', 'B', 'C', 'D', 'E'].map((type) => {
-//                         const totalType = dailyEntries.reduce((sum, entry) => sum + (entry[`type${type}`] || 0), 0);
-//                         return (
-//                             <div key={type} className="p-3 bg-white rounded-lg shadow text-center">
-//                                 <p className="text-sm text-gray-500">Caja {type}</p>
-//                                 <p className="text-2xl font-extrabold text-indigo-600">{totalType}</p>
-//                             </div>
-//                         );
-//                     })}
-//                 </div>
-//             </div>
-//         ) : selectedWorkerName && (
-//              <p className="text-gray-500 italic p-4 border border-gray-200 rounded-lg bg-gray-50">
-//                  No se encontraron entradas para {selectedWorkerName} en la fecha {selectedDate}.
-//              </p>
-//         )}
-
-//       </section>
-
-//       <hr className="border-t-2 border-gray-300 my-8" />
-
-//       {/* SECCIÓN 2: Resumen Ejecutivo */}
-//       <section className="bg-yellow-100 p-6 rounded-lg shadow-inner mb-8 border border-yellow-300">
-//         <h2 className="text-2xl font-semibold text-yellow-800 mb-3">⭐ Resumen General Acumulado</h2>
-//         <p className="text-lg text-yellow-900">
-//           El trabajador más productivo (por volumen total histórico) es: 
-//           <strong className="text-2xl text-red-600 ml-2">{topPerformer.name}</strong> con 
-//           <span className="text-2xl font-extrabold ml-1"> {topPerformer.total}</span> cajas.
-//         </p>
-//       </section>
-
-//       {/* SECCIÓN 3: CANVAS / GRÁFICO */}
-//       <section className="mb-8">
-//         <h2 className="text-3xl font-bold text-blue-800 mb-6">📊 Visualización de Competitividad (Acumulado)</h2>
-//         <ProductivityChart summaryArray={summary.summaryArray} />
-//       </section>
-
-//       <hr className="border-t-2 border-gray-300 my-8" />
-
-//       {/* SECCIÓN 4: Tabla de Análisis */}
-//       <section className="bg-white p-6 shadow-xl rounded-lg">
-//         <h2 className="text-2xl font-semibold text-gray-700 mb-4">🥇 Desempeño por Categoría (Acumulado)</h2>
-        
-//         {summary.summaryArray.length > 0 ? (
-//           <div className="overflow-x-auto">
-//             <table className="min-w-full divide-y divide-gray-200">
-//               <thead className="bg-blue-600 text-white">
-//                 <tr>
-//                   <th className="px-4 py-3 text-left text-sm font-semibold uppercase tracking-wider rounded-tl-lg">Trabajador</th>
-//                   <th className="px-4 py-3 text-center text-sm font-semibold uppercase tracking-wider bg-blue-800">TOTAL GENERAL</th>
-//                   {['A', 'B', 'C', 'D', 'E'].map((type) => (
-//                     <th key={type} className="px-4 py-3 text-center text-sm font-semibold uppercase tracking-wider">Caja {type}</th>
-//                   ))}
-//                 </tr>
-//               </thead>
-//               <tbody className="bg-white divide-y divide-gray-200">
-//                 {summary.summaryArray.map((item, index) => (
-//                   <tr 
-//                     key={item.name} 
-//                     className={index === 0 ? 'bg-yellow-50 font-bold border-l-4 border-yellow-500' : 'hover:bg-gray-100'}
-//                   >
-//                     <td className="px-4 py-3 whitespace-nowrap text-left text-gray-900">{item.name}</td>
-                    
-//                     <td className="px-4 py-3 whitespace-nowrap text-center text-lg font-extrabold bg-blue-100 text-blue-900">
-//                       {item.total}
-//                     </td>
-                    
-//                     {['typeA', 'typeB', 'typeC', 'typeD', 'typeE'].map((type, typeIndex) => (
-//                       <td key={typeIndex} 
-//                           className={`px-4 py-3 whitespace-nowrap text-center ${item[type] === getMaxByType(type) ? 'bg-green-100 font-bold text-green-800' : 'text-gray-700'}`}
-//                       >
-//                         {item[type]}
-//                       </td>
-//                     ))}
-//                   </tr>
-//                 ))}
-//               </tbody>
-//             </table>
-//           </div>
-//         ) : (
-//           <p className="text-gray-500 italic">No hay datos de producción registrados aún.</p>
-//         )}
-//       </section>
-//     </div>
-//   );
+// const [productionData, setProductionData] = useState([]);
+// const [errorMessage, setErrorMessage] = useState('');
+// const [isLoading, setIsLoading] = useState(true);
+// const [db, setDb] = useState(null);
+// const [userId, setUserId] = useState(null);
+// const [isAuthReady, setIsAuthReady] = useState(false);
+// const [activeTab, setActiveTab] = useState('input');
+// const [selectedWorkerName, setSelectedWorkerName] = useState('');
+// const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+// useEffect(() => {
+// try {
+// if (Object.keys(firebaseConfig).length === 0) throw new Error("Firebase config not available.");
+// const app = initializeApp(firebaseConfig);
+// const firestore = getFirestore(app);
+// const firebaseAuth = getAuth(app);
+// setDb(firestore);
+// onAuthStateChanged(firebaseAuth, async (user) => {
+// if (!user) { try { await signInAnonymously(firebaseAuth); } catch (e) { console.error("Firebase auth error:", e); } }
+// setUserId(firebaseAuth.currentUser?.uid || 'anonymous');
+// setIsAuthReady(true);
+// });
+// } catch (e) {
+// console.error("Firebase Initialization Error:", e);
+// setErrorMessage("Error al inicializar la base de datos.");
+// setIsAuthReady(true);
+// setIsLoading(false);
+// }
+// }, []);
+// useEffect(() => {
+// if (!db || !isAuthReady) return;
+// const collectionPath = `artifacts/${appId}/public/data/productivityEntries`;
+// const entriesCollection = collection(db, collectionPath);
+// const q = query(entriesCollection);
+// const unsubscribe = onSnapshot(q, (snapshot) => {
+// const entries = [];
+// snapshot.forEach((doc) => { entries.push({ id: doc.id, ...doc.data() }); });
+// setProductionData(entries);
+// setIsLoading(false);
+// }, (error) => {
+// console.error("Firestore data snapshot error:", error);
+// setErrorMessage("Error al cargar los datos de la base de datos.");
+// setIsLoading(false);
+// });
+// return () => unsubscribe();
+// }, [db, isAuthReady, setErrorMessage]);
+// useEffect(() => {
+// if (productionData.length > 0 && !selectedWorkerName) {
+// const uniqueNames = [...new Set(productionData.map(e => e.name))];
+// setSelectedWorkerName(uniqueNames[0]);
+// }
+// }, [productionData, selectedWorkerName]);
+// const summary = useMemo(() => {
+// const uniqueNames = [...new Set(productionData.map(e => e.name))].sort();
+// const totals = productionData.reduce((acc, entry) => {
+// const entryA = Number(entry.typeA) || 0; const entryB = Number(entry.typeB) || 0;
+// const entryC = Number(entry.typeC) || 0; const entryD = Number(entry.typeD) || 0;
+// const entryE = Number(entry.typeE) || 0;
+// if (!acc[entry.name]) acc[entry.name] = { total: 0, typeA: 0, typeB: 0, typeC: 0, typeD: 0, typeE: 0 };
+// acc[entry.name].typeA += entryA; acc[entry.name].typeB += entryB;
+// acc[entry.name].typeC += entryC; acc[entry.name].typeD += entryD;
+// acc[entry.name].typeE += entryE;
+// acc[entry.name].total += entryA + entryB + entryC + entryD + entryE;
+// return acc;
+// }, {});
+// const summaryArray = Object.entries(totals).map(([name, data]) => ({ name, ...data })).sort((a, b) => b.total - a.total);
+// return { summaryArray, uniqueNames };
+// }, [productionData]);
+// const topPerformer = summary.summaryArray[0] || { name: 'N/A', total: 0 };
+// const getMaxByType = (type) => Math.max(...summary.summaryArray.map(w => w[type] || 0));
+// const dailyEntries = useMemo(() => {
+// if (!selectedWorkerName || !selectedDate) return [];
+// return productionData.filter(entry => entry.name === selectedWorkerName && entry.date === selectedDate).sort((a, b) => (new Date(a.date) - new Date(b.date)));
+// }, [productionData, selectedWorkerName, selectedDate]);
+// const AnalysisSection = () => (
+// <div className="space-y-6 sm:space-y-8">
+// <section className="bg-yellow-100 p-4 sm:p-6 rounded-lg shadow-inner border border-yellow-300">
+// <h2 className="text-xl sm:text-2xl font-semibold text-yellow-800 mb-3">⭐ Resumen General Acumulado</h2>
+// <p className="text-base sm:text-lg text-yellow-900">
+// El trabajador más productivo es:
+// <strong className="text-xl sm:text-2xl text-red-600 ml-2">{topPerformer.name}</strong> con
+// <span className="text-xl sm:text-2xl font-extrabold ml-1"> {topPerformer.total}</span> cajas.
+// </p>
+// </section>
+// <section>
+// <h2 className="text-2xl sm:text-3xl font-bold text-blue-800 mb-4 sm:mb-6">📊 Visualización de Competitividad</h2>
+// <ProductivityChart summaryArray={summary.summaryArray} />
+// </section>
+// <hr className="border-t-2 border-gray-300 my-6 sm:my-8" />
+// <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg border border-gray-200">
+// <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4 sm:mb-6 border-b pb-2">🗓️ Historial por Trabajador y Fecha</h2>
+// <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+// <div>
+// <label className="block text-sm font-medium text-gray-600 mb-1">Seleccionar Trabajador:</label>
+// <select value={selectedWorkerName} onChange={(e) => setSelectedWorkerName(e.target.value)} className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+// <option value="">-- Seleccione un trabajador --</option>
+// {summary.uniqueNames.map(name => (<option key={name} value={name}>{name}</option>))}
+// </select>
+// </div>
+// <div>
+// <label className="block text-sm font-medium text-gray-600 mb-1">Seleccionar Fecha:</label>
+// <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" />
+// </div>
+// </div>
+// {selectedWorkerName && dailyEntries.length > 0 ? (
+// <div className="border border-indigo-200 rounded-lg p-3 sm:p-4 bg-indigo-50">
+// <h3 className="text-lg sm:text-xl font-bold text-indigo-800 mb-3">
+// Producción de {selectedWorkerName} el {selectedDate}
+// </h3>
+// <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+// {['A', 'B', 'C', 'D', 'E'].map((type) => {
+// const totalType = dailyEntries.reduce((sum, entry) => sum + (entry[`type${type}`] || 0), 0);
+// return (
+// <div key={type} className="p-3 bg-white rounded-lg shadow text-center">
+// <p className="text-xs sm:text-sm text-gray-500">Caja {type}</p>
+// <p className="text-xl sm:text-2xl font-extrabold text-indigo-600">{totalType}</p>
+// </div>
+// );
+// })}
+// </div>
+// </div>
+// ) : selectedWorkerName && (
+// <p className="text-gray-500 italic p-4 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+// No se encontraron entradas para {selectedWorkerName} en la fecha {selectedDate}.
+// </p>
+// )}
+// </section>
+// <hr className="border-t-2 border-gray-300 my-6 sm:my-8" />
+// <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg">
+// <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4">🥇 Desempeño por Categoría (Acumulado)</h2>
+// {summary.summaryArray.length > 0 ? (
+// <div className="overflow-x-auto">
+// <table className="min-w-full divide-y divide-gray-200 text-sm">
+// <thead className="bg-blue-600 text-white">
+// <tr>
+// <th className="px-3 py-2 sm:px-4 sm:py-3 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider rounded-tl-lg">Trabajador</th>
+// <th className="px-3 py-2 sm:px-4 sm:py-3 text-center text-xs sm:text-sm font-semibold uppercase tracking-wider bg-blue-800">TOTAL</th>
+// {['A', 'B', 'C', 'D', 'E'].map((type) => (
+// <th key={type} className="px-3 py-2 sm:px-4 sm:py-3 text-center text-xs sm:text-sm font-semibold uppercase tracking-wider">Caja {type}</th>
+// ))}
+// </tr>
+// </thead>
+// <tbody className="bg-white divide-y divide-gray-200">
+// {summary.summaryArray.map((item, index) => (
+// <tr key={item.name} className={index === 0 ? 'bg-yellow-50 font-bold border-l-4 border-yellow-500' : 'hover:bg-gray-100'}>
+// <td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-left text-gray-900">{item.name}</td>
+// <td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-center text-sm sm:text-lg font-extrabold bg-blue-100 text-blue-900">
+// {item.total}
+// </td>
+// {['typeA', 'typeB', 'typeC', 'typeD', 'typeE'].map((type, typeIndex) => (
+// <td key={typeIndex} className={`px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-center text-sm ${item[type] === getMaxByType(type) ? 'bg-green-100 font-bold text-green-800' : 'text-gray-700'}`}>
+// {item[type]}
+// </td>
+// ))}
+// </tr>
+// ))}
+// </tbody>
+// </table>
+// </div>
+// ) : (
+// <p className="text-gray-500 italic text-sm">No hay datos de producción registrados aún.</p>
+// )}
+// </section>
+// </div>
+// );
+// return (
+// <div className="p-4 md:p-8 max-w-7xl mx-auto bg-gray-50 min-h-screen font-sans">
+// <h1 className="text-3xl md:text-4xl font-extrabold text-blue-800 border-b-4 border-blue-200 pb-3 mb-6 sm:mb-8">
+// 📦 Analizador de Productividad (Real-Time)
+// </h1>
+// {isLoading && (
+// <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mb-4 text-sm sm:text-base" role="alert">
+// <span className="animate-spin inline-block mr-2">⚙️</span> Cargando datos en tiempo real...
+// </div>
+// )}
+// {errorMessage && (
+// <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-sm sm:text-base" role="alert">
+// <span className="font-bold">🚨 Error:</span> {errorMessage}
+// </div>
+// )}
+// <div className="sm:hidden">
+// <div className="flex justify-between bg-white rounded-lg shadow-md mb-6 p-1 border border-gray-200">
+// <button onClick={() => setActiveTab('input')} className={`flex-1 text-center py-2 px-1 text-sm font-semibold rounded-lg transition duration-200 ${activeTab === 'input' ? 'bg-indigo-600 text-white shadow-indigo-400 shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}>
+// 📝 Registrar
+// </button>
+// <button onClick={() => setActiveTab('analysis')} className={`flex-1 text-center py-2 px-1 text-sm font-semibold rounded-lg transition duration-200 ${activeTab === 'analysis' ? 'bg-indigo-600 text-white shadow-indigo-400 shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}>
+// 📈 Análisis
+// </button>
+// </div>
+// {activeTab === 'input' && <InputSection db={db} userId={userId} isAuthReady={isAuthReady} setErrorMessage={setErrorMessage} isLoading={isLoading} />}
+// {activeTab === 'analysis' && <AnalysisSection />}
+// </div>
+// <div className="hidden sm:block">
+// <InputSection db={db} userId={userId} isAuthReady={isAuthReady} setErrorMessage={setErrorMessage} isLoading={isLoading} />
+// <hr className="border-t-2 border-gray-300 my-8" />
+// <AnalysisSection />
+// </div>
+// {userId && (
+// <p className="text-xs text-gray-500 mt-6 text-center">
+// ID de Sesión: <span className="font-mono text-gray-700">{userId}</span>
+// </p>
+// )}
+// </div>
+// );
 // };
-
 // export default ProductivityAnalyzer;
 
-
-
-
-
-// import React, { useState, useMemo, useEffect } from 'react';
-// // Importaciones de Recharts para el gráfico
-// import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-// // Importaciones de Firebase Firestore
-// import { initializeApp } from 'firebase/app';
-// import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
-// import { getFirestore, collection, query, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
-// import { firebaseConfig } from "../../firebaseConfig"; // Asegúrate de que esta ruta sea correcta
-
-// // --- Lógica de la Aplicación Base ---
+// import React, { useState, useMemo, useEffect, useCallback, memo ,useRef} from "react";
+// import {
+//   BarChart,
+//   Bar,
+//   XAxis,
+//   YAxis,
+//   CartesianGrid,
+//   Tooltip,
+//   Legend,
+//   ResponsiveContainer,
+// } from "recharts";
+// import { initializeApp } from "firebase/app";
+// import { getAuth, signInAnonymously, onAuthStateChanged,
+//     createUserWithEmailAndPassword, // Para registro
+//     signInWithEmailAndPassword,     // Para login
+//     signOut,                        // Para logout
+//     setPersistence,                 // Para persistencia
+//     browserLocalPersistence,        // Persistencia local
+// } from "firebase/auth";
+// import {
+//   getFirestore,
+//   collection,
+//   query,
+//   onSnapshot,
+//   addDoc,
+//   serverTimestamp,
+//   where,
+  
+// } from "firebase/firestore";
+// import { firebaseConfig } from "../../firebaseConfig";
 // const getAppId = () => {
 //   if (typeof window.__app_id !== "undefined") {
 //     return window.__app_id;
@@ -485,571 +341,24 @@
 //   return "default-calendar-app-id";
 // };
 // const appId = getAppId();
-
-// // ----------------------------------------------------
-// // COMPONENTE DE GRÁFICO (ProductivityChart)
-// // ----------------------------------------------------
 // const ProductivityChart = ({ summaryArray }) => {
 //   const colors = {
-//     typeA: '#10b981', // Verde esmeralda (A)
-//     typeB: '#3b82f6', // Azul (B)
-//     typeC: '#f59e0b', // Amarillo/Ámbar (C)
-//     typeD: '#ef4444', // Rojo (D)
-//     typeE: '#8b5cf6', // Violeta (E)
+//     typeA: "#8884d8",
+//     typeB: "#82ca9d",
+//     typeC: "#ffc658",
+//     typeD: "#ff7300",
+//     typeE: "#00c49f",
 //   };
-
-//   if (!summaryArray || summaryArray.length === 0) {
-//     return (
-//       <div className="h-64 w-full p-4 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200">
-//         <p className="text-gray-500 italic text-sm">No hay datos suficientes para generar el gráfico.</p>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="h-64 sm:h-80 w-full p-2 md:p-4 bg-white rounded-xl shadow-lg border border-gray-100">
-//       <ResponsiveContainer width="100%" height="100%">
-//         <BarChart
-//           data={summaryArray}
-//           margin={{ top: 10, right: 0, left: -20, bottom: 5 }}
-//         >
-//           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-//           <XAxis 
-//             dataKey="name" 
-//             stroke="#4b5563" 
-//             tick={{ fill: '#4b5563', fontSize: 10 }} 
-//             height={40}
-//             angle={-30} // Rotación para mejor legibilidad en móvil
-//             textAnchor="end"
-//             interval={0} // Muestra todas las etiquetas
-//           />
-//           <YAxis stroke="#4b5563" tick={{ fill: '#4b5563', fontSize: 10 }} />
-//           <Tooltip 
-//             cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
-//             contentStyle={{ borderRadius: '8px', border: '1px solid #ccc', background: '#fff', fontSize: '12px', padding: '5px' }}
-//             labelStyle={{ fontWeight: 'bold', color: '#1f2937' }}
-//             formatter={(value, name) => [value, name.replace('type', 'Caja ')]}
-//           />
-//           <Legend 
-//             wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} 
-//             formatter={(value) => value.replace('type', 'Caja ')}
-//             layout="horizontal"
-//             align="center"
-//             verticalAlign="top"
-//           />
-
-//           <Bar dataKey="typeA" stackId="a" fill={colors.typeA} name="Caja A" radius={[3, 3, 0, 0]} />
-//           <Bar dataKey="typeB" stackId="a" fill={colors.typeB} name="Caja B" radius={[3, 3, 0, 0]} />
-//           <Bar dataKey="typeC" stackId="a" fill={colors.typeC} name="Caja C" radius={[3, 3, 0, 0]} />
-//           <Bar dataKey="typeD" stackId="a" fill={colors.typeD} name="Caja D" radius={[3, 3, 0, 0]} />
-//           <Bar dataKey="typeE" stackId="a" fill={colors.typeE} name="Caja E" radius={[3, 3, 0, 0]} />
-//         </BarChart>
-//       </ResponsiveContainer>
-//     </div>
-//   );
-// };
-
-// // ----------------------------------------------------
-// // COMPONENTE PRINCIPAL
-// // ----------------------------------------------------
-// const ProductivityAnalyzer = () => {
-//   const [productionData, setProductionData] = useState([]);
-//   const [errorMessage, setErrorMessage] = useState('');
-//   const [isLoading, setIsLoading] = useState(true);
-//   const [db, setDb] = useState(null);
-//   const [userId, setUserId] = useState(null);
-//   const [isAuthReady, setIsAuthReady] = useState(false);
-//   const [activeTab, setActiveTab] = useState('input'); // 'input' o 'analysis'
-  
-//   const [newEntry, setNewEntry] = useState({ 
-//     name: '', 
-//     date: new Date().toISOString().split('T')[0],
-//     typeA: 0, 
-//     typeB: 0, 
-//     typeC: 0, 
-//     typeD: 0, 
-//     typeE: 0 
-//   });
-
-//   const [selectedWorkerName, setSelectedWorkerName] = useState('');
-//   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-
-//   // --- 1. Inicialización y Autenticación Firebase ---
-//   useEffect(() => {
-//     try {
-//       if (Object.keys(firebaseConfig).length === 0) {
-//         throw new Error("Firebase config not available.");
-//       }
-//       const app = initializeApp(firebaseConfig);
-//       const firestore = getFirestore(app);
-//       const firebaseAuth = getAuth(app);
-//       setDb(firestore);
-
-//       onAuthStateChanged(firebaseAuth, async (user) => {
-//         if (!user) {
-//           try {
-//             await signInAnonymously(firebaseAuth);
-//           } catch (e) {
-//             console.error("Firebase auth error:", e);
-//           }
-//         }
-//         setUserId(firebaseAuth.currentUser?.uid || 'anonymous');
-//         setIsAuthReady(true);
-//       });
-      
-//     } catch (e) {
-//       console.error("Firebase Initialization Error:", e);
-//       setErrorMessage("Error al inicializar la base de datos.");
-//       setIsAuthReady(true);
-//       setIsLoading(false);
-//     }
-//   }, []);
-
-//   // --- 2. Suscripción a los datos de Firestore ---
-//   useEffect(() => {
-//     if (!db || !isAuthReady) return;
-
-//     const collectionPath = `artifacts/${appId}/public/data/productivityEntries`;
-//     const entriesCollection = collection(db, collectionPath);
-//     const q = query(entriesCollection); 
-
-//     const unsubscribe = onSnapshot(q, (snapshot) => {
-//       const entries = [];
-//       snapshot.forEach((doc) => {
-//         entries.push({ id: doc.id, ...doc.data() });
-//       });
-//       setProductionData(entries);
-//       setIsLoading(false);
-
-//       if (entries.length > 0 && !selectedWorkerName) {
-//         const uniqueNames = [...new Set(entries.map(e => e.name))];
-//         setSelectedWorkerName(uniqueNames[0]);
-//       }
-//     }, (error) => {
-//       console.error("Firestore data snapshot error:", error);
-//       setErrorMessage("Error al cargar los datos de la base de datos.");
-//       setIsLoading(false);
-//     });
-
-//     return () => unsubscribe();
-//   }, [db, isAuthReady]);
-
-//   // --- 3. Handlers y Lógica de Ingreso ---
-//   const handleInputChange = (e) => {
-//     const { name, value, type } = e.target;
-//     setNewEntry({
-//       ...newEntry,
-//       [name]: type === 'number' ? parseInt(value) || 0 : value,
-//     });
-//   };
-
-//   const addProduction = async (e) => {
-//     e.preventDefault();
-//     setErrorMessage('');
-
-//     if (!newEntry.name || newEntry.name.trim() === '') {
-//       setErrorMessage('Por favor, ingresa un nombre.');
-//       return;
-//     }
-    
-//     if (!db) {
-//         setErrorMessage('La base de datos no está lista.');
-//         return;
-//     }
-    
-//     try {
-//         const collectionPath = `artifacts/${appId}/public/data/productivityEntries`;
-//         await addDoc(collection(db, collectionPath), {
-//             ...newEntry,
-//             typeA: newEntry.typeA || 0, 
-//             typeB: newEntry.typeB || 0,
-//             typeC: newEntry.typeC || 0,
-//             typeD: newEntry.typeD || 0,
-//             typeE: newEntry.typeE || 0,
-//             userId: userId,
-//             createdAt: serverTimestamp(),
-//         });
-
-//         setNewEntry(prev => ({ 
-//             name: prev.name, 
-//             date: prev.date, 
-//             typeA: 0, 
-//             typeB: 0, 
-//             typeC: 0, 
-//             typeD: 0, 
-//             typeE: 0 
-//         }));
-//     } catch (error) {
-//         console.error("Error adding document: ", error);
-//         setErrorMessage('Error al registrar la producción: ' + error.message);
-//     }
-//   };
-
-
-//   // --- 4. Lógica de Análisis (useMemo) ---
-//   const summary = useMemo(() => {
-//     const uniqueNames = [...new Set(productionData.map(e => e.name))].sort();
-
-//     const totals = productionData.reduce((acc, entry) => {
-//       const entryA = Number(entry.typeA) || 0;
-//       const entryB = Number(entry.typeB) || 0;
-//       const entryC = Number(entry.typeC) || 0;
-//       const entryD = Number(entry.typeD) || 0;
-//       const entryE = Number(entry.typeE) || 0;
-
-//       if (!acc[entry.name]) {
-//         acc[entry.name] = { 
-//           total: 0, typeA: 0, typeB: 0, typeC: 0, typeD: 0, typeE: 0 
-//         };
-//       }
-
-//       acc[entry.name].typeA += entryA;
-//       acc[entry.name].typeB += entryB;
-//       acc[entry.name].typeC += entryC;
-//       acc[entry.name].typeD += entryD;
-//       acc[entry.name].typeE += entryE;
-
-//       acc[entry.name].total += entryA + entryB + entryC + entryD + entryE;
-
-//       return acc;
-//     }, {});
-
-//     const summaryArray = Object.entries(totals)
-//       .map(([name, data]) => ({ name, ...data }))
-//       .sort((a, b) => b.total - a.total);
-
-//     return { summaryArray, uniqueNames };
-//   }, [productionData]);
-
-//   const topPerformer = summary.summaryArray[0] || { name: 'N/A', total: 0 };
-  
-//   const getMaxByType = (type) => Math.max(...summary.summaryArray.map(w => w[type] || 0));
-
-//   const dailyEntries = useMemo(() => {
-//     if (!selectedWorkerName || !selectedDate) return [];
-
-//     return productionData
-//         .filter(entry => entry.name === selectedWorkerName && entry.date === selectedDate)
-//         .sort((a, b) => (new Date(b.createdAt?.toDate() || b.date) - new Date(a.createdAt?.toDate() || a.date))); // Ordenar por hora de registro (si está disponible)
-//   }, [productionData, selectedWorkerName, selectedDate]);
-  
-//   // ----------------------------------------------------
-//   // VISTA DE INGRESO DE DATOS (TAB 'input')
-//   // ----------------------------------------------------
-//   const InputSection = () => (
-//     <section className="bg-white p-4 shadow-xl rounded-lg border border-gray-200">
-//       <h2 className="text-xl font-bold text-gray-800 mb-4">➕ Registro Diario</h2>
-//       <form onSubmit={addProduction} className="space-y-4">
-//         <div className="grid grid-cols-1 gap-4">
-//           <div>
-//             <label className="block text-xs font-medium text-gray-600 mb-1">Trabajador:</label>
-//             <input
-//               type="text"
-//               name="name"
-//               placeholder="Nombre (ej. Juan Pérez)"
-//               value={newEntry.name}
-//               onChange={handleInputChange}
-//               required
-//               className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-//             />
-//           </div>
-//           <div>
-//             <label className="block text-xs font-medium text-gray-600 mb-1">Fecha de Registro:</label>
-//             <input
-//               type="date"
-//               name="date"
-//               value={newEntry.date}
-//               onChange={handleInputChange}
-//               className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-//             />
-//           </div>
-//         </div>
-        
-//         <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-//           <h3 className="text-base font-semibold text-indigo-800 mb-3">Cajas Producidas (Cantidad)</h3>
-//           <div className="grid grid-cols-2 gap-3">
-//             {['A', 'B', 'C', 'D', 'E'].map((type) => (
-//               <div key={type} className="flex items-center space-x-2">
-//                 <label className="text-sm font-medium text-gray-700 w-12">Caja {type}:</label>
-//                 <input
-//                   type="number"
-//                   name={`type${type}`}
-//                   value={newEntry[`type${type}`]}
-//                   onChange={handleInputChange}
-//                   min="0"
-//                   className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-//                 />
-//               </div>
-//             ))}
-//           </div>
-//         </div>
-        
-//         <button 
-//           type="submit" 
-//           disabled={!isAuthReady || isLoading}
-//           className={`w-full px-4 py-2 text-white font-bold rounded-lg transition duration-200 shadow-md ${
-//               !isAuthReady || isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
-//           }`}
-//         >
-//           {isLoading ? 'Guardando...' : 'Guardar Producción'}
-//         </button>
-//       </form>
-//     </section>
-//   );
-
-//   // ----------------------------------------------------
-//   // VISTA DE ANÁLISIS/HISTORIAL (TAB 'analysis')
-//   // ----------------------------------------------------
-//   const AnalysisSection = () => (
-//     <div className="space-y-6">
-//       {/* Resumen Ejecutivo */}
-//       <section className="bg-yellow-50 p-4 rounded-xl shadow-md border-l-4 border-yellow-400">
-//         <h2 className="text-base font-bold text-yellow-800 mb-1">🏆 Top Desempeño Acumulado</h2>
-//         <p className="text-sm text-yellow-900">
-//           El líder es: <strong className="text-lg text-red-600">{topPerformer.name}</strong> con 
-//           <span className="text-lg font-extrabold ml-1"> {topPerformer.total}</span> cajas totales.
-//         </p>
-//       </section>
-
-//       {/* Gráfico */}
-//       <section>
-//         <h2 className="text-lg font-bold text-gray-700 mb-3">📊 Competitividad General</h2>
-//         <ProductivityChart summaryArray={summary.summaryArray} />
-//       </section>
-
-//       {/* Tabla de Desempeño por Categoría */}
-//       <section className="bg-white p-4 rounded-xl shadow-lg border border-gray-200">
-//         <h2 className="text-lg font-bold text-gray-700 mb-3">📋 Desglose por Caja</h2>
-        
-//         {summary.summaryArray.length > 0 ? (
-//           <div className="overflow-x-auto">
-//             <table className="min-w-full divide-y divide-gray-200 text-xs">
-//               <thead className="bg-gray-100">
-//                 <tr>
-//                   <th className="px-3 py-2 text-left font-semibold text-gray-600">Trabajador</th>
-//                   <th className="px-3 py-2 text-center font-semibold text-white bg-blue-600">TOTAL</th>
-//                   {['A', 'B', 'C', 'D', 'E'].map((type) => (
-//                     <th key={type} className="px-2 py-2 text-center font-semibold text-gray-600">Caja {type}</th>
-//                   ))}
-//                 </tr>
-//               </thead>
-//               <tbody className="bg-white divide-y divide-gray-100">
-//                 {summary.summaryArray.map((item, index) => (
-//                   <tr 
-//                     key={item.name} 
-//                     className={index === 0 ? 'bg-yellow-50 font-medium' : 'hover:bg-gray-50'}
-//                   >
-//                     <td className="px-3 py-2 whitespace-nowrap text-left text-gray-800">{item.name}</td>
-//                     <td className="px-3 py-2 whitespace-nowrap text-center font-bold bg-blue-50 text-blue-800">
-//                       {item.total}
-//                     </td>
-//                     {['typeA', 'typeB', 'typeC', 'typeD', 'typeE'].map((type, typeIndex) => (
-//                       <td key={typeIndex} 
-//                           className={`px-2 py-2 whitespace-nowrap text-center ${item[type] === getMaxByType(type) ? 'bg-green-100 font-bold text-green-700' : 'text-gray-600'}`}
-//                       >
-//                         {item[type]}
-//                       </td>
-//                     ))}
-//                   </tr>
-//                 ))}
-//               </tbody>
-//             </table>
-//           </div>
-//         ) : (
-//           <p className="text-gray-500 italic text-sm">No hay datos para mostrar en la tabla.</p>
-//         )}
-//       </section>
-
-//       {/* Historial Diario */}
-//       <section className="bg-white p-4 rounded-xl shadow-lg border border-gray-200">
-//         <h2 className="text-lg font-bold text-gray-700 mb-4">🔎 Historial Diario</h2>
-        
-//         <div className="grid grid-cols-2 gap-3 mb-4">
-//             <div>
-//                 <label className="block text-xs font-medium text-gray-600 mb-1">Trabajador:</label>
-//                 <select
-//                     value={selectedWorkerName}
-//                     onChange={(e) => setSelectedWorkerName(e.target.value)}
-//                     className="w-full p-2 text-sm border border-gray-300 rounded-lg"
-//                 >
-//                     <option value="">-- Seleccione --</option>
-//                     {summary.uniqueNames.map(name => (
-//                         <option key={name} value={name}>{name}</option>
-//                     ))}
-//                 </select>
-//             </div>
-//             <div>
-//                 <label className="block text-xs font-medium text-gray-600 mb-1">Fecha:</label>
-//                 <input
-//                     type="date"
-//                     value={selectedDate}
-//                     onChange={(e) => setSelectedDate(e.target.value)}
-//                     className="w-full p-2 text-sm border border-gray-300 rounded-lg"
-//                 />
-//             </div>
-//         </div>
-
-//         {selectedWorkerName && dailyEntries.length > 0 ? (
-//             <div className="border border-purple-200 rounded-lg p-3 bg-purple-50 space-y-3">
-//                 <h3 className="text-base font-bold text-purple-800">
-//                     Total de {selectedWorkerName} el {selectedDate}:
-//                 </h3>
-//                 {/* Resumen diario en formato tarjeta */}
-//                 <div className="grid grid-cols-3 gap-2">
-//                     {['A', 'B', 'C', 'D', 'E'].map((type) => {
-//                         const totalType = dailyEntries.reduce((sum, entry) => sum + (entry[`type${type}`] || 0), 0);
-//                         return (
-//                             <div key={type} className="p-2 bg-white rounded-lg shadow-sm text-center border border-purple-100">
-//                                 <p className="text-xs text-gray-500">Caja {type}</p>
-//                                 <p className="text-lg font-extrabold text-purple-600">{totalType}</p>
-//                             </div>
-//                         );
-//                     })}
-//                 </div>
-                
-//                 {/* Detalles de entradas individuales (útil para verificar) */}
-//                 <details className="text-sm">
-//                     <summary className="font-semibold text-purple-700 cursor-pointer">Ver Entradas Individuales ({dailyEntries.length})</summary>
-//                     <ul className="mt-2 space-y-1 p-2 bg-white rounded-md border border-gray-100">
-//                         {dailyEntries.map((entry, index) => (
-//                             <li key={index} className="flex justify-between items-center text-xs text-gray-700 border-b border-gray-100 last:border-b-0 py-1">
-//                                 <span className="font-mono text-[10px] text-gray-500">
-//                                     {entry.createdAt ? new Date(entry.createdAt.seconds * 1000).toLocaleTimeString() : 'N/A'}
-//                                 </span>
-//                                 <div className="flex space-x-2">
-//                                     {['A', 'B', 'C', 'D', 'E'].map(type => 
-//                                         entry[`type${type}`] > 0 ? (
-//                                             <span key={type} className="font-bold text-purple-600">
-//                                                 C{type}: {entry[`type${type}`]}
-//                                             </span>
-//                                         ) : null
-//                                     )}
-//                                 </div>
-//                             </li>
-//                         ))}
-//                     </ul>
-//                 </details>
-
-//             </div>
-//         ) : selectedWorkerName && (
-//              <p className="text-gray-500 italic p-3 border border-gray-200 rounded-lg bg-gray-50 text-sm">
-//                  No se encontraron entradas para **{selectedWorkerName}** el {selectedDate}.
-//              </p>
-//         )}
-
-//       </section>
-
-//     </div>
-//   );
-
-
-//   // ----------------------------------------------------
-//   // RENDERIZADO PRINCIPAL (JSX con Tailwind)
-//   // ----------------------------------------------------
-//   return (
-//     <div className="p-4 sm:p-6 max-w-4xl mx-auto bg-gray-50 min-h-screen font-sans">
-      
-//       {/* Encabezado */}
-//       <h1 className="text-2xl md:text-3xl font-extrabold text-indigo-700 border-b-2 border-indigo-200 pb-3 mb-6">
-//         📦 Analizador de Producción Móvil
-//       </h1>
-      
-//       {/* Mensajes de Estado */}
-//       {isLoading && (
-//         <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-2 rounded text-sm mb-4" role="alert">
-//             <span className="animate-spin inline-block mr-2">⚙️</span> Cargando datos en tiempo real...
-//         </div>
-//       )}
-//       {errorMessage && (
-//         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded text-sm mb-4" role="alert">
-//             <span className="font-bold">🚨 Error:</span> {errorMessage}
-//         </div>
-//       )}
-
-//       {/* Navegación por Pestañas para Móvil */}
-//       <div className="flex justify-between bg-white rounded-lg shadow-md mb-6 p-1 border border-gray-200">
-//         <button
-//           onClick={() => setActiveTab('input')}
-//           className={`flex-1 text-center py-2 px-1 text-sm font-semibold rounded-lg transition duration-200 ${
-//             activeTab === 'input' ? 'bg-indigo-600 text-white shadow-indigo-400 shadow-md' : 'text-gray-600 hover:bg-gray-100'
-//           }`}
-//         >
-//           📝 Registrar Producción
-//         </button>
-//         <button
-//           onClick={() => setActiveTab('analysis')}
-//           className={`flex-1 text-center py-2 px-1 text-sm font-semibold rounded-lg transition duration-200 ${
-//             activeTab === 'analysis' ? 'bg-indigo-600 text-white shadow-indigo-400 shadow-md' : 'text-gray-600 hover:bg-gray-100'
-//           }`}
-//         >
-//           📈 Ver Análisis
-//         </button>
-//       </div>
-
-//       {/* Contenido según la Pestaña Activa */}
-//       {activeTab === 'input' && <InputSection />}
-//       {activeTab === 'analysis' && <AnalysisSection />}
-      
-//       {/* Info de debug al final */}
-//       {userId && (
-//           <p className="text-[10px] text-gray-400 mt-6 text-center">
-//               ID de Sesión: <span className="font-mono">{userId}</span>
-//           </p>
-//       )}
-
-//     </div>
-//   );
-// };
-
-// export default ProductivityAnalyzer;
-
-
-
-
-
-
-// import React, { useState, useMemo, useEffect } from 'react';
-// // Importaciones de Recharts para el gráfico
-// import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-// // Importaciones de Firebase Firestore
-// import { initializeApp } from 'firebase/app';
-// import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
-// import { getFirestore, collection, query, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
-// // Asume que la configuración de Firebase está disponible en este archivo
-// import { firebaseConfig } from "../../firebaseConfig"; 
-
-// // --- Lógica de la Aplicación Base ---
-// const getAppId = () => {
-//   if (typeof window.__app_id !== "undefined") {
-//     return window.__app_id;
-//   }
-//   return "default-calendar-app-id";
-// };
-// const appId = getAppId();
-
-// // ----------------------------------------------------
-// // DEFINICIÓN DEL GRÁFICO (ProductivityChart)
-// // *Adaptado ligeramente para ser más compacto en móvil*
-// // ----------------------------------------------------
-// const ProductivityChart = ({ summaryArray }) => {
-//   const colors = {
-//     typeA: '#8884d8', 
-//     typeB: '#82ca9d', 
-//     typeC: '#ffc658', 
-//     typeD: '#ff7300', 
-//     typeE: '#00c49f', 
-//   };
-
 //   if (!summaryArray || summaryArray.length === 0) {
 //     return (
 //       <div className="h-64 sm:h-96 w-full p-4 flex items-center justify-center bg-white rounded-lg shadow-md border border-gray-100">
-//         <p className="text-gray-500 italic">No hay datos suficientes para generar el gráfico.</p>
+//         <p className="text-gray-500 italic">
+//           No hay datos suficientes para generar el gráfico.
+//         </p>
 //       </div>
 //     );
 //   }
-
 //   return (
-//     // Altura: 64 en móvil (h-64), 96 en desktop (sm:h-96)
 //     <div className="h-64 sm:h-96 w-full p-4 bg-white rounded-lg shadow-md border border-gray-100">
 //       <ResponsiveContainer width="100%" height="100%">
 //         <BarChart
@@ -1057,182 +366,142 @@
 //           margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
 //         >
 //           <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-//           {/* Tamaño de fuente más pequeño para ejes en móvil (fontSize: 10) */}
-//           <XAxis dataKey="name" stroke="#333" tick={{ fill: '#4b5563', fontSize: 10 }} /> 
-//           <YAxis stroke="#333" tick={{ fill: '#4b5563', fontSize: 10 }} />
-//           <Tooltip 
-//             cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
-//             contentStyle={{ borderRadius: '8px', border: '1px solid #ccc', background: '#fff', fontSize: '12px', padding: '5px' }}
-//             labelStyle={{ fontWeight: 'bold', color: '#1f2937' }}
-//             formatter={(value, name) => [value, name.replace('type', 'Caja ')]}
+//           <XAxis
+//             dataKey="name"
+//             stroke="#333"
+//             tick={{ fill: "#4b5563", fontSize: 10 }}
 //           />
-//           {/* Leyenda más pequeña en móvil (fontSize: 12px) */}
-//           <Legend 
-//             wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} 
-//             formatter={(value) => value.replace('type', 'Caja ')}
+//           <YAxis stroke="#333" tick={{ fill: "#4b5563", fontSize: 10 }} />
+//           <Tooltip
+//             cursor={{ fill: "rgba(0, 0, 0, 0.05)" }}
+//             contentStyle={{
+//               borderRadius: "8px",
+//               border: "1px solid #ccc",
+//               background: "#fff",
+//               fontSize: "12px",
+//               padding: "5px",
+//             }}
+//             labelStyle={{ fontWeight: "bold", color: "#1f2937" }}
+//             formatter={(value, name) => [value, name.replace("type", "Caja ")]}
 //           />
-
-//           <Bar dataKey="typeA" stackId="a" fill={colors.typeA} name="Caja A" radius={[4, 4, 0, 0]} />
-//           <Bar dataKey="typeB" stackId="a" fill={colors.typeB} name="Caja B" radius={[4, 4, 0, 0]} />
-//           <Bar dataKey="typeC" stackId="a" fill={colors.typeC} name="Caja C" radius={[4, 4, 0, 0]} />
-//           <Bar dataKey="typeD" stackId="a" fill={colors.typeD} name="Caja D" radius={[4, 4, 0, 0]} />
-//           <Bar dataKey="typeE" stackId="a" fill={colors.typeE} name="Caja E" radius={[4, 4, 0, 0]} />
+//           <Legend
+//             wrapperStyle={{ paddingTop: "10px", fontSize: "12px" }}
+//             formatter={(value) => value.replace("type", "Caja ")}
+//           />
+//           <Bar
+//             dataKey="typeA"
+//             stackId="a"
+//             fill={colors.typeA}
+//             name="Caja A"
+//             radius={[4, 4, 0, 0]}
+//           />
+//           <Bar
+//             dataKey="typeB"
+//             stackId="a"
+//             fill={colors.typeB}
+//             name="Caja B"
+//             radius={[4, 4, 0, 0]}
+//           />
+//           <Bar
+//             dataKey="typeC"
+//             stackId="a"
+//             fill={colors.typeC}
+//             name="Caja C"
+//             radius={[4, 4, 0, 0]}
+//           />
+//           <Bar
+//             dataKey="typeD"
+//             stackId="a"
+//             fill={colors.typeD}
+//             name="Caja D"
+//             radius={[4, 4, 0, 0]}
+//           />
+//           <Bar
+//             dataKey="typeE"
+//             stackId="a"
+//             fill={colors.typeE}
+//             name="Caja E"
+//             radius={[4, 4, 0, 0]}
+//           />
 //         </BarChart>
 //       </ResponsiveContainer>
 //     </div>
 //   );
 // };
-
-// // ----------------------------------------------------
-// // COMPONENTE PRINCIPAL: ProductivityAnalyzer
-// // ----------------------------------------------------
-// const ProductivityAnalyzer = () => {
-//   // --- Estados de la Aplicación ---
-//   const [productionData, setProductionData] = useState([]);
-//   const [errorMessage, setErrorMessage] = useState('');
-//   const [isLoading, setIsLoading] = useState(true);
-//   const [db, setDb] = useState(null);
-//   const [userId, setUserId] = useState(null);
-//   const [isAuthReady, setIsAuthReady] = useState(false);
-//   // Estado para controlar la pestaña activa en MÓVIL
-//   const [activeTab, setActiveTab] = useState('input'); 
-  
-//   const [newEntry, setNewEntry] = useState({ 
-//     name: '', 
-//     date: new Date().toISOString().split('T')[0],
-//     typeA: 0, typeB: 0, typeC: 0, typeD: 0, typeE: 0 
+// const InputSectionComponent = ({
+//   db,
+//   userId,
+//   isAuthReady,
+//   setErrorMessage,
+//   isLoading,
+// }) => {
+//   const [newEntry, setNewEntry] = useState({
+//     name: "",
+//     date: new Date().toISOString().split("T")[0],
+//     typeA: 0,
+//     typeB: 0,
+//     typeC: 0,
+//     typeD: 0,
+//     typeE: 0,
 //   });
-
-//   const [selectedWorkerName, setSelectedWorkerName] = useState('');
-//   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-
-//   // --- Inicialización y Suscripción a Firebase (sin cambios funcionales) ---
-//   useEffect(() => {
-//     try {
-//       if (Object.keys(firebaseConfig).length === 0) throw new Error("Firebase config not available.");
-//       const app = initializeApp(firebaseConfig);
-//       const firestore = getFirestore(app);
-//       const firebaseAuth = getAuth(app);
-//       setDb(firestore);
-
-//       onAuthStateChanged(firebaseAuth, async (user) => {
-//         if (!user) {
-//           try { await signInAnonymously(firebaseAuth); } catch (e) { console.error("Firebase auth error:", e); }
-//         }
-//         setUserId(firebaseAuth.currentUser?.uid || 'anonymous');
-//         setIsAuthReady(true);
-//       });
-//     } catch (e) {
-//       console.error("Firebase Initialization Error:", e);
-//       setErrorMessage("Error al inicializar la base de datos.");
-//       setIsAuthReady(true);
-//       setIsLoading(false);
-//     }
-//   }, []);
-
-//   useEffect(() => {
-//     if (!db || !isAuthReady) return;
-
-//     const collectionPath = `artifacts/${appId}/public/data/productivityEntries`;
-//     const entriesCollection = collection(db, collectionPath);
-//     const q = query(entriesCollection); 
-
-//     const unsubscribe = onSnapshot(q, (snapshot) => {
-//       const entries = [];
-//       snapshot.forEach((doc) => {
-//         entries.push({ id: doc.id, ...doc.data() });
-//       });
-//       setProductionData(entries);
-//       setIsLoading(false);
-
-//       if (entries.length > 0 && !selectedWorkerName) {
-//         const uniqueNames = [...new Set(entries.map(e => e.name))];
-//         setSelectedWorkerName(uniqueNames[0]);
-//       }
-//     }, (error) => {
-//       console.error("Firestore data snapshot error:", error);
-//       setErrorMessage("Error al cargar los datos de la base de datos.");
-//       setIsLoading(false);
-//     });
-
-//     return () => unsubscribe();
-//   }, [db, isAuthReady, selectedWorkerName]); // Incluimos selectedWorkerName en dependencies
-
-//   // --- Handlers y Lógica (sin cambios funcionales) ---
-//   const handleInputChange = (e) => {
+//   const handleInputChange = useCallback((e) => {
 //     const { name, value, type } = e.target;
-//     setNewEntry({
-//       ...newEntry,
-//       [name]: type === 'number' ? parseInt(value) || 0 : value,
-//     });
-//   };
-
-//   const addProduction = async (e) => {
-//     e.preventDefault();
-//     setErrorMessage('');
-//     if (!newEntry.name || newEntry.name.trim() === '') { setErrorMessage('Por favor, ingresa un nombre.'); return; }
-//     if (!db) { setErrorMessage('La base de datos no está lista.'); return; }
-    
-//     try {
+//     setNewEntry((prev) => ({
+//       ...prev,
+//       [name]: type === "number" ? parseInt(value) || 0 : value,
+//     }));
+//   }, []);
+//   const addProduction = useCallback(
+//     async (e) => {
+//       e.preventDefault();
+//       setErrorMessage("");
+//       if (!newEntry.name || newEntry.name.trim() === "") {
+//         setErrorMessage("Por favor, ingresa un nombre.");
+//         return;
+//       }
+//       if (!db) {
+//         setErrorMessage("La base de datos no está lista.");
+//         return;
+//       }
+//       try {
 //         const collectionPath = `artifacts/${appId}/public/data/productivityEntries`;
 //         await addDoc(collection(db, collectionPath), {
-//             ...newEntry,
-//             typeA: newEntry.typeA || 0, typeB: newEntry.typeB || 0,
-//             typeC: newEntry.typeC || 0, typeD: newEntry.typeD || 0,
-//             typeE: newEntry.typeE || 0,
-//             userId: userId,
-//             createdAt: serverTimestamp(),
+//           ...newEntry,
+//           typeA: newEntry.typeA || 0,
+//           typeB: newEntry.typeB || 0,
+//           typeC: newEntry.typeC || 0,
+//           typeD: newEntry.typeD || 0,
+//           typeE: newEntry.typeE || 0,
+//           userId: userId,
+//           createdAt: serverTimestamp(),
 //         });
-//         setNewEntry(prev => ({ 
-//             name: prev.name, date: prev.date, 
-//             typeA: 0, typeB: 0, typeC: 0, typeD: 0, typeE: 0 
+//         setNewEntry((prev) => ({
+//           name: prev.name,
+//           date: prev.date,
+//           typeA: 0,
+//           typeB: 0,
+//           typeC: 0,
+//           typeD: 0,
+//           typeE: 0,
 //         }));
-//     } catch (error) {
+//       } catch (error) {
 //         console.error("Error adding document: ", error);
-//         setErrorMessage('Error al registrar la producción: ' + error.message);
-//     }
-//   };
-
-//   const summary = useMemo(() => {
-//     const uniqueNames = [...new Set(productionData.map(e => e.name))].sort();
-//     const totals = productionData.reduce((acc, entry) => {
-//       const entryA = Number(entry.typeA) || 0; const entryB = Number(entry.typeB) || 0;
-//       const entryC = Number(entry.typeC) || 0; const entryD = Number(entry.typeD) || 0;
-//       const entryE = Number(entry.typeE) || 0;
-//       if (!acc[entry.name]) acc[entry.name] = { total: 0, typeA: 0, typeB: 0, typeC: 0, typeD: 0, typeE: 0 };
-//       acc[entry.name].typeA += entryA; acc[entry.name].typeB += entryB;
-//       acc[entry.name].typeC += entryC; acc[entry.name].typeD += entryD;
-//       acc[entry.name].typeE += entryE;
-//       acc[entry.name].total += entryA + entryB + entryC + entryD + entryE;
-//       return acc;
-//     }, {});
-//     const summaryArray = Object.entries(totals)
-//       .map(([name, data]) => ({ name, ...data }))
-//       .sort((a, b) => b.total - a.total);
-//     return { summaryArray, uniqueNames };
-//   }, [productionData]);
-
-//   const topPerformer = summary.summaryArray[0] || { name: 'N/A', total: 0 };
-//   const getMaxByType = (type) => Math.max(...summary.summaryArray.map(w => w[type] || 0));
-
-//   const dailyEntries = useMemo(() => {
-//     if (!selectedWorkerName || !selectedDate) return [];
-//     return productionData
-//         .filter(entry => entry.name === selectedWorkerName && entry.date === selectedDate)
-//         .sort((a, b) => (new Date(a.date) - new Date(b.date))); 
-//   }, [productionData, selectedWorkerName, selectedDate]);
-  
-//   // ----------------------------------------------------
-//   // SUB-COMPONENTE: SECCIÓN 1 - INGRESO DE DATOS 📝
-//   // Adaptado para ser más compacto en móvil (p-4, text-sm)
-//   // ----------------------------------------------------
-//   const InputSection = () => (
+//         setErrorMessage("Error al registrar la producción: " + error.message);
+//       }
+//     },
+//     [db, newEntry, userId, setErrorMessage]
+//   );
+//   return (
 //     <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg border border-gray-200 mb-8 sm:mb-0">
-//       <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">➕ Registrar Producción</h2>
+//       <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">
+//         ➕ Registrar Producción
+//       </h2>
 //       <form onSubmit={addProduction} className="space-y-4 sm:space-y-6">
 //         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 //           <div>
-//             <label className="block text-sm font-medium text-gray-600 mb-1">Trabajador:</label>
+//             <label className="block text-sm font-medium text-gray-600 mb-1">
+//               Trabajador:
+//             </label>
 //             <input
 //               type="text"
 //               name="name"
@@ -1244,7 +513,9 @@
 //             />
 //           </div>
 //           <div>
-//             <label className="block text-sm font-medium text-gray-600 mb-1">Fecha de Registro:</label>
+//             <label className="block text-sm font-medium text-gray-600 mb-1">
+//               Fecha de Registro:
+//             </label>
 //             <input
 //               type="date"
 //               name="date"
@@ -1254,14 +525,16 @@
 //             />
 //           </div>
 //         </div>
-        
 //         <div className="p-3 sm:p-4 bg-blue-50 rounded-lg">
-//           <h3 className="text-base sm:text-lg font-medium text-blue-800 mb-3 sm:mb-4">Cajas por Tipo (Cantidad)</h3>
-//           {/* GRID: 2 columnas en móvil (default), 5 en desktop (lg:grid-cols-5) */}
+//           <h3 className="text-base sm:text-lg font-medium text-blue-800 mb-3 sm:mb-4">
+//             Cajas por Tipo (Cantidad)
+//           </h3>
 //           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-//             {['A', 'B', 'C', 'D', 'E'].map((type) => (
+//             {["A", "B", "C", "D", "E"].map((type) => (
 //               <div key={type}>
-//                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Tipo {type}:</label>
+//                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+//                   Tipo {type}:
+//                 </label>
 //                 <input
 //                   type="number"
 //                   name={`type${type}`}
@@ -1274,229 +547,657 @@
 //             ))}
 //           </div>
 //         </div>
-        
-//         <button 
-//           type="submit" 
+//         <button
+//           type="submit"
 //           disabled={!isAuthReady || isLoading}
 //           className={`w-full md:w-auto px-6 py-3 text-white font-bold rounded-lg transition duration-200 shadow-md ${
-//               !isAuthReady || isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+//             !isAuthReady || isLoading
+//               ? "bg-gray-400 cursor-not-allowed"
+//               : "bg-green-600 hover:bg-green-700"
 //           }`}
 //         >
-//           {isLoading ? 'Guardando...' : 'Registrar Entrada'}
+//           {isLoading ? "Guardando..." : "Registrar Entrada"}
 //         </button>
 //       </form>
 //     </section>
 //   );
+// };
+// const InputSection = memo(InputSectionComponent);
 
-//   // ----------------------------------------------------
-//   // SUB-COMPONENTE: SECCIONES DE ANÁLISIS 📈
-//   // Incluye Resumen, Gráfico, Historial y Tabla
-//   // ----------------------------------------------------
-//   const AnalysisSection = () => (
-//     <div className="space-y-6 sm:space-y-8">
-      
-//       {/* SECCIÓN 2: Resumen Ejecutivo */}
-//       <section className="bg-yellow-100 p-4 sm:p-6 rounded-lg shadow-inner border border-yellow-300">
-//         <h2 className="text-xl sm:text-2xl font-semibold text-yellow-800 mb-3">⭐ Resumen General Acumulado</h2>
-//         <p className="text-base sm:text-lg text-yellow-900">
-//           El trabajador más productivo es: 
-//           <strong className="text-xl sm:text-2xl text-red-600 ml-2">{topPerformer.name}</strong> con 
-//           <span className="text-xl sm:text-2xl font-extrabold ml-1"> {topPerformer.total}</span> cajas.
-//         </p>
-//       </section>
 
-//       {/* SECCIÓN 3: CANVAS / GRÁFICO */}
-//       <section>
-//         <h2 className="text-2xl sm:text-3xl font-bold text-blue-800 mb-4 sm:mb-6">📊 Visualización de Competitividad</h2>
-//         <ProductivityChart summaryArray={summary.summaryArray} />
-//       </section>
 
-//       <hr className="border-t-2 border-gray-300 my-6 sm:my-8" />
-      
-//       {/* SECCIÓN 5: Vista de Historial Diario */}
-//       <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg border border-gray-200">
-//         <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4 sm:mb-6 border-b pb-2">🗓️ Historial por Trabajador y Fecha</h2>
-        
-//         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-//             <div>
-//                 <label className="block text-sm font-medium text-gray-600 mb-1">Seleccionar Trabajador:</label>
-//                 <select
-//                     value={selectedWorkerName}
-//                     onChange={(e) => setSelectedWorkerName(e.target.value)}
-//                     className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+// const AuthForm = ({
+//     email, setEmail, password, setPassword,
+//     isLoginMode, setIsLoginMode,
+//     authError, isLoadingAuth, handleAuth
+// }) => {
+//     return (
+//         <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+//             <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-sm border-t-4 border-blue-600">
+//                 <h2 className="text-3xl font-bold text-center mb-6 text-blue-800">
+//                     {isLoginMode ? 'Iniciar Sesión' : 'Registrarse'}
+//                 </h2>
+
+//                 <form onSubmit={(e) => { e.preventDefault(); handleAuth(e); }} className="space-y-4">
+//                     {/* Input de Email */}
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="email">Email</label>
+//                         <input
+//                             type="email" id="email"
+//                             value={email} onChange={(e) => setEmail(e.target.value)}
+//                             required
+//                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+//                             placeholder="ejemplo@correo.com"
+//                         />
+//                     </div>
+//                     {/* Input de Contraseña */}
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="password">Contraseña</label>
+//                         <input
+//                             type="password" id="password"
+//                             value={password} onChange={(e) => setPassword(e.target.value)}
+//                             required
+//                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+//                             placeholder="Mínimo 6 caracteres"
+//                         />
+//                     </div>
+
+//                     {/* Mensaje de Error */}
+//                     {authError && (
+//                         <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+//                             {authError}
+//                         </div>
+//                     )}
+
+//                     {/* Botón de Login/Registro */}
+//                     <button
+//                         type="submit"
+//                         disabled={isLoadingAuth}
+//                         className={`w-full py-3 font-bold rounded-lg transition duration-150 shadow-md text-white flex items-center justify-center ${isLoadingAuth ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+//                     >
+//                         {isLoadingAuth ? (
+//                              // Si no tienes un componente Loader, usa texto o un emoji
+//                             <><span className="animate-spin mr-2">⚙️</span> Cargando...</> 
+//                         ) : (
+//                             isLoginMode ? 'Entrar' : 'Crear Cuenta'
+//                         )}
+//                     </button>
+//                 </form>
+
+//                 {/* Alternar modo Login/Registro */}
+//                 <button
+//                     onClick={() => {
+//                         setIsLoginMode(!isLoginMode);
+//                         // Opcional: limpiar errores y campos al cambiar de modo
+//                         setPassword(''); 
+//                         setEmail('');
+//                     }}
+//                     className="mt-4 w-full text-sm text-blue-600 hover:text-blue-800 font-medium"
 //                 >
-//                     <option value="">-- Seleccione un trabajador --</option>
-//                     {summary.uniqueNames.map(name => (
-//                         <option key={name} value={name}>{name}</option>
-//                     ))}
-//                 </select>
-//             </div>
-//             <div>
-//                 <label className="block text-sm font-medium text-gray-600 mb-1">Seleccionar Fecha:</label>
-//                 <input
-//                     type="date"
-//                     value={selectedDate}
-//                     onChange={(e) => setSelectedDate(e.target.value)}
-//                     className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-//                 />
+//                     {isLoginMode ? '¿No tienes cuenta? Regístrate aquí' : '¿Ya tienes cuenta? Inicia sesión'}
+//                 </button>
 //             </div>
 //         </div>
+//     );
+// };
 
-//         {selectedWorkerName && dailyEntries.length > 0 ? (
-//             <div className="border border-indigo-200 rounded-lg p-3 sm:p-4 bg-indigo-50">
-//                 <h3 className="text-lg sm:text-xl font-bold text-indigo-800 mb-3">
-//                     Producción de {selectedWorkerName} el {selectedDate}
-//                 </h3>
-//                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-//                     {['A', 'B', 'C', 'D', 'E'].map((type) => {
-//                         const totalType = dailyEntries.reduce((sum, entry) => sum + (entry[`type${type}`] || 0), 0);
-//                         return (
-//                             <div key={type} className="p-3 bg-white rounded-lg shadow text-center">
-//                                 <p className="text-xs sm:text-sm text-gray-500">Caja {type}</p>
-//                                 <p className="text-xl sm:text-2xl font-extrabold text-indigo-600">{totalType}</p>
-//                             </div>
-//                         );
-//                     })}
-//                 </div>
-//             </div>
-//         ) : selectedWorkerName && (
-//              <p className="text-gray-500 italic p-4 border border-gray-200 rounded-lg bg-gray-50 text-sm">
-//                  No se encontraron entradas para {selectedWorkerName} en la fecha {selectedDate}.
-//              </p>
-//         )}
 
-//       </section>
+// const ProductivityAnalyzer = () => {
+//   const [productionData, setProductionData] = useState([]);
+//   const [errorMessage, setErrorMessage] = useState("");
+//   const [isLoading, setIsLoading] = useState(true);
+//   const [db, setDb] = useState(null);
+//   const [userId, setUserId] = useState(null);
+//   const [isAuthReady, setIsAuthReady] = useState(false);
+//   const [activeTab, setActiveTab] = useState("input");
+//   const [selectedWorkerName, setSelectedWorkerName] = useState("");
+//   const [email, setEmail] = useState('');
+// const [password, setPassword] = useState('');
+// const [isLoginMode, setIsLoginMode] = useState(true); // true = Login, false = Registro
+// const [authError, setAuthError] = useState(null);
+// const [isLoadingAuth, setIsLoadingAuth] = useState(false);
+//   const [selectedDate, setSelectedDate] = useState(
+//     new Date().toISOString().split("T")[0]
+//   );
 
-//       <hr className="border-t-2 border-gray-300 my-6 sm:my-8" />
 
-//       {/* SECCIÓN 4: Tabla de Análisis */}
-//       <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg">
-//         <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4">🥇 Desempeño por Categoría (Acumulado)</h2>
+//  useEffect(() => {
+//     // AHORA DEPENDE DE userId
+//     if (!db || !isAuthReady || !userId) { 
+//         // Si no hay DB, Auth listo o USER ID, sal.
+//         // Opcional: Si no hay userId, limpia los datos para que no se vean los anteriores.
+//         setProductionData([]);
+//         setIsLoading(false);
+//         return;
+//     }
+
+//     const collectionPath = `artifacts/${appId}/public/data/productivityEntries`;
+//     const entriesCollection = collection(db, collectionPath);
+    
+//     // 🟢 LA CLAVE: Agrega un filtro 'where' a la consulta.
+//     const q = query(entriesCollection, where("userId", "==", userId));
+
+//     const unsubscribe = onSnapshot(
+//         q,
+//         (snapshot) => {
+//             const entries = [];
+//             snapshot.forEach((doc) => {
+//                 entries.push({ id: doc.id, ...doc.data() });
+//             });
+//             setProductionData(entries);
+//             setIsLoading(false);
+//         },
+//         (error) => {
+//             console.error("Firestore data snapshot error:", error);
+//             setErrorMessage("Error al cargar los datos de la base de datos.");
+//             setIsLoading(false);
+//         }
+//     );
+
+//     // Asegúrate de agregar 'userId' a la lista de dependencias
+//     return () => unsubscribe();
+// }, [db, isAuthReady, setErrorMessage, userId]); // ⬅️ ¡AGREGA userId AQUÍ!
+
+
+
+
+//   useEffect(() => {
+//     if (productionData.length > 0 && !selectedWorkerName) {
+//       const uniqueNames = [...new Set(productionData.map((e) => e.name))];
+//       setSelectedWorkerName(uniqueNames[0]);
+//     }
+//   }, [productionData, selectedWorkerName]);
+
+// const authRef = useRef(null);
+
+// useEffect(() => {
+//         try {
+//             if (Object.keys(firebaseConfig).length === 0) throw new Error("Firebase config not available.");
+            
+//             const app = initializeApp(firebaseConfig);
+//             const firestore = getFirestore(app);
+//             const firebaseAuth = getAuth(app);
+            
+//             // 🛑 CORRECCIÓN: Almacenar la instancia en la referencia
+//             authRef.current = firebaseAuth; 
+//             setDb(firestore);
+
+//             // 1. Configurar la persistencia y observador de sesión
+//             setPersistence(firebaseAuth, browserLocalPersistence)
+//                 .then(() => {
+//                     const unsubscribeAuth = onAuthStateChanged(firebaseAuth, (user) => {
+//                         if (user) {
+//                             setUserId(user.uid);
+//                         } else {
+//                             setUserId(null); 
+//                         }
+//                         setIsAuthReady(true); // La verificación de sesión inicial ha terminado
+//                     });
+//                     return () => unsubscribeAuth();
+//                 })
+//                 .catch((error) => {
+//                     console.error("Error al configurar persistencia:", error);
+//                     setErrorMessage('Error de autenticación: No se pudo configurar la sesión.');
+//                     setIsAuthReady(true);
+//                 });
+
+//         } catch (e) {
+//             console.error("Firebase Initialization Error:", e);
+//             setErrorMessage("Error al inicializar la base de datos.");
+//             setIsAuthReady(true);
+//             setIsLoading(false);
+//         }
+//     }, []); // Dependencia: [] -> Solo se ejecuta una vez
+
+
+// const handleAuth = useCallback(async (e) => {
+//         e.preventDefault();
+//         setIsLoadingAuth(true);
+//         setAuthError(null);
         
+//         // 🛑 CORRECCIÓN: Usar authRef.current
+//         const authInstance = authRef.current;
+//         if (!authInstance) { setAuthError('Servicio de autenticación no inicializado.'); setIsLoadingAuth(false); return; }
+
+//         try {
+//             if (isLoginMode) {
+//                 await signInWithEmailAndPassword(authInstance, email, password);
+//             } else {
+//                 await createUserWithEmailAndPassword(authInstance, email, password);
+//             }
+//             setEmail('');
+//             setPassword('');
+//         } catch (error) {
+//             // ... (Tu lógica de manejo de errores) ...
+//             let errorMessage = "Ocurrió un error de autenticación.";
+//             if (error.code === 'auth/user-not-found') errorMessage = "Usuario no encontrado.";
+//             else if (error.code === 'auth/wrong-password') errorMessage = "Contraseña incorrecta.";
+//             else if (error.code === 'auth/invalid-email') errorMessage = "El formato del email es inválido.";
+//             else if (error.code === 'auth/email-already-in-use') errorMessage = "Este email ya está registrado.";
+//             else errorMessage = error.message;
+
+//             setAuthError(errorMessage);
+//         } finally {
+//             setIsLoadingAuth(false);
+//         }
+//     }, [email, password, isLoginMode]); // Dependencia 'auth' eliminada, se usa authRef.current
+
+//     const handleSignOut = useCallback(async () => {
+//         // 🛑 CORRECCIÓN: Usar authRef.current
+//         const authInstance = authRef.current;
+//         if (authInstance) {
+//             await signOut(authInstance);
+//         }
+//     }, []);
+
+
+
+
+
+//   const summary = useMemo(() => {
+//     const uniqueNames = [...new Set(productionData.map((e) => e.name))].sort();
+//     const totals = productionData.reduce((acc, entry) => {
+//       const entryA = Number(entry.typeA) || 0;
+//       const entryB = Number(entry.typeB) || 0;
+//       const entryC = Number(entry.typeC) || 0;
+//       const entryD = Number(entry.typeD) || 0;
+//       const entryE = Number(entry.typeE) || 0;
+//       if (!acc[entry.name])
+//         acc[entry.name] = {
+//           total: 0,
+//           typeA: 0,
+//           typeB: 0,
+//           typeC: 0,
+//           typeD: 0,
+//           typeE: 0,
+//         };
+//       acc[entry.name].typeA += entryA;
+//       acc[entry.name].typeB += entryB;
+//       acc[entry.name].typeC += entryC;
+//       acc[entry.name].typeD += entryD;
+//       acc[entry.name].typeE += entryE;
+//       acc[entry.name].total += entryA + entryB + entryC + entryD + entryE;
+//       return acc;
+//     }, {});
+//     const summaryArray = Object.entries(totals)
+//       .map(([name, data]) => ({ name, ...data }))
+//       .sort((a, b) => b.total - a.total);
+//     return { summaryArray, uniqueNames };
+//   }, [productionData]);
+//   const topPerformer = summary.summaryArray[0] || { name: "N/A", total: 0 };
+//   const getMaxByType = (type) =>
+//     Math.max(...summary.summaryArray.map((w) => w[type] || 0));
+//   const dailyEntries = useMemo(() => {
+//     if (!selectedWorkerName || !selectedDate) return [];
+//     return productionData
+//       .filter(
+//         (entry) =>
+//           entry.name === selectedWorkerName && entry.date === selectedDate
+//       )
+//       .sort((a, b) => new Date(a.date) - new Date(b.date));
+//   }, [productionData, selectedWorkerName, selectedDate]);
+
+
+  
+//   const AnalysisSection = () => (
+//     <div className="space-y-6 sm:space-y-8">
+//       <section className="bg-yellow-100 p-4 sm:p-6 rounded-lg shadow-inner border border-yellow-300">
+//         <h2 className="text-xl sm:text-2xl font-semibold text-yellow-800 mb-3">
+//           ⭐ Resumen General Acumulado
+//         </h2>
+//         <p className="text-base sm:text-lg text-yellow-900">
+//           El trabajador más productivo es:
+//           <strong className="text-xl sm:text-2xl text-red-600 ml-2">
+//             {topPerformer.name}
+//           </strong>{" "}
+//           con
+//           <span className="text-xl sm:text-2xl font-extrabold ml-1">
+//             {" "}
+//             {topPerformer.total}
+//           </span>{" "}
+//           cajas.
+//         </p>
+//       </section>
+//       <section>
+//         <h2 className="text-2xl sm:text-3xl font-bold text-blue-800 mb-4 sm:mb-6">
+//           📊 Visualización de Competitividad
+//         </h2>
+//         <ProductivityChart summaryArray={summary.summaryArray} />
+//       </section>
+//       <hr className="border-t-2 border-gray-300 my-6 sm:my-8" />
+//       <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg border border-gray-200">
+//         <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4 sm:mb-6 border-b pb-2">
+//           🗓️ Historial por Trabajador y Fecha
+//         </h2>
+//         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+//           <div>
+//             <label className="block text-sm font-medium text-gray-600 mb-1">
+//               Seleccionar Trabajador:
+//             </label>
+//             <select
+//               value={selectedWorkerName}
+//               onChange={(e) => setSelectedWorkerName(e.target.value)}
+//               className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+//             >
+//               <option value="">-- Seleccione un trabajador --</option>
+//               {summary.uniqueNames.map((name) => (
+//                 <option key={name} value={name}>
+//                   {name}
+//                 </option>
+//               ))}
+//             </select>
+//           </div>
+//           <div>
+//             <label className="block text-sm font-medium text-gray-600 mb-1">
+//               Seleccionar Fecha:
+//             </label>
+//             <input
+//               type="date"
+//               value={selectedDate}
+//               onChange={(e) => setSelectedDate(e.target.value)}
+//               className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+//             />
+//           </div>
+//         </div>
+//         {selectedWorkerName && dailyEntries.length > 0 ? (
+//           <div className="border border-indigo-200 rounded-lg p-3 sm:p-4 bg-indigo-50">
+//             <h3 className="text-lg sm:text-xl font-bold text-indigo-800 mb-3">
+//               Producción de {selectedWorkerName} el {selectedDate}
+//             </h3>
+//             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+//               {["A", "B", "C", "D", "E"].map((type) => {
+//                 const totalType = dailyEntries.reduce(
+//                   (sum, entry) => sum + (entry[`type${type}`] || 0),
+//                   0
+//                 );
+//                 return (
+//                   <div
+//                     key={type}
+//                     className="p-3 bg-white rounded-lg shadow text-center"
+//                   >
+//                     <p className="text-xs sm:text-sm text-gray-500">
+//                       Caja {type}
+//                     </p>
+//                     <p className="text-xl sm:text-2xl font-extrabold text-indigo-600">
+//                       {totalType}
+//                     </p>
+//                   </div>
+//                 );
+//               })}
+//             </div>
+//           </div>
+//         ) : (
+//           selectedWorkerName && (
+//             <p className="text-gray-500 italic p-4 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+//               No se encontraron entradas para {selectedWorkerName} en la fecha{" "}
+//               {selectedDate}.
+//             </p>
+//           )
+//         )}
+//       </section>
+//       <hr className="border-t-2 border-gray-300 my-6 sm:my-8" />
+//       <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg">
+//         <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4">
+//           🥇 Desempeño por Categoría (Acumulado)
+//         </h2>
 //         {summary.summaryArray.length > 0 ? (
 //           <div className="overflow-x-auto">
 //             <table className="min-w-full divide-y divide-gray-200 text-sm">
 //               <thead className="bg-blue-600 text-white">
 //                 <tr>
-//                   <th className="px-3 py-2 sm:px-4 sm:py-3 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider rounded-tl-lg">Trabajador</th>
-//                   <th className="px-3 py-2 sm:px-4 sm:py-3 text-center text-xs sm:text-sm font-semibold uppercase tracking-wider bg-blue-800">TOTAL</th>
-//                   {['A', 'B', 'C', 'D', 'E'].map((type) => (
-//                     <th key={type} className="px-3 py-2 sm:px-4 sm:py-3 text-center text-xs sm:text-sm font-semibold uppercase tracking-wider">Caja {type}</th>
+//                   <th className="px-3 py-2 sm:px-4 sm:py-3 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider rounded-tl-lg">
+//                     Trabajador
+//                   </th>
+//                   <th className="px-3 py-2 sm:px-4 sm:py-3 text-center text-xs sm:text-sm font-semibold uppercase tracking-wider bg-blue-800">
+//                     TOTAL
+//                   </th>
+//                   {["A", "B", "C", "D", "E"].map((type) => (
+//                     <th
+//                       key={type}
+//                       className="px-3 py-2 sm:px-4 sm:py-3 text-center text-xs sm:text-sm font-semibold uppercase tracking-wider"
+//                     >
+//                       Caja {type}
+//                     </th>
 //                   ))}
 //                 </tr>
 //               </thead>
 //               <tbody className="bg-white divide-y divide-gray-200">
 //                 {summary.summaryArray.map((item, index) => (
-//                   <tr 
-//                     key={item.name} 
-//                     className={index === 0 ? 'bg-yellow-50 font-bold border-l-4 border-yellow-500' : 'hover:bg-gray-100'}
+//                   <tr
+//                     key={item.name}
+//                     className={
+//                       index === 0
+//                         ? "bg-yellow-50 font-bold border-l-4 border-yellow-500"
+//                         : "hover:bg-gray-100"
+//                     }
 //                   >
-//                     <td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-left text-gray-900">{item.name}</td>
-                    
+//                     <td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-left text-gray-900">
+//                       {item.name}
+//                     </td>
 //                     <td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-center text-sm sm:text-lg font-extrabold bg-blue-100 text-blue-900">
 //                       {item.total}
 //                     </td>
-                    
-//                     {['typeA', 'typeB', 'typeC', 'typeD', 'typeE'].map((type, typeIndex) => (
-//                       <td key={typeIndex} 
-//                           className={`px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-center text-sm ${item[type] === getMaxByType(type) ? 'bg-green-100 font-bold text-green-800' : 'text-gray-700'}`}
-//                       >
-//                         {item[type]}
-//                       </td>
-//                     ))}
+//                     {["typeA", "typeB", "typeC", "typeD", "typeE"].map(
+//                       (type, typeIndex) => (
+//                         <td
+//                           key={typeIndex}
+//                           className={`px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-center text-sm ${
+//                             item[type] === getMaxByType(type)
+//                               ? "bg-green-100 font-bold text-green-800"
+//                               : "text-gray-700"
+//                           }`}
+//                         >
+//                           {item[type]}
+//                         </td>
+//                       )
+//                     )}
 //                   </tr>
 //                 ))}
 //               </tbody>
 //             </table>
 //           </div>
 //         ) : (
-//           <p className="text-gray-500 italic text-sm">No hay datos de producción registrados aún.</p>
+//           <p className="text-gray-500 italic text-sm">
+//             No hay datos de producción registrados aún.
+//           </p>
 //         )}
 //       </section>
 //     </div>
 //   );
+//   // return (
+//   //   <div className="p-4 md:p-8 max-w-7xl mx-auto bg-gray-50 min-h-screen font-sans">
+//   //     <h1 className="text-3xl md:text-4xl font-extrabold text-blue-800 border-b-4 border-blue-200 pb-3 mb-6 sm:mb-8">
+//   //       📦 Analizador de Productividad (Real-Time)
+//   //     </h1>
+//   //     {isLoading && (
+//   //       <div
+//   //         className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mb-4 text-sm sm:text-base"
+//   //         role="alert"
+//   //       >
+//   //         <span className="animate-spin inline-block mr-2">⚙️</span> Cargando
+//   //         datos en tiempo real...
+//   //       </div>
+//   //     )}
+//   //     {errorMessage && (
+//   //       <div
+//   //         className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-sm sm:text-base"
+//   //         role="alert"
+//   //       >
+//   //         <span className="font-bold">🚨 Error:</span> {errorMessage}
+//   //       </div>
+//   //     )}
+//   //     <div className="sm:hidden">
+//   //       <div className="flex justify-between bg-white rounded-lg shadow-md mb-6 p-1 border border-gray-200">
+//   //         <button
+//   //           onClick={() => setActiveTab("input")}
+//   //           className={`flex-1 text-center py-2 px-1 text-sm font-semibold rounded-lg transition duration-200 ${
+//   //             activeTab === "input"
+//   //               ? "bg-indigo-600 text-white shadow-indigo-400 shadow-md"
+//   //               : "text-gray-600 hover:bg-gray-100"
+//   //           }`}
+//   //         >
+//   //           📝 Registrar
+//   //         </button>
+//   //         <button
+//   //           onClick={() => setActiveTab("analysis")}
+//   //           className={`flex-1 text-center py-2 px-1 text-sm font-semibold rounded-lg transition duration-200 ${
+//   //             activeTab === "analysis"
+//   //               ? "bg-indigo-600 text-white shadow-indigo-400 shadow-md"
+//   //               : "text-gray-600 hover:bg-gray-100"
+//   //           }`}
+//   //         >
+//   //           📈 Análisis
+//   //         </button>
+//   //       </div>
+//   //       {activeTab === "input" && (
+//   //         <InputSection
+//   //           db={db}
+//   //           userId={userId}
+//   //           isAuthReady={isAuthReady}
+//   //           setErrorMessage={setErrorMessage}
+//   //           isLoading={isLoading}
+//   //         />
+//   //       )}
+//   //       {activeTab === "analysis" && <AnalysisSection />}
+//   //     </div>
+//   //     <div className="hidden sm:block">
+//   //       <InputSection
+//   //         db={db}
+//   //         userId={userId}
+//   //         isAuthReady={isAuthReady}
+//   //         setErrorMessage={setErrorMessage}
+//   //         isLoading={isLoading}
+//   //       />
+//   //       <hr className="border-t-2 border-gray-300 my-8" />
+//   //       <AnalysisSection />
+//   //     </div>
+//   //     {userId && (
+//   //       <p className="text-xs text-gray-500 mt-6 text-center">
+//   //         ID de Sesión:{" "}
+//   //         <span className="font-mono text-gray-700">{userId}</span>
+//   //       </p>
+//   //     )}
+//   //   </div>
+//   // );
 
 
-//   // ----------------------------------------------------
-//   // RENDERIZADO PRINCIPAL (Control de Responsividad con Tailwind)
-//   // ----------------------------------------------------
-//   return (
+
+
+
+// if (!isAuthReady) {
+//     return (
+//         <div className="text-center p-10 flex flex-col items-center justify-center h-screen bg-gray-50">
+//             <h1 className="text-2xl text-blue-800 font-bold mb-4">Analizador de Productividad</h1>
+//             <span className="animate-spin text-blue-600 text-4xl">🔄</span>
+//             <p className="mt-4 text-lg text-gray-700">Verificando sesión...</p>
+//         </div>
+//     );
+// }
+
+// // 2. Formulario de Login
+// if (!userId) {
+//     return (
+//         // 🛑 Muestra el formulario de autenticación si NO hay userId
+//         <AuthForm
+//             email={email} setEmail={setEmail}
+//             password={password} setPassword={setPassword}
+//             isLoginMode={isLoginMode} setIsLoginMode={setIsLoginMode}
+//             authError={authError} isLoadingAuth={isLoadingAuth}
+//             handleAuth={handleAuth}
+//         />
+//     );
+// }
+
+// // 3. Aplicación Principal (Solo si userId existe)
+// return (
 //     <div className="p-4 md:p-8 max-w-7xl mx-auto bg-gray-50 min-h-screen font-sans">
-      
-//       <h1 className="text-3xl md:text-4xl font-extrabold text-blue-800 border-b-4 border-blue-200 pb-3 mb-6 sm:mb-8">
-//         📦 Analizador de Productividad (Real-Time)
-//       </h1>
-      
-//       {/* Mensajes de Estado y Error */}
-//       {isLoading && (
-//         <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mb-4 text-sm sm:text-base" role="alert">
-//             <span className="animate-spin inline-block mr-2">⚙️</span> Cargando datos en tiempo real...
-//         </div>
-//       )}
-//       {errorMessage && (
-//         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-sm sm:text-base" role="alert">
-//             <span className="font-bold">🚨 Error:</span> {errorMessage}
-//         </div>
-//       )}
-
-//       {/* 1. VISTA MÓVIL (Menos de 640px) - CON PESTAÑAS */}
-//       <div className="sm:hidden">
         
-//         {/* Navegación por Pestañas */}
-//         <div className="flex justify-between bg-white rounded-lg shadow-md mb-6 p-1 border border-gray-200">
-//             <button
-//               onClick={() => setActiveTab('input')}
-//               className={`flex-1 text-center py-2 px-1 text-sm font-semibold rounded-lg transition duration-200 ${
-//                 activeTab === 'input' ? 'bg-indigo-600 text-white shadow-indigo-400 shadow-md' : 'text-gray-600 hover:bg-gray-100'
-//               }`}
-//             >
-//               📝 Registrar
-//             </button>
-//             <button
-//               onClick={() => setActiveTab('analysis')}
-//               className={`flex-1 text-center py-2 px-1 text-sm font-semibold rounded-lg transition duration-200 ${
-//                 activeTab === 'analysis' ? 'bg-indigo-600 text-white shadow-indigo-400 shadow-md' : 'text-gray-600 hover:bg-gray-100'
-//               }`}
-//             >
-//               📈 Análisis
+//         {/* --- CABECERA Y CERRAR SESIÓN --- */}
+//         <div className="flex justify-between items-center border-b-4 border-blue-200 pb-3 mb-6 sm:mb-8">
+//             <h1 className="text-3xl md:text-4xl font-extrabold text-blue-800">
+//                 📦 Analizador de Productividad
+//             </h1>
+//             <button onClick={handleSignOut} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition shadow-md text-sm font-semibold">
+//                 Cerrar Sesión
 //             </button>
 //         </div>
-
-//         {/* Contenido de la Pestaña Activa */}
-//         {activeTab === 'input' && <InputSection />}
-//         {activeTab === 'analysis' && <AnalysisSection />}
-
-//       </div>
-
-//       {/* 2. VISTA ESCRITORIO/TABLET (640px o más) - TODO APILADO */}
-//       <div className="hidden sm:block">
-//         <InputSection />
-//         <hr className="border-t-2 border-gray-300 my-8" />
-//         <AnalysisSection />
-//       </div>
-      
-//       {/* Info de debug al final */}
-//       {userId && (
-//           <p className="text-xs text-gray-500 mt-6 text-center">
-//               ID de Sesión: <span className="font-mono text-gray-700">{userId}</span>
-//           </p>
-//       )}
-
+//         {/* ---------------------------------- */}
+        
+//         {isLoading && (
+//             <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mb-4 text-sm sm:text-base" role="alert">
+//                 <span className="animate-spin inline-block mr-2">⚙️</span> Cargando datos en tiempo real...
+//             </div>
+//         )}
+//         {errorMessage && (
+//             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-sm sm:text-base" role="alert">
+//                 <span className="font-bold">🚨 Error:</span> {errorMessage}
+//             </div>
+//         )}
+//         <div className="sm:hidden">
+//             <div className="flex justify-between bg-white rounded-lg shadow-md mb-6 p-1 border border-gray-200">
+//                 <button onClick={() => setActiveTab('input')} className={`flex-1 text-center py-2 px-1 text-sm font-semibold rounded-lg transition duration-200 ${activeTab === 'input' ? 'bg-indigo-600 text-white shadow-indigo-400 shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}>
+//                     📝 Registrar
+//                 </button>
+//                 <button onClick={() => setActiveTab('analysis')} className={`flex-1 text-center py-2 px-1 text-sm font-semibold rounded-lg transition duration-200 ${activeTab === 'analysis' ? 'bg-indigo-600 text-white shadow-indigo-400 shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}>
+//                     📈 Análisis
+//                 </button>
+//             </div>
+//             {activeTab === 'input' && <InputSection db={db} userId={userId} isAuthReady={isAuthReady} setErrorMessage={setErrorMessage} isLoading={isLoading} />}
+//             {activeTab === 'analysis' && <AnalysisSection />}
+//         </div>
+//         <div className="hidden sm:block">
+//             <InputSection db={db} userId={userId} isAuthReady={isAuthReady} setErrorMessage={setErrorMessage} isLoading={isLoading} />
+//             <hr className="border-t-2 border-gray-300 my-8" />
+//             <AnalysisSection />
+//         </div>
+//         {userId && (
+//             <p className="text-xs text-gray-500 mt-6 text-center">
+//                 ID de Sesión: <span className="font-mono text-gray-700">{userId}</span>
+//             </p>
+//         )}
 //     </div>
-//   );
+// );
 // };
+
+
 
 // export default ProductivityAnalyzer;
 
 
 
-// import React, { useState, useMemo, useEffect } from 'react';
-// import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-// import { initializeApp } from 'firebase/app';
-// import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
-// import { getFirestore, collection, query, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
-// import { firebaseConfig } from "../../firebaseConfig";
 
+
+
+// import React, { useState, useMemo, useEffect, useCallback, memo ,useRef} from "react";
+// import {
+//   BarChart,
+//   Bar,
+//   XAxis,
+//   YAxis,
+//   CartesianGrid,
+//   Tooltip,
+//   Legend,
+//   ResponsiveContainer,
+// } from "recharts";
+// import { initializeApp } from "firebase/app";
+// import { getAuth, signInAnonymously, onAuthStateChanged,
+//     createUserWithEmailAndPassword, // Para registro
+//     signInWithEmailAndPassword,     // Para login
+//     signOut,                        // Para logout
+//     setPersistence,                 // Para persistencia
+//     browserLocalPersistence,        // Persistencia local
+// } from "firebase/auth";
+// import {
+//   getFirestore,
+//   collection,
+//   query,
+//   onSnapshot,
+//   addDoc,
+//   serverTimestamp,
+//   where,
+  
+// } from "firebase/firestore";
+// import { firebaseConfig } from "../../firebaseConfig";
 // const getAppId = () => {
 //   if (typeof window.__app_id !== "undefined") {
 //     return window.__app_id;
@@ -1504,1098 +1205,4587 @@
 //   return "default-calendar-app-id";
 // };
 // const appId = getAppId();
-
-// // ----------------------------------------------------
-// // DEFINICIÓN DEL GRÁFICO (ProductivityChart)
-// // ----------------------------------------------------
 // const ProductivityChart = ({ summaryArray }) => {
 //   const colors = {
-//     typeA: '#8884d8',
-//     typeB: '#82ca9d',
-//     typeC: '#ffc658',
-//     typeD: '#ff7300',
-//     typeE: '#00c49f',
+//     typeA: "#8884d8",
+//     typeB: "#82ca9d",
+//     typeC: "#ffc658",
+//     typeD: "#ff7300",
+//     typeE: "#00c49f",
 //   };
-
 //   if (!summaryArray || summaryArray.length === 0) {
 //     return (
-//       <div className="h-96 w-full p-4 flex items-center justify-center bg-white rounded-lg shadow-md border border-gray-100">
-//         <p className="text-gray-500 italic">No hay datos suficientes para generar el gráfico.</p>
+//       <div className="h-64 sm:h-96 w-full p-4 flex items-center justify-center bg-white rounded-lg shadow-md border border-gray-100">
+//         <p className="text-gray-500 italic">
+//           No hay datos suficientes para generar el gráfico.
+//         </p>
 //       </div>
 //     );
 //   }
-
 //   return (
-//     <div className="h-96 w-full p-4 bg-white rounded-lg shadow-md border border-gray-100">
+//     <div className="h-64 sm:h-96 w-full p-4 bg-white rounded-lg shadow-md border border-gray-100">
 //       <ResponsiveContainer width="100%" height="100%">
 //         <BarChart
 //           data={summaryArray}
 //           margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
 //         >
 //           <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-//           <XAxis dataKey="name" stroke="#333" tick={{ fill: '#4b5563', fontSize: 12 }} />
-//           <YAxis stroke="#333" tick={{ fill: '#4b5563', fontSize: 12 }} />
-//           <Tooltip 
-//             cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
-//             contentStyle={{ borderRadius: '8px', border: '1px solid #ccc', background: '#fff', fontSize: '14px' }}
-//             labelStyle={{ fontWeight: 'bold', color: '#1f2937' }}
-//             formatter={(value, name) => [value, name.replace('type', 'Caja ')]}
+//           <XAxis
+//             dataKey="name"
+//             stroke="#333"
+//             tick={{ fill: "#4b5563", fontSize: 10 }}
 //           />
-//           <Legend 
-//             wrapperStyle={{ paddingTop: '10px' }} 
-//             formatter={(value) => value.replace('type', 'Caja ')}
+//           <YAxis stroke="#333" tick={{ fill: "#4b5563", fontSize: 10 }} />
+//           <Tooltip
+//             cursor={{ fill: "rgba(0, 0, 0, 0.05)" }}
+//             contentStyle={{
+//               borderRadius: "8px",
+//               border: "1px solid #ccc",
+//               background: "#fff",
+//               fontSize: "12px",
+//               padding: "5px",
+//             }}
+//             labelStyle={{ fontWeight: "bold", color: "#1f2937" }}
+//             formatter={(value, name) => [value, name.replace("type", "Caja ")]}
 //           />
-
-//           <Bar dataKey="typeA" stackId="a" fill={colors.typeA} name="Caja A" radius={[4, 4, 0, 0]} />
-//           <Bar dataKey="typeB" stackId="a" fill={colors.typeB} name="Caja B" radius={[4, 4, 0, 0]} />
-//           <Bar dataKey="typeC" stackId="a" fill={colors.typeC} name="Caja C" radius={[4, 4, 0, 0]} />
-//           <Bar dataKey="typeD" stackId="a" fill={colors.typeD} name="Caja D" radius={[4, 4, 0, 0]} />
-//           <Bar dataKey="typeE" stackId="a" fill={colors.typeE} name="Caja E" radius={[4, 4, 0, 0]} />
+//           <Legend
+//             wrapperStyle={{ paddingTop: "10px", fontSize: "12px" }}
+//             formatter={(value) => value.replace("type", "Caja ")}
+//           />
+//           <Bar
+//             dataKey="typeA"
+//             stackId="a"
+//             fill={colors.typeA}
+//             name="Caja A"
+//             radius={[4, 4, 0, 0]}
+//           />
+//           <Bar
+//             dataKey="typeB"
+//             stackId="a"
+//             fill={colors.typeB}
+//             name="Caja B"
+//             radius={[4, 4, 0, 0]}
+//           />
+//           <Bar
+//             dataKey="typeC"
+//             stackId="a"
+//             fill={colors.typeC}
+//             name="Caja C"
+//             radius={[4, 4, 0, 0]}
+//           />
+//           <Bar
+//             dataKey="typeD"
+//             stackId="a"
+//             fill={colors.typeD}
+//             name="Caja D"
+//             radius={[4, 4, 0, 0]}
+//           />
+//           <Bar
+//             dataKey="typeE"
+//             stackId="a"
+//             fill={colors.typeE}
+//             name="Caja E"
+//             radius={[4, 4, 0, 0]}
+//           />
 //         </BarChart>
 //       </ResponsiveContainer>
 //     </div>
 //   );
 // };
+// const InputSectionComponent = ({
+//   db,
+//   userId,
+//   isAuthReady,
+//   setErrorMessage,
+//   isLoading,
+// }) => {
+//   const [newEntry, setNewEntry] = useState({
+//     name: "",
+//     date: new Date().toISOString().split("T")[0],
+//     typeA: 0,
+//     typeB: 0,
+//     typeC: 0,
+//     typeD: 0,
+//     typeE: 0,
+//   });
+//   const handleInputChange = useCallback((e) => {
+//     const { name, value, type } = e.target;
+//     setNewEntry((prev) => ({
+//       ...prev,
+//       [name]: type === "number" ? parseInt(value) || 0 : value,
+//     }));
+//   }, []);
+//   const addProduction = useCallback(
+//     async (e) => {
+//       e.preventDefault();
+//       setErrorMessage("");
+//       if (!newEntry.name || newEntry.name.trim() === "") {
+//         setErrorMessage("Por favor, ingresa un nombre.");
+//         return;
+//       }
+//       if (!db) {
+//         setErrorMessage("La base de datos no está lista.");
+//         return;
+//       }
+//       try {
+//         const collectionPath = `artifacts/${appId}/public/data/productivityEntries`;
+//         await addDoc(collection(db, collectionPath), {
+//           ...newEntry,
+//           typeA: newEntry.typeA || 0,
+//           typeB: newEntry.typeB || 0,
+//           typeC: newEntry.typeC || 0,
+//           typeD: newEntry.typeD || 0,
+//           typeE: newEntry.typeE || 0,
+//           userId: userId,
+//           createdAt: serverTimestamp(),
+//         });
+//         setNewEntry((prev) => ({
+//           name: prev.name,
+//           date: prev.date,
+//           typeA: 0,
+//           typeB: 0,
+//           typeC: 0,
+//           typeD: 0,
+//           typeE: 0,
+//         }));
+//       } catch (error) {
+//         console.error("Error adding document: ", error);
+//         setErrorMessage("Error al registrar la producción: " + error.message);
+//       }
+//     },
+//     [db, newEntry, userId, setErrorMessage]
+//   );
+//   return (
+//     <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg border border-gray-200 mb-8 sm:mb-0">
+//       <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">
+//         ➕ Registrar Producción
+//       </h2>
+//       <form onSubmit={addProduction} className="space-y-4 sm:space-y-6">
+//         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//           <div>
+//             <label className="block text-sm font-medium text-gray-600 mb-1">
+//               Trabajador:
+//             </label>
+//             <input
+//               type="text"
+//               name="name"
+//               placeholder="Nombre del Trabajador"
+//               value={newEntry.name}
+//               onChange={handleInputChange}
+//               required
+//               className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+//             />
+//           </div>
+//           <div>
+//             <label className="block text-sm font-medium text-gray-600 mb-1">
+//               Fecha de Registro:
+//             </label>
+//             <input
+//               type="date"
+//               name="date"
+//               value={newEntry.date}
+//               onChange={handleInputChange}
+//               className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+//             />
+//           </div>
+//         </div>
+//         <div className="p-3 sm:p-4 bg-blue-50 rounded-lg">
+//           <h3 className="text-base sm:text-lg font-medium text-blue-800 mb-3 sm:mb-4">
+//             Cajas por Tipo (Cantidad)
+//           </h3>
+//           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+//             {["A", "B", "C", "D", "E"].map((type) => (
+//               <div key={type}>
+//                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+//                   Tipo {type}:
+//                 </label>
+//                 <input
+//                   type="number"
+//                   name={`type${type}`}
+//                   value={newEntry[`type${type}`]}
+//                   onChange={handleInputChange}
+//                   min="0"
+//                   className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+//                 />
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+//         <button
+//           type="submit"
+//           disabled={!isAuthReady || isLoading}
+//           className={`w-full md:w-auto px-6 py-3 text-white font-bold rounded-lg transition duration-200 shadow-md ${
+//             !isAuthReady || isLoading
+//               ? "bg-gray-400 cursor-not-allowed"
+//               : "bg-green-600 hover:bg-green-700"
+//           }`}
+//         >
+//           {isLoading ? "Guardando..." : "Registrar Entrada"}
+//         </button>
+//       </form>
+//     </section>
+//   );
+// };
+// const InputSection = memo(InputSectionComponent);
 
-// // ----------------------------------------------------
-// // COMPONENTE PRINCIPAL: ProductivityAnalyzer
-// // ----------------------------------------------------
+
+
+// const AuthForm = ({
+//     email, setEmail, password, setPassword,
+//     isLoginMode, setIsLoginMode,
+//     authError, isLoadingAuth, handleAuth
+// }) => {
+//     return (
+//         <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+//             <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-sm border-t-4 border-blue-600">
+//                 <h2 className="text-3xl font-bold text-center mb-6 text-blue-800">
+//                     {isLoginMode ? 'Iniciar Sesión' : 'Registrarse'}
+//                 </h2>
+
+//                 <form onSubmit={(e) => { e.preventDefault(); handleAuth(e); }} className="space-y-4">
+//                     {/* Input de Email */}
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="email">Email</label>
+//                         <input
+//                             type="email" id="email"
+//                             value={email} onChange={(e) => setEmail(e.target.value)}
+//                             required
+//                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+//                             placeholder="ejemplo@correo.com"
+//                         />
+//                     </div>
+//                     {/* Input de Contraseña */}
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="password">Contraseña</label>
+//                         <input
+//                             type="password" id="password"
+//                             value={password} onChange={(e) => setPassword(e.target.value)}
+//                             required
+//                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+//                             placeholder="Mínimo 6 caracteres"
+//                         />
+//                     </div>
+
+//                     {/* Mensaje de Error */}
+//                     {authError && (
+//                         <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+//                             {authError}
+//                         </div>
+//                     )}
+
+//                     {/* Botón de Login/Registro */}
+//                     <button
+//                         type="submit"
+//                         disabled={isLoadingAuth}
+//                         className={`w-full py-3 font-bold rounded-lg transition duration-150 shadow-md text-white flex items-center justify-center ${isLoadingAuth ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+//                     >
+//                         {isLoadingAuth ? (
+//                              // Si no tienes un componente Loader, usa texto o un emoji
+//                             <><span className="animate-spin mr-2">⚙️</span> Cargando...</> 
+//                         ) : (
+//                             isLoginMode ? 'Entrar' : 'Crear Cuenta'
+//                         )}
+//                     </button>
+//                 </form>
+
+//                 {/* Alternar modo Login/Registro */}
+//                 <button
+//                     onClick={() => {
+//                         setIsLoginMode(!isLoginMode);
+//                         // Opcional: limpiar errores y campos al cambiar de modo
+//                         setPassword(''); 
+//                         setEmail('');
+//                     }}
+//                     className="mt-4 w-full text-sm text-blue-600 hover:text-blue-800 font-medium"
+//                 >
+//                     {isLoginMode ? '¿No tienes cuenta? Regístrate aquí' : '¿Ya tienes cuenta? Inicia sesión'}
+//                 </button>
+//             </div>
+//         </div>
+//     );
+// };
+
+
 // const ProductivityAnalyzer = () => {
 //   const [productionData, setProductionData] = useState([]);
-//   const [errorMessage, setErrorMessage] = useState('');
+//   const [errorMessage, setErrorMessage] = useState("");
 //   const [isLoading, setIsLoading] = useState(true);
 //   const [db, setDb] = useState(null);
-//   const [auth, setAuth] = useState(null);
 //   const [userId, setUserId] = useState(null);
 //   const [isAuthReady, setIsAuthReady] = useState(false);
-  
-//   const [newEntry, setNewEntry] = useState({ 
-//     name: '', 
-//     date: new Date().toISOString().split('T')[0],
-//     typeA: 0, 
-//     typeB: 0, 
-//     typeC: 0, 
-//     typeD: 0, 
-//     typeE: 0 
-//   });
+//   const [activeTab, setActiveTab] = useState("input");
+//   const [selectedWorkerName, setSelectedWorkerName] = useState("");
+//   const [email, setEmail] = useState('');
+// const [password, setPassword] = useState('');
+// const [isLoginMode, setIsLoginMode] = useState(true); // true = Login, false = Registro
+// const [authError, setAuthError] = useState(null);
+// const [isLoadingAuth, setIsLoadingAuth] = useState(false);
+//   const [selectedDate, setSelectedDate] = useState(
+//     new Date().toISOString().split("T")[0]
+//   );
 
-//   const [selectedWorkerName, setSelectedWorkerName] = useState('');
-//   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
-//   // Inicialización y Autenticación Anónima de Firebase
-//   useEffect(() => {
-//     try {
-//       if (Object.keys(firebaseConfig).length === 0) {
-//         throw new Error("Firebase config not available.");
-//       }
-//       const app = initializeApp(firebaseConfig);
-//       const firestore = getFirestore(app);
-//       const firebaseAuth = getAuth(app);
-//       setDb(firestore);
-//       setAuth(firebaseAuth);
-
-//       onAuthStateChanged(firebaseAuth, async (user) => {
-//         if (!user) {
-//           try {
-//             await signInAnonymously(firebaseAuth);
-//           } catch (e) {
-//             console.error("Firebase auth error:", e);
-//           }
-//         }
-//         setUserId(firebaseAuth.currentUser?.uid || 'anonymous');
-//         setIsAuthReady(true);
-//       });
-      
-//     } catch (e) {
-//       console.error("Firebase Initialization Error:", e);
-//       setErrorMessage("Error al inicializar la base de datos.");
-//       setIsAuthReady(true);
-//       setIsLoading(false);
+//  useEffect(() => {
+//     // AHORA DEPENDE DE userId
+//     if (!db || !isAuthReady || !userId) { 
+//         // Si no hay DB, Auth listo o USER ID, sal.
+//         // Opcional: Si no hay userId, limpia los datos para que no se vean los anteriores.
+//         setProductionData([]);
+//         setIsLoading(false);
+//         return;
 //     }
-//   }, []);
-
-//   // Suscripción a los datos de Firestore (onSnapshot) - CORREGIDO
-//   // Solo actualiza productionData.
-//   useEffect(() => {
-//     if (!db || !isAuthReady) return;
 
 //     const collectionPath = `artifacts/${appId}/public/data/productivityEntries`;
 //     const entriesCollection = collection(db, collectionPath);
-//     const q = query(entriesCollection); 
+    
+//     // 🟢 LA CLAVE: Agrega un filtro 'where' a la consulta.
+//     const q = query(entriesCollection, where("userId", "==", userId));
 
-//     const unsubscribe = onSnapshot(q, (snapshot) => {
-//       const entries = [];
-//       snapshot.forEach((doc) => {
-//         entries.push({ id: doc.id, ...doc.data() });
-//       });
-      
-//       // Actualización de datos (fuerza un re-render)
-//       setProductionData(entries);
-//       setIsLoading(false);
-      
-//     }, (error) => {
-//       console.error("Firestore data snapshot error:", error);
-//       setErrorMessage("Error al cargar los datos de la base de datos.");
-//       setIsLoading(false);
-//     });
+//     const unsubscribe = onSnapshot(
+//         q,
+//         (snapshot) => {
+//             const entries = [];
+//             snapshot.forEach((doc) => {
+//                 entries.push({ id: doc.id, ...doc.data() });
+//             });
+//             setProductionData(entries);
+//             setIsLoading(false);
+//         },
+//         (error) => {
+//             console.error("Firestore data snapshot error:", error);
+//             setErrorMessage("Error al cargar los datos de la base de datos.");
+//             setIsLoading(false);
+//         }
+//     );
 
-//     // selectedWorkerName eliminado de las dependencias.
+//     // Asegúrate de agregar 'userId' a la lista de dependencias
 //     return () => unsubscribe();
-//   }, [db, isAuthReady]); 
+// }, [db, isAuthReady, setErrorMessage, userId]); // ⬅️ ¡AGREGA userId AQUÍ!
 
-//   // NUEVO useEffect: Inicialización de selectedWorkerName
-//   // Se encarga de seleccionar el primer trabajador solo la primera vez.
+
+
+
 //   useEffect(() => {
 //     if (productionData.length > 0 && !selectedWorkerName) {
-//       const uniqueNames = [...new Set(productionData.map(e => e.name))];
+//       const uniqueNames = [...new Set(productionData.map((e) => e.name))];
 //       setSelectedWorkerName(uniqueNames[0]);
 //     }
 //   }, [productionData, selectedWorkerName]);
 
+// const authRef = useRef(null);
 
-//   // Handlers y Lógica
-//   const handleInputChange = (e) => {
-//     const { name, value, type } = e.target;
-//     setNewEntry({
-//       ...newEntry,
-//       [name]: type === 'number' ? parseInt(value) || 0 : value,
-//     });
-//   };
+// useEffect(() => {
+//         try {
+//             if (Object.keys(firebaseConfig).length === 0) throw new Error("Firebase config not available.");
+            
+//             const app = initializeApp(firebaseConfig);
+//             const firestore = getFirestore(app);
+//             const firebaseAuth = getAuth(app);
+            
+//             // 🛑 CORRECCIÓN: Almacenar la instancia en la referencia
+//             authRef.current = firebaseAuth; 
+//             setDb(firestore);
 
-//   const addProduction = async (e) => {
-//     e.preventDefault();
-//     setErrorMessage('');
+//             // 1. Configurar la persistencia y observador de sesión
+//             setPersistence(firebaseAuth, browserLocalPersistence)
+//                 .then(() => {
+//                     const unsubscribeAuth = onAuthStateChanged(firebaseAuth, (user) => {
+//                         if (user) {
+//                             setUserId(user.uid);
+//                         } else {
+//                             setUserId(null); 
+//                         }
+//                         setIsAuthReady(true); // La verificación de sesión inicial ha terminado
+//                     });
+//                     return () => unsubscribeAuth();
+//                 })
+//                 .catch((error) => {
+//                     console.error("Error al configurar persistencia:", error);
+//                     setErrorMessage('Error de autenticación: No se pudo configurar la sesión.');
+//                     setIsAuthReady(true);
+//                 });
 
-//     if (!newEntry.name || newEntry.name.trim() === '') {
-//       setErrorMessage('Por favor, ingresa un nombre.');
-//       return;
-//     }
-    
-//     if (!db) {
-//         setErrorMessage('La base de datos no está lista.');
-//         return;
-//     }
-    
-//     try {
-//         const collectionPath = `artifacts/${appId}/public/data/productivityEntries`;
-//         await addDoc(collection(db, collectionPath), {
-//             ...newEntry,
-//             typeA: newEntry.typeA || 0, 
-//             typeB: newEntry.typeB || 0,
-//             typeC: newEntry.typeC || 0,
-//             typeD: newEntry.typeD || 0,
-//             typeE: newEntry.typeE || 0,
-//             userId: userId,
-//             createdAt: serverTimestamp(),
-//         });
-
-//         // Mantiene el nombre del trabajador para evitar que el input pierda foco.
-//         setNewEntry(prev => ({ 
-//             name: prev.name, 
-//             date: prev.date, 
-//             typeA: 0, 
-//             typeB: 0, 
-//             typeC: 0, 
-//             typeD: 0, 
-//             typeE: 0 
-//         }));
-//     } catch (error) {
-//         console.error("Error adding document: ", error);
-//         setErrorMessage('Error al registrar la producción: ' + error.message);
-//     }
-//   };
+//         } catch (e) {
+//             console.error("Firebase Initialization Error:", e);
+//             setErrorMessage("Error al inicializar la base de datos.");
+//             setIsAuthReady(true);
+//             setIsLoading(false);
+//         }
+//     }, []); // Dependencia: [] -> Solo se ejecuta una vez
 
 
-//   // Lógica de Análisis y Agrupación
+// const handleAuth = useCallback(async (e) => {
+//         e.preventDefault();
+//         setIsLoadingAuth(true);
+//         setAuthError(null);
+        
+//         // 🛑 CORRECCIÓN: Usar authRef.current
+//         const authInstance = authRef.current;
+//         if (!authInstance) { setAuthError('Servicio de autenticación no inicializado.'); setIsLoadingAuth(false); return; }
+
+//         try {
+//             if (isLoginMode) {
+//                 await signInWithEmailAndPassword(authInstance, email, password);
+//             } else {
+//                 await createUserWithEmailAndPassword(authInstance, email, password);
+//             }
+//             setEmail('');
+//             setPassword('');
+//         } catch (error) {
+//             // ... (Tu lógica de manejo de errores) ...
+//             let errorMessage = "Ocurrió un error de autenticación.";
+//             if (error.code === 'auth/user-not-found') errorMessage = "Usuario no encontrado.";
+//             else if (error.code === 'auth/wrong-password') errorMessage = "Contraseña incorrecta.";
+//             else if (error.code === 'auth/invalid-email') errorMessage = "El formato del email es inválido.";
+//             else if (error.code === 'auth/email-already-in-use') errorMessage = "Este email ya está registrado.";
+//             else errorMessage = error.message;
+
+//             setAuthError(errorMessage);
+//         } finally {
+//             setIsLoadingAuth(false);
+//         }
+//     }, [email, password, isLoginMode]); // Dependencia 'auth' eliminada, se usa authRef.current
+
+//     const handleSignOut = useCallback(async () => {
+//         // 🛑 CORRECCIÓN: Usar authRef.current
+//         const authInstance = authRef.current;
+//         if (authInstance) {
+//             await signOut(authInstance);
+//         }
+//     }, []);
+
+
+
+
+
 //   const summary = useMemo(() => {
-//     const uniqueNames = [...new Set(productionData.map(e => e.name))].sort();
-
+//     const uniqueNames = [...new Set(productionData.map((e) => e.name))].sort();
 //     const totals = productionData.reduce((acc, entry) => {
 //       const entryA = Number(entry.typeA) || 0;
 //       const entryB = Number(entry.typeB) || 0;
 //       const entryC = Number(entry.typeC) || 0;
 //       const entryD = Number(entry.typeD) || 0;
 //       const entryE = Number(entry.typeE) || 0;
-
-//       if (!acc[entry.name]) {
-//         acc[entry.name] = { 
-//           total: 0, typeA: 0, typeB: 0, typeC: 0, typeD: 0, typeE: 0 
+//       if (!acc[entry.name])
+//         acc[entry.name] = {
+//           total: 0,
+//           typeA: 0,
+//           typeB: 0,
+//           typeC: 0,
+//           typeD: 0,
+//           typeE: 0,
 //         };
-//       }
-
 //       acc[entry.name].typeA += entryA;
 //       acc[entry.name].typeB += entryB;
 //       acc[entry.name].typeC += entryC;
 //       acc[entry.name].typeD += entryD;
 //       acc[entry.name].typeE += entryE;
-
 //       acc[entry.name].total += entryA + entryB + entryC + entryD + entryE;
-
 //       return acc;
 //     }, {});
-
 //     const summaryArray = Object.entries(totals)
 //       .map(([name, data]) => ({ name, ...data }))
 //       .sort((a, b) => b.total - a.total);
-
 //     return { summaryArray, uniqueNames };
 //   }, [productionData]);
-
-//   const topPerformer = summary.summaryArray[0] || { name: 'N/A', total: 0 };
-  
-//   const getMaxByType = (type) => Math.max(...summary.summaryArray.map(w => w[type] || 0));
-
+//   const topPerformer = summary.summaryArray[0] || { name: "N/A", total: 0 };
+//   const getMaxByType = (type) =>
+//     Math.max(...summary.summaryArray.map((w) => w[type] || 0));
 //   const dailyEntries = useMemo(() => {
 //     if (!selectedWorkerName || !selectedDate) return [];
-
 //     return productionData
-//         .filter(entry => entry.name === selectedWorkerName && entry.date === selectedDate)
-//         .sort((a, b) => (new Date(a.date) - new Date(b.date))); 
+//       .filter(
+//         (entry) =>
+//           entry.name === selectedWorkerName && entry.date === selectedDate
+//       )
+//       .sort((a, b) => new Date(a.date) - new Date(b.date));
 //   }, [productionData, selectedWorkerName, selectedDate]);
+
+
   
-//   // ----------------------------------------------------
-//   // RENDERIZADO (JSX con Tailwind)
-//   // ----------------------------------------------------
-//   return (
-//     <div className="p-4 md:p-8 max-w-7xl mx-auto bg-gray-50 min-h-screen font-sans">
-//       <h1 className="text-3xl md:text-4xl font-extrabold text-blue-800 border-b-4 border-blue-200 pb-3 mb-8">
-//         📦 Analizador de Productividad (Real-Time)
-//       </h1>
-      
-//       {/* Mensajes de estado y error */}
-//       {isLoading && (
-//         <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mb-4" role="alert">
-//             Cargando datos...
-//         </div>
-//       )}
-//       {errorMessage && (
-//         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-//             <span className="font-bold">Error:</span> {errorMessage}
-//         </div>
-//       )}
-//       {userId && (
-//           <p className="text-xs text-gray-500 mb-4">
-//               ID de Sesión: <span className="font-mono text-gray-700">{userId}</span>
-//           </p>
-//       )}
-
-      
-//       {/* SECCIÓN 1: Ingreso de Datos */}
-//       <section className="bg-white p-6 shadow-xl rounded-lg border border-gray-200 mb-8">
-//         <h2 className="text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">➕ Registrar Producción</h2>
-//         <form onSubmit={addProduction} className="space-y-6">
-//           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-//             <div>
-//               <label className="block text-sm font-medium text-gray-600 mb-1">Trabajador:</label>
-//               <input
-//                 type="text"
-//                 name="name"
-//                 placeholder="Nombre del Trabajador"
-//                 value={newEntry.name}
-//                 onChange={handleInputChange}
-//                 required
-//                 className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-//               />
-//             </div>
-//             <div>
-//               <label className="block text-sm font-medium text-gray-600 mb-1">Fecha de Registro:</label>
-//               <input
-//                 type="date"
-//                 name="date"
-//                 value={newEntry.date}
-//                 onChange={handleInputChange}
-//                 className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-//               />
-//             </div>
-//           </div>
-          
-//           <div className="p-4 bg-blue-50 rounded-lg">
-//             <h3 className="text-lg font-medium text-blue-800 mb-4">Cajas por Tipo (Cantidad)</h3>
-//             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-//               {['A', 'B', 'C', 'D', 'E'].map((type) => (
-//                 <div key={type}>
-//                   <label className="block text-sm font-medium text-gray-700 mb-1">Tipo {type}:</label>
-//                   <input
-//                     type="number"
-//                     name={`type${type}`}
-//                     value={newEntry[`type${type}`]}
-//                     onChange={handleInputChange}
-//                     min="0"
-//                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-//                   />
-//                 </div>
-//               ))}
-//             </div>
-//           </div>
-          
-//           <button 
-//             type="submit" 
-//             disabled={!isAuthReady || isLoading}
-//             className={`w-full md:w-auto px-6 py-3 text-white font-bold rounded-lg transition duration-200 shadow-md ${
-//                 !isAuthReady || isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
-//             }`}
-//           >
-//             {isLoading ? 'Guardando...' : 'Registrar Entrada'}
-//           </button>
-//         </form>
-//       </section>
-
-//       <hr className="border-t-2 border-gray-300 my-8" />
-      
-//       {/* SECCIÓN 5: Vista de Historial Diario */}
-//       <section className="bg-white p-6 shadow-xl rounded-lg border border-gray-200 mb-8">
-//         <h2 className="text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">🗓️ Historial por Trabajador y Fecha</h2>
-        
-//         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-//             <div>
-//                 <label className="block text-sm font-medium text-gray-600 mb-1">Seleccionar Trabajador:</label>
-//                 <select
-//                     value={selectedWorkerName}
-//                     onChange={(e) => setSelectedWorkerName(e.target.value)}
-//                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-//                 >
-//                     <option value="">-- Seleccione un trabajador --</option>
-//                     {summary.uniqueNames.map(name => (
-//                         <option key={name} value={name}>{name}</option>
-//                     ))}
-//                 </select>
-//             </div>
-//             <div>
-//                 <label className="block text-sm font-medium text-gray-600 mb-1">Seleccionar Fecha:</label>
-//                 <input
-//                     type="date"
-//                     value={selectedDate}
-//                     onChange={(e) => setSelectedDate(e.target.value)}
-//                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-//                 />
-//             </div>
-//         </div>
-
-//         {selectedWorkerName && dailyEntries.length > 0 ? (
-//             <div className="border border-indigo-200 rounded-lg p-4 bg-indigo-50">
-//                 <h3 className="text-xl font-bold text-indigo-800 mb-3">
-//                     Producción de {selectedWorkerName} el {selectedDate}
-//                 </h3>
-//                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-//                     {['A', 'B', 'C', 'D', 'E'].map((type) => {
-//                         const totalType = dailyEntries.reduce((sum, entry) => sum + (entry[`type${type}`] || 0), 0);
-//                         return (
-//                             <div key={type} className="p-3 bg-white rounded-lg shadow text-center">
-//                                 <p className="text-sm text-gray-500">Caja {type}</p>
-//                                 <p className="text-2xl font-extrabold text-indigo-600">{totalType}</p>
-//                             </div>
-//                         );
-//                     })}
-//                 </div>
-//             </div>
-//         ) : selectedWorkerName && (
-//              <p className="text-gray-500 italic p-4 border border-gray-200 rounded-lg bg-gray-50">
-//                  No se encontraron entradas para {selectedWorkerName} en la fecha {selectedDate}.
-//              </p>
-//         )}
-
-//       </section>
-
-//       <hr className="border-t-2 border-gray-300 my-8" />
-
-//       {/* SECCIÓN 2: Resumen Ejecutivo */}
-//       <section className="bg-yellow-100 p-6 rounded-lg shadow-inner mb-8 border border-yellow-300">
-//         <h2 className="text-2xl font-semibold text-yellow-800 mb-3">⭐ Resumen General Acumulado</h2>
-//         <p className="text-lg text-yellow-900">
-//           El trabajador más productivo (por volumen total histórico) es: 
-//           <strong className="text-2xl text-red-600 ml-2">{topPerformer.name}</strong> con 
-//           <span className="text-2xl font-extrabold ml-1"> {topPerformer.total}</span> cajas.
+//   const AnalysisSection = () => (
+//     <div className="space-y-6 sm:space-y-8">
+//       <section className="bg-yellow-100 p-4 sm:p-6 rounded-lg shadow-inner border border-yellow-300">
+//         <h2 className="text-xl sm:text-2xl font-semibold text-yellow-800 mb-3">
+//           ⭐ Resumen General Acumulado
+//         </h2>
+//         <p className="text-base sm:text-lg text-yellow-900">
+//           El trabajador más productivo es:
+//           <strong className="text-xl sm:text-2xl text-red-600 ml-2">
+//             {topPerformer.name}
+//           </strong>{" "}
+//           con
+//           <span className="text-xl sm:text-2xl font-extrabold ml-1">
+//             {" "}
+//             {topPerformer.total}
+//           </span>{" "}
+//           cajas.
 //         </p>
 //       </section>
-
-//       {/* SECCIÓN 3: CANVAS / GRÁFICO */}
-//       <section className="mb-8">
-//         <h2 className="text-3xl font-bold text-blue-800 mb-6">📊 Visualización de Competitividad (Acumulado)</h2>
+//       <section>
+//         <h2 className="text-2xl sm:text-3xl font-bold text-blue-800 mb-4 sm:mb-6">
+//           📊 Visualización de Competitividad
+//         </h2>
 //         <ProductivityChart summaryArray={summary.summaryArray} />
 //       </section>
-
-//       <hr className="border-t-2 border-gray-300 my-8" />
-
-//       {/* SECCIÓN 4: Tabla de Análisis */}
-//       <section className="bg-white p-6 shadow-xl rounded-lg">
-//         <h2 className="text-2xl font-semibold text-gray-700 mb-4">🥇 Desempeño por Categoría (Acumulado)</h2>
-        
+//       <hr className="border-t-2 border-gray-300 my-6 sm:my-8" />
+//       <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg border border-gray-200">
+//         <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4 sm:mb-6 border-b pb-2">
+//           🗓️ Historial por Trabajador y Fecha
+//         </h2>
+//         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+//           <div>
+//             <label className="block text-sm font-medium text-gray-600 mb-1">
+//               Seleccionar Trabajador:
+//             </label>
+//             <select
+//               value={selectedWorkerName}
+//               onChange={(e) => setSelectedWorkerName(e.target.value)}
+//               className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+//             >
+//               <option value="">-- Seleccione un trabajador --</option>
+//               {summary.uniqueNames.map((name) => (
+//                 <option key={name} value={name}>
+//                   {name}
+//                 </option>
+//               ))}
+//             </select>
+//           </div>
+//           <div>
+//             <label className="block text-sm font-medium text-gray-600 mb-1">
+//               Seleccionar Fecha:
+//             </label>
+//             <input
+//               type="date"
+//               value={selectedDate}
+//               onChange={(e) => setSelectedDate(e.target.value)}
+//               className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+//             />
+//           </div>
+//         </div>
+//         {selectedWorkerName && dailyEntries.length > 0 ? (
+//           <div className="border border-indigo-200 rounded-lg p-3 sm:p-4 bg-indigo-50">
+//             <h3 className="text-lg sm:text-xl font-bold text-indigo-800 mb-3">
+//               Producción de {selectedWorkerName} el {selectedDate}
+//             </h3>
+//             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+//               {["A", "B", "C", "D", "E"].map((type) => {
+//                 const totalType = dailyEntries.reduce(
+//                   (sum, entry) => sum + (entry[`type${type}`] || 0),
+//                   0
+//                 );
+//                 return (
+//                   <div
+//                     key={type}
+//                     className="p-3 bg-white rounded-lg shadow text-center"
+//                   >
+//                     <p className="text-xs sm:text-sm text-gray-500">
+//                       Caja {type}
+//                     </p>
+//                     <p className="text-xl sm:text-2xl font-extrabold text-indigo-600">
+//                       {totalType}
+//                     </p>
+//                   </div>
+//                 );
+//               })}
+//             </div>
+//           </div>
+//         ) : (
+//           selectedWorkerName && (
+//             <p className="text-gray-500 italic p-4 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+//               No se encontraron entradas para {selectedWorkerName} en la fecha{" "}
+//               {selectedDate}.
+//             </p>
+//           )
+//         )}
+//       </section>
+//       <hr className="border-t-2 border-gray-300 my-6 sm:my-8" />
+//       <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg">
+//         <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4">
+//           🥇 Desempeño por Categoría (Acumulado)
+//         </h2>
 //         {summary.summaryArray.length > 0 ? (
 //           <div className="overflow-x-auto">
-//             <table className="min-w-full divide-y divide-gray-200">
+//             <table className="min-w-full divide-y divide-gray-200 text-sm">
 //               <thead className="bg-blue-600 text-white">
 //                 <tr>
-//                   <th className="px-4 py-3 text-left text-sm font-semibold uppercase tracking-wider rounded-tl-lg">Trabajador</th>
-//                   <th className="px-4 py-3 text-center text-sm font-semibold uppercase tracking-wider bg-blue-800">TOTAL GENERAL</th>
-//                   {['A', 'B', 'C', 'D', 'E'].map((type) => (
-//                     <th key={type} className="px-4 py-3 text-center text-sm font-semibold uppercase tracking-wider">Caja {type}</th>
+//                   <th className="px-3 py-2 sm:px-4 sm:py-3 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider rounded-tl-lg">
+//                     Trabajador
+//                   </th>
+//                   <th className="px-3 py-2 sm:px-4 sm:py-3 text-center text-xs sm:text-sm font-semibold uppercase tracking-wider bg-blue-800">
+//                     TOTAL
+//                   </th>
+//                   {["A", "B", "C", "D", "E"].map((type) => (
+//                     <th
+//                       key={type}
+//                       className="px-3 py-2 sm:px-4 sm:py-3 text-center text-xs sm:text-sm font-semibold uppercase tracking-wider"
+//                     >
+//                       Caja {type}
+//                     </th>
 //                   ))}
 //                 </tr>
 //               </thead>
 //               <tbody className="bg-white divide-y divide-gray-200">
 //                 {summary.summaryArray.map((item, index) => (
-//                   <tr 
-//                     key={item.name} 
-//                     className={index === 0 ? 'bg-yellow-50 font-bold border-l-4 border-yellow-500' : 'hover:bg-gray-100'}
+//                   <tr
+//                     key={item.name}
+//                     className={
+//                       index === 0
+//                         ? "bg-yellow-50 font-bold border-l-4 border-yellow-500"
+//                         : "hover:bg-gray-100"
+//                     }
 //                   >
-//                     <td className="px-4 py-3 whitespace-nowrap text-left text-gray-900">{item.name}</td>
-                    
-//                     <td className="px-4 py-3 whitespace-nowrap text-center text-lg font-extrabold bg-blue-100 text-blue-900">
+//                     <td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-left text-gray-900">
+//                       {item.name}
+//                     </td>
+//                     <td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-center text-sm sm:text-lg font-extrabold bg-blue-100 text-blue-900">
 //                       {item.total}
 //                     </td>
-                    
-//                     {['typeA', 'typeB', 'typeC', 'typeD', 'typeE'].map((type, typeIndex) => (
-//                       <td key={typeIndex} 
-//                           className={`px-4 py-3 whitespace-nowrap text-center ${item[type] === getMaxByType(type) ? 'bg-green-100 font-bold text-green-800' : 'text-gray-700'}`}
-//                       >
-//                         {item[type]}
-//                       </td>
-//                     ))}
+//                     {["typeA", "typeB", "typeC", "typeD", "typeE"].map(
+//                       (type, typeIndex) => (
+//                         <td
+//                           key={typeIndex}
+//                           className={`px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-center text-sm ${
+//                             item[type] === getMaxByType(type)
+//                               ? "bg-green-100 font-bold text-green-800"
+//                               : "text-gray-700"
+//                           }`}
+//                         >
+//                           {item[type]}
+//                         </td>
+//                       )
+//                     )}
 //                   </tr>
 //                 ))}
 //               </tbody>
 //             </table>
 //           </div>
 //         ) : (
-//           <p className="text-gray-500 italic">No hay datos de producción registrados aún.</p>
+//           <p className="text-gray-500 italic text-sm">
+//             No hay datos de producción registrados aún.
+//           </p>
 //         )}
 //       </section>
 //     </div>
 //   );
+//   // return (
+//   //   <div className="p-4 md:p-8 max-w-7xl mx-auto bg-gray-50 min-h-screen font-sans">
+//   //     <h1 className="text-3xl md:text-4xl font-extrabold text-blue-800 border-b-4 border-blue-200 pb-3 mb-6 sm:mb-8">
+//   //       📦 Analizador de Productividad (Real-Time)
+//   //     </h1>
+//   //     {isLoading && (
+//   //       <div
+//   //         className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mb-4 text-sm sm:text-base"
+//   //         role="alert"
+//   //       >
+//   //         <span className="animate-spin inline-block mr-2">⚙️</span> Cargando
+//   //         datos en tiempo real...
+//   //       </div>
+//   //     )}
+//   //     {errorMessage && (
+//   //       <div
+//   //         className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-sm sm:text-base"
+//   //         role="alert"
+//   //       >
+//   //         <span className="font-bold">🚨 Error:</span> {errorMessage}
+//   //       </div>
+//   //     )}
+//   //     <div className="sm:hidden">
+//   //       <div className="flex justify-between bg-white rounded-lg shadow-md mb-6 p-1 border border-gray-200">
+//   //         <button
+//   //           onClick={() => setActiveTab("input")}
+//   //           className={`flex-1 text-center py-2 px-1 text-sm font-semibold rounded-lg transition duration-200 ${
+//   //             activeTab === "input"
+//   //               ? "bg-indigo-600 text-white shadow-indigo-400 shadow-md"
+//   //               : "text-gray-600 hover:bg-gray-100"
+//   //           }`}
+//   //         >
+//   //           📝 Registrar
+//   //         </button>
+//   //         <button
+//   //           onClick={() => setActiveTab("analysis")}
+//   //           className={`flex-1 text-center py-2 px-1 text-sm font-semibold rounded-lg transition duration-200 ${
+//   //             activeTab === "analysis"
+//   //               ? "bg-indigo-600 text-white shadow-indigo-400 shadow-md"
+//   //               : "text-gray-600 hover:bg-gray-100"
+//   //           }`}
+//   //         >
+//   //           📈 Análisis
+//   //         </button>
+//   //       </div>
+//   //       {activeTab === "input" && (
+//   //         <InputSection
+//   //           db={db}
+//   //           userId={userId}
+//   //           isAuthReady={isAuthReady}
+//   //           setErrorMessage={setErrorMessage}
+//   //           isLoading={isLoading}
+//   //         />
+//   //       )}
+//   //       {activeTab === "analysis" && <AnalysisSection />}
+//   //     </div>
+//   //     <div className="hidden sm:block">
+//   //       <InputSection
+//   //         db={db}
+//   //         userId={userId}
+//   //         isAuthReady={isAuthReady}
+//   //         setErrorMessage={setErrorMessage}
+//   //         isLoading={isLoading}
+//   //       />
+//   //       <hr className="border-t-2 border-gray-300 my-8" />
+//   //       <AnalysisSection />
+//   //     </div>
+//   //     {userId && (
+//   //       <p className="text-xs text-gray-500 mt-6 text-center">
+//   //         ID de Sesión:{" "}
+//   //         <span className="font-mono text-gray-700">{userId}</span>
+//   //       </p>
+//   //     )}
+//   //   </div>
+//   // );
+
+
+
+
+
+// if (!isAuthReady) {
+//     return (
+//         <div className="text-center p-10 flex flex-col items-center justify-center h-screen bg-gray-50">
+//             <h1 className="text-2xl text-blue-800 font-bold mb-4">Analizador de Productividad</h1>
+//             <span className="animate-spin text-blue-600 text-4xl">🔄</span>
+//             <p className="mt-4 text-lg text-gray-700">Verificando sesión...</p>
+//         </div>
+//     );
+// }
+
+// // 2. Formulario de Login
+// if (!userId) {
+//     return (
+//         // 🛑 Muestra el formulario de autenticación si NO hay userId
+//         <AuthForm
+//             email={email} setEmail={setEmail}
+//             password={password} setPassword={setPassword}
+//             isLoginMode={isLoginMode} setIsLoginMode={setIsLoginMode}
+//             authError={authError} isLoadingAuth={isLoadingAuth}
+//             handleAuth={handleAuth}
+//         />
+//     );
+// }
+
+// // 3. Aplicación Principal (Solo si userId existe)
+// return (
+//     <div className="p-4 md:p-8 max-w-7xl mx-auto bg-gray-50 min-h-screen font-sans">
+        
+//         {/* --- CABECERA Y CERRAR SESIÓN --- */}
+//         <div className="flex justify-between items-center border-b-4 border-blue-200 pb-3 mb-6 sm:mb-8">
+//             <h1 className="text-3xl md:text-4xl font-extrabold text-blue-800">
+//                 📦 Analizador de Productividad
+//             </h1>
+//             <button onClick={handleSignOut} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition shadow-md text-sm font-semibold">
+//                 Cerrar Sesión
+//             </button>
+//         </div>
+//         {/* ---------------------------------- */}
+        
+//         {isLoading && (
+//             <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mb-4 text-sm sm:text-base" role="alert">
+//                 <span className="animate-spin inline-block mr-2">⚙️</span> Cargando datos en tiempo real...
+//             </div>
+//         )}
+//         {errorMessage && (
+//             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-sm sm:text-base" role="alert">
+//                 <span className="font-bold">🚨 Error:</span> {errorMessage}
+//             </div>
+//         )}
+//         <div className="sm:hidden">
+//             <div className="flex justify-between bg-white rounded-lg shadow-md mb-6 p-1 border border-gray-200">
+//                 <button onClick={() => setActiveTab('input')} className={`flex-1 text-center py-2 px-1 text-sm font-semibold rounded-lg transition duration-200 ${activeTab === 'input' ? 'bg-indigo-600 text-white shadow-indigo-400 shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}>
+//                     📝 Registrar
+//                 </button>
+//                 <button onClick={() => setActiveTab('analysis')} className={`flex-1 text-center py-2 px-1 text-sm font-semibold rounded-lg transition duration-200 ${activeTab === 'analysis' ? 'bg-indigo-600 text-white shadow-indigo-400 shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}>
+//                     📈 Análisis
+//                 </button>
+//             </div>
+//             {activeTab === 'input' && <InputSection db={db} userId={userId} isAuthReady={isAuthReady} setErrorMessage={setErrorMessage} isLoading={isLoading} />}
+//             {activeTab === 'analysis' && <AnalysisSection />}
+//         </div>
+//         <div className="hidden sm:block">
+//             <InputSection db={db} userId={userId} isAuthReady={isAuthReady} setErrorMessage={setErrorMessage} isLoading={isLoading} />
+//             <hr className="border-t-2 border-gray-300 my-8" />
+//             <AnalysisSection />
+//         </div>
+//         {userId && (
+//             <p className="text-xs text-gray-500 mt-6 text-center">
+//                 ID de Sesión: <span className="font-mono text-gray-700">{userId}</span>
+//             </p>
+//         )}
+//     </div>
+// );
 // };
+
+
 
 // export default ProductivityAnalyzer;
 
 
 
 
+// import React, { useState, useMemo, useEffect, useCallback, memo, useRef } from "react";
+// import {
+//     BarChart,
+//     Bar,
+//     XAxis,
+//     YAxis,
+//     CartesianGrid,
+//     Tooltip,
+//     Legend,
+//     ResponsiveContainer,
+// } from "recharts";
+// import { initializeApp } from "firebase/app";
+// import { getAuth, signInAnonymously, onAuthStateChanged,
+//     createUserWithEmailAndPassword, // Para registro
+//     signInWithEmailAndPassword,     // Para login
+//     signOut,                        // Para logout
+//     setPersistence,                 // Para persistencia
+//     browserLocalPersistence,        // Persistencia local
+// } from "firebase/auth";
+// import {
+//     getFirestore,
+//     collection,
+//     query,
+//     onSnapshot,
+//     addDoc,
+//     serverTimestamp,
+//     where,
+//     // ¡NUEVO! deleteDoc y doc para eliminar
+//     deleteDoc,
+//     doc,
+// } from "firebase/firestore";
+// import { firebaseConfig } from "../../firebaseConfig";
 
 
+// // --- FUNCIONES Y CONSTANTES GENERALES ---
 
+// const getAppId = () => {
+//     if (typeof window.__app_id !== "undefined") {
+//         return window.__app_id;
+//     }
+//     return "default-calendar-app-id";
+// };
+// const appId = getAppId();
 
+// // --- COMPONENTE ProductivityChart (Sin cambios) ---
 
-
-
-
-
-
-
-
-
-// import React,{useState,useMemo,useEffect}from'react';
-// import{BarChart,Bar,XAxis,YAxis,CartesianGrid,Tooltip,Legend,ResponsiveContainer}from'recharts';
-// import{initializeApp}from'firebase/app';
-// import{getAuth,signInAnonymously,onAuthStateChanged}from'firebase/auth';
-// import{getFirestore,collection,query,onSnapshot,addDoc,serverTimestamp}from'firebase/firestore';
-// import{firebaseConfig}from"../../firebaseConfig";
-// const getAppId=()=>{if(typeof window.__app_id!=="undefined"){return window.__app_id;}return"default-calendar-app-id";};
-// const appId=getAppId();
-// const ProductivityChart=({summaryArray})=>{
-// const colors={typeA:'#8884d8',typeB:'#82ca9d',typeC:'#ffc658',typeD:'#ff7300',typeE:'#00c49f',};
-// if(!summaryArray||summaryArray.length===0){return(<div className="h-64 sm:h-96 w-full p-4 flex items-center justify-center bg-white rounded-lg shadow-md border border-gray-100"><p className="text-gray-500 italic">No hay datos suficientes para generar el gráfico.</p></div>);}
-// return(<div className="h-64 sm:h-96 w-full p-4 bg-white rounded-lg shadow-md border border-gray-100">
-// <ResponsiveContainer width="100%" height="100%">
-// <BarChart data={summaryArray} margin={{top:20,right:30,left:20,bottom:5}}>
-// <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0"/>
-// <XAxis dataKey="name" stroke="#333" tick={{fill:'#4b5563',fontSize:10}}/>
-// <YAxis stroke="#333" tick={{fill:'#4b5563',fontSize:10}}/>
-// <Tooltip cursor={{fill:'rgba(0,0,0,0.05)'}}contentStyle={{borderRadius:'8px',border:'1px solid #ccc',background:'#fff',fontSize:'12px',padding:'5px'}}labelStyle={{fontWeight:'bold',color:'#1f2937'}}formatter={(value,name)=>[value,name.replace('type','Caja ')]}/>
-// <Legend wrapperStyle={{paddingTop:'10px',fontSize:'12px'}}formatter={(value)=>value.replace('type','Caja ')}/>
-// <Bar dataKey="typeA" stackId="a" fill={colors.typeA} name="Caja A" radius={[4,4,0,0]}/>
-// <Bar dataKey="typeB" stackId="a" fill={colors.typeB} name="Caja B" radius={[4,4,0,0]}/>
-// <Bar dataKey="typeC" stackId="a" fill={colors.typeC} name="Caja C" radius={[4,4,0,0]}/>
-// <Bar dataKey="typeD" stackId="a" fill={colors.typeD} name="Caja D" radius={[4,4,0,0]}/>
-// <Bar dataKey="typeE" stackId="a" fill={colors.typeE} name="Caja E" radius={[4,4,0,0]}/>
-// </BarChart>
-// </ResponsiveContainer>
-// </div>);
+// const ProductivityChart = ({ summaryArray }) => {
+//     const colors = {
+//         typeA: "#8884d8",
+//         typeB: "#82ca9d",
+//         typeC: "#ffc658",
+//         typeD: "#ff7300",
+//         typeE: "#00c49f",
+//     };
+//     if (!summaryArray || summaryArray.length === 0) {
+//         return (
+//             <div className="h-64 sm:h-96 w-full p-4 flex items-center justify-center bg-white rounded-lg shadow-md border border-gray-100">
+//                 <p className="text-gray-500 italic">
+//                     No hay datos suficientes para generar el gráfico.
+//                 </p>
+//             </div>
+//         );
+//     }
+//     return (
+//         <div className="h-64 sm:h-96 w-full p-4 bg-white rounded-lg shadow-md border border-gray-100">
+//             <ResponsiveContainer width="100%" height="100%">
+//                 <BarChart
+//                     data={summaryArray}
+//                     margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+//                 >
+//                     <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+//                     <XAxis
+//                         dataKey="name"
+//                         stroke="#333"
+//                         tick={{ fill: "#4b5563", fontSize: 10 }}
+//                     />
+//                     <YAxis stroke="#333" tick={{ fill: "#4b5563", fontSize: 10 }} />
+//                     <Tooltip
+//                         cursor={{ fill: "rgba(0, 0, 0, 0.05)" }}
+//                         contentStyle={{
+//                             borderRadius: "8px",
+//                             border: "1px solid #ccc",
+//                             background: "#fff",
+//                             fontSize: "12px",
+//                             padding: "5px",
+//                         }}
+//                         labelStyle={{ fontWeight: "bold", color: "#1f2937" }}
+//                         formatter={(value, name) => [value, name.replace("type", "Caja ")]}
+//                     />
+//                     <Legend
+//                         wrapperStyle={{ paddingTop: "10px", fontSize: "12px" }}
+//                         formatter={(value) => value.replace("type", "Caja ")}
+//                     />
+//                     <Bar
+//                         dataKey="typeA"
+//                         stackId="a"
+//                         fill={colors.typeA}
+//                         name="Caja A"
+//                         radius={[4, 4, 0, 0]}
+//                     />
+//                     <Bar
+//                         dataKey="typeB"
+//                         stackId="a"
+//                         fill={colors.typeB}
+//                         name="Caja B"
+//                         radius={[4, 4, 0, 0]}
+//                     />
+//                     <Bar
+//                         dataKey="typeC"
+//                         stackId="a"
+//                         fill={colors.typeC}
+//                         name="Caja C"
+//                         radius={[4, 4, 0, 0]}
+//                     />
+//                     <Bar
+//                         dataKey="typeD"
+//                         stackId="a"
+//                         fill={colors.typeD}
+//                         name="Caja D"
+//                         radius={[4, 4, 0, 0]}
+//                     />
+//                     <Bar
+//                         dataKey="typeE"
+//                         stackId="a"
+//                         fill={colors.typeE}
+//                         name="Caja E"
+//                         radius={[4, 4, 0, 0]}
+//                     />
+//                 </BarChart>
+//             </ResponsiveContainer>
+//         </div>
+//     );
 // };
 
-// const ProductivityAnalyzer=()=>{
-// const[productionData,setProductionData]=useState([]);
-// const[errorMessage,setErrorMessage]=useState('');
-// const[isLoading,setIsLoading]=useState(true);
-// const[db,setDb]=useState(null);
-// const[userId,setUserId]=useState(null);
-// const[isAuthReady,setIsAuthReady]=useState(false);
-// const[activeTab,setActiveTab]=useState('input');
-// const[newEntry,setNewEntry]=useState({name:'',date:new Date().toISOString().split('T')[0],typeA:0,typeB:0,typeC:0,typeD:0,typeE:0});
-// const[selectedWorkerName,setSelectedWorkerName]=useState('');
-// const[selectedDate,setSelectedDate]=useState(new Date().toISOString().split('T')[0]);
+// // --- COMPONENTE WorkerManager (NUEVO) ---
+// const WorkerManagerComponent = ({ db, userId, isAuthReady, setErrorMessage, workers, setWorkers }) => {
+//     const [newWorkerName, setNewWorkerName] = useState("");
+//     const [isSaving, setIsSaving] = useState(false);
 
-// useEffect(()=>{
-// try{
-// if(Object.keys(firebaseConfig).length===0)throw new Error("Firebase config not available.");
-// const app=initializeApp(firebaseConfig);
-// const firestore=getFirestore(app);
-// const firebaseAuth=getAuth(app);
-// setDb(firestore);
-// onAuthStateChanged(firebaseAuth,async(user)=>{
-// if(!user){try{await signInAnonymously(firebaseAuth);}catch(e){console.error("Firebase auth error:",e);}}
-// setUserId(firebaseAuth.currentUser?.uid||'anonymous');
-// setIsAuthReady(true);
-// });
-// }catch(e){console.error("Firebase Initialization Error:",e);setErrorMessage("Error al inicializar la base de datos.");setIsAuthReady(true);setIsLoading(false);}
-// },[]);
+//     // 1. OBTENER TRABAJADORES (YA LOS PASA EL PADRE ProductivityAnalyzer)
 
-// useEffect(()=>{
-// if(!db||!isAuthReady)return;
-// const collectionPath=`artifacts/${appId}/public/data/productivityEntries`;
-// const entriesCollection=collection(db,collectionPath);
-// const q=query(entriesCollection); 
-// const unsubscribe=onSnapshot(q,(snapshot)=>{
-// const entries=[];
-// snapshot.forEach((doc)=>{entries.push({id:doc.id,...doc.data()});});
-// setProductionData(entries);
-// setIsLoading(false);
-// },(error)=>{
-// console.error("Firestore data snapshot error:",error);
-// setErrorMessage("Error al cargar los datos de la base de datos.");
-// setIsLoading(false);
-// });
-// return()=>unsubscribe();
-// },[db,isAuthReady]);
+//     // 2. AGREGAR TRABAJADOR
+//     const addWorker = useCallback(async (e) => {
+//         e.preventDefault();
+//         setErrorMessage("");
+//         const name = newWorkerName.trim();
+//         if (!name) {
+//             setErrorMessage("Por favor, ingresa un nombre para el trabajador.");
+//             return;
+//         }
+//         if (workers.some(w => w.name.toLowerCase() === name.toLowerCase())) {
+//             setErrorMessage(`El trabajador "${name}" ya existe.`);
+//             return;
+//         }
+//         if (!db) {
+//             setErrorMessage("La base de datos no está lista.");
+//             return;
+//         }
 
-// useEffect(()=>{
-// if(productionData.length>0&&!selectedWorkerName){
-// const uniqueNames=[...new Set(productionData.map(e=>e.name))];
-// setSelectedWorkerName(uniqueNames[0]);
+//         setIsSaving(true);
+//         try {
+//             // Colección dedicada para los nombres de trabajadores
+//             const collectionPath = `artifacts/${appId}/public/data/workers`; 
+//             await addDoc(collection(db, collectionPath), {
+//                 name: name,
+//                 userId: userId,
+//                 createdAt: serverTimestamp(),
+//             });
+//             setNewWorkerName("");
+//         } catch (error) {
+//             console.error("Error adding worker: ", error);
+//             setErrorMessage("Error al guardar el trabajador: " + error.message);
+//         } finally {
+//             setIsSaving(false);
+//         }
+//     }, [db, newWorkerName, userId, setErrorMessage, workers]);
+
+
+//     // 3. ELIMINAR TRABAJADOR
+//     const deleteWorker = useCallback(async (workerId, workerName) => {
+//         if (!window.confirm(`¿Estás seguro de eliminar al trabajador: ${workerName}? Esto no eliminará las entradas de producción ya registradas con ese nombre.`)) {
+//             return;
+//         }
+//         setErrorMessage("");
+//         if (!db) {
+//             setErrorMessage("La base de datos no está lista.");
+//             return;
+//         }
+
+//         try {
+//             const docRef = doc(db, `artifacts/${appId}/public/data/workers`, workerId);
+//             await deleteDoc(docRef);
+//         } catch (error) {
+//             console.error("Error deleting worker: ", error);
+//             setErrorMessage("Error al eliminar el trabajador: " + error.message);
+//         }
+//     }, [db, setErrorMessage]);
+
+
+//     // 4. Lógica de Subscripción para trabajadores
+//     useEffect(() => {
+//         if (!db || !isAuthReady || !userId) {
+//             setWorkers([]); // Limpia la lista si no hay autenticación/DB
+//             return;
+//         }
+
+//         const collectionPath = `artifacts/${appId}/public/data/workers`;
+//         const workersCollection = collection(db, collectionPath);
+        
+//         // Filtra por el userId para obtener solo los trabajadores del usuario actual
+//         const q = query(workersCollection, where("userId", "==", userId));
+
+//         const unsubscribe = onSnapshot(
+//             q,
+//             (snapshot) => {
+//                 const workerList = [];
+//                 snapshot.forEach((doc) => {
+//                     workerList.push({ id: doc.id, ...doc.data() });
+//                 });
+//                 // Ordena alfabéticamente por nombre
+//                 workerList.sort((a, b) => a.name.localeCompare(b.name)); 
+//                 setWorkers(workerList);
+//             },
+//             (error) => {
+//                 console.error("Firestore workers snapshot error:", error);
+//                 setErrorMessage("Error al cargar la lista de trabajadores.");
+//             }
+//         );
+
+//         return () => unsubscribe();
+//     }, [db, isAuthReady, userId, setErrorMessage, setWorkers]); // Agregamos setWorkers a las dependencias
+
+//     return (
+//         <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg border border-gray-200 mb-8">
+//             <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">
+//                 👥 Administrar Trabajadores Guardados
+//             </h2>
+            
+//             {/* Formulario para Agregar Trabajador */}
+//             <form onSubmit={addWorker} className="flex gap-2 mb-6">
+//                 <input
+//                     type="text"
+//                     placeholder="Nuevo Nombre de Trabajador"
+//                     value={newWorkerName}
+//                     onChange={(e) => setNewWorkerName(e.target.value)}
+//                     required
+//                     className="flex-grow p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+//                 />
+//                 <button
+//                     type="submit"
+//                     disabled={!isAuthReady || isSaving}
+//                     className={`px-4 py-2 text-white font-bold rounded-lg transition duration-200 shadow-md text-sm ${
+//                         !isAuthReady || isSaving
+//                             ? "bg-gray-400 cursor-not-allowed"
+//                             : "bg-blue-600 hover:bg-blue-700"
+//                     }`}
+//                 >
+//                     {isSaving ? "Guardando..." : "Agregar"}
+//                 </button>
+//             </form>
+
+//             {/* Lista de Trabajadores */}
+//             <div className="border border-gray-200 rounded-lg p-3 max-h-60 overflow-y-auto">
+//                 <h3 className="text-base font-medium text-gray-700 mb-2">Lista ({workers.length})</h3>
+//                 <ul className="space-y-2">
+//                     {workers.length === 0 ? (
+//                          <p className="text-gray-500 italic text-sm">No hay trabajadores guardados aún.</p>
+//                     ) : (
+//                         workers.map((worker) => (
+//                             <li key={worker.id} className="flex justify-between items-center p-2 bg-gray-50 rounded-md border border-gray-100">
+//                                 <span className="text-sm font-medium text-gray-800">{worker.name}</span>
+//                                 <button
+//                                     onClick={() => deleteWorker(worker.id, worker.name)}
+//                                     className="text-red-500 hover:text-red-700 transition duration-150 p-1"
+//                                     title="Eliminar Trabajador"
+//                                 >
+//                                     🗑️
+//                                 </button>
+//                             </li>
+//                         ))
+//                     )}
+//                 </ul>
+//             </div>
+
+//         </section>
+//     );
+// };
+// const WorkerManager = memo(WorkerManagerComponent);
+
+
+// // --- COMPONENTE InputSection (MODIFICADO) ---
+
+// const InputSectionComponent = ({
+//     db,
+//     userId,
+//     isAuthReady,
+//     setErrorMessage,
+//     isLoading,
+//     workers, // ¡NUEVA PROP! Lista de trabajadores
+// }) => {
+//     // MODIFICADO: 'name' se convierte en 'selectedWorkers' (un array de nombres)
+//     const [newEntry, setNewEntry] = useState({
+//         selectedWorkers: [], // Array para guardar múltiples nombres
+//         date: new Date().toISOString().split("T")[0],
+//         typeA: 0,
+//         typeB: 0,
+//         typeC: 0,
+//         typeD: 0,
+//         typeE: 0,
+//     });
+
+//     const handleInputChange = useCallback((e) => {
+//         const { name, value, type } = e.target;
+//         if (name === "selectedWorkers") {
+//             // Manejar la selección de múltiples opciones
+//             const selectedOptions = Array.from(e.target.options)
+//                 .filter(option => option.selected)
+//                 .map(option => option.value);
+//             setNewEntry((prev) => ({
+//                 ...prev,
+//                 selectedWorkers: selectedOptions,
+//             }));
+//         } else {
+//             // Manejar inputs de número y fecha
+//             setNewEntry((prev) => ({
+//                 ...prev,
+//                 [name]: type === "number" ? parseInt(value) || 0 : value,
+//             }));
+//         }
+//     }, []);
+
+//     const addProduction = useCallback(
+//         async (e) => {
+//             e.preventDefault();
+//             setErrorMessage("");
+            
+//             if (newEntry.selectedWorkers.length === 0) {
+//                 setErrorMessage("Por favor, selecciona al menos un trabajador.");
+//                 return;
+//             }
+
+//             const totalCajas = newEntry.typeA + newEntry.typeB + newEntry.typeC + newEntry.typeD + newEntry.typeE;
+//             if (totalCajas === 0) {
+//                 setErrorMessage("Debes registrar al menos una caja en algún tipo.");
+//                 return;
+//             }
+
+//             if (!db) {
+//                 setErrorMessage("La base de datos no está lista.");
+//                 return;
+//             }
+
+//             try {
+//                 const collectionPath = `artifacts/${appId}/public/data/productivityEntries`;
+//                 const batchPromises = newEntry.selectedWorkers.map(workerName => {
+//                     // Crea una entrada por cada trabajador seleccionado
+//                     return addDoc(collection(db, collectionPath), {
+//                         name: workerName, // El nombre del trabajador seleccionado
+//                         date: newEntry.date,
+//                         typeA: newEntry.typeA || 0,
+//                         typeB: newEntry.typeB || 0,
+//                         typeC: newEntry.typeC || 0,
+//                         typeD: newEntry.typeD || 0,
+//                         typeE: newEntry.typeE || 0,
+//                         userId: userId,
+//                         createdAt: serverTimestamp(),
+//                     });
+//                 });
+
+//                 await Promise.all(batchPromises);
+
+//                 // Reinicia las cajas y la selección de trabajadores, manteniendo la fecha
+//                 setNewEntry((prev) => ({
+//                     selectedWorkers: [],
+//                     date: prev.date,
+//                     typeA: 0,
+//                     typeB: 0,
+//                     typeC: 0,
+//                     typeD: 0,
+//                     typeE: 0,
+//                 }));
+//             } catch (error) {
+//                 console.error("Error adding documents: ", error);
+//                 setErrorMessage("Error al registrar la producción: " + error.message);
+//             }
+//         },
+//         [db, newEntry, userId, setErrorMessage]
+//     );
+
+//     return (
+//         <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg border border-gray-200 mb-8 sm:mb-0">
+//             <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">
+//                 ➕ Registrar Producción
+//             </h2>
+//             <form onSubmit={addProduction} className="space-y-4 sm:space-y-6">
+//                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//                     {/* MODIFICADO: Campo Select para Trabajadores */}
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-600 mb-1">
+//                             Trabajador(es):
+//                         </label>
+//                         <select
+//                             // MODIFICADO: Agregamos 'multiple' para seleccionar varios
+//                             multiple 
+//                             size={workers.length > 1 ? (workers.length > 5 ? 5 : workers.length) : 1} // Ajusta el tamaño de la lista
+//                             name="selectedWorkers"
+//                             value={newEntry.selectedWorkers}
+//                             onChange={handleInputChange}
+//                             required
+//                             className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 h-24"
+//                             disabled={workers.length === 0}
+//                         >
+//                             {workers.length === 0 ? (
+//                                 <option value="" disabled>-- Primero agrega trabajadores en el Administrador --</option>
+//                             ) : (
+//                                 workers.map((worker) => (
+//                                     <option key={worker.id} value={worker.name}>
+//                                         {worker.name}
+//                                     </option>
+//                                 ))
+//                             )}
+//                         </select>
+//                         <p className="text-xs text-gray-500 mt-1">
+//                             (Mantén **Ctrl** o **Cmd** presionado para seleccionar múltiples)
+//                         </p>
+//                     </div>
+//                     {/* FIN DE MODIFICACIÓN */}
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-600 mb-1">
+//                             Fecha de Registro:
+//                         </label>
+//                         <input
+//                             type="date"
+//                             name="date"
+//                             value={newEntry.date}
+//                             onChange={handleInputChange}
+//                             className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+//                         />
+//                     </div>
+//                 </div>
+//                 <div className="p-3 sm:p-4 bg-blue-50 rounded-lg">
+//                     <h3 className="text-base sm:text-lg font-medium text-blue-800 mb-3 sm:mb-4">
+//                         Cajas por Tipo (Cantidad)
+//                     </h3>
+//                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+//                         {["A", "B", "C", "D", "E"].map((type) => (
+//                             <div key={type}>
+//                                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+//                                     Tipo {type}:
+//                                 </label>
+//                                 <input
+//                                     type="number"
+//                                     name={`type${type}`}
+//                                     value={newEntry[`type${type}`]}
+//                                     onChange={handleInputChange}
+//                                     min="0"
+//                                     className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+//                                 />
+//                             </div>
+//                         ))}
+//                     </div>
+//                 </div>
+//                 <button
+//                     type="submit"
+//                     // Deshabilita si no hay trabajadores seleccionados
+//                     disabled={!isAuthReady || isLoading || newEntry.selectedWorkers.length === 0} 
+//                     className={`w-full md:w-auto px-6 py-3 text-white font-bold rounded-lg transition duration-200 shadow-md ${
+//                         !isAuthReady || isLoading || newEntry.selectedWorkers.length === 0
+//                             ? "bg-gray-400 cursor-not-allowed"
+//                             : "bg-green-600 hover:bg-green-700"
+//                     }`}
+//                 >
+//                     {isLoading ? "Guardando..." : `Registrar ${newEntry.selectedWorkers.length} Entrada(s)`}
+//                 </button>
+//             </form>
+//         </section>
+//     );
+// };
+// const InputSection = memo(InputSectionComponent);
+
+
+// // --- COMPONENTE AuthForm (Sin cambios) ---
+
+// const AuthForm = ({
+//     email, setEmail, password, setPassword,
+//     isLoginMode, setIsLoginMode,
+//     authError, isLoadingAuth, handleAuth
+// }) => {
+//     return (
+//         <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+//             <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-sm border-t-4 border-blue-600">
+//                 <h2 className="text-3xl font-bold text-center mb-6 text-blue-800">
+//                     {isLoginMode ? 'Iniciar Sesión' : 'Registrarse'}
+//                 </h2>
+
+//                 <form onSubmit={(e) => { e.preventDefault(); handleAuth(e); }} className="space-y-4">
+//                     {/* Input de Email */}
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="email">Email</label>
+//                         <input
+//                             type="email" id="email"
+//                             value={email} onChange={(e) => setEmail(e.target.value)}
+//                             required
+//                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+//                             placeholder="ejemplo@correo.com"
+//                         />
+//                     </div>
+//                     {/* Input de Contraseña */}
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="password">Contraseña</label>
+//                         <input
+//                             type="password" id="password"
+//                             value={password} onChange={(e) => setPassword(e.target.value)}
+//                             required
+//                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+//                             placeholder="Mínimo 6 caracteres"
+//                         />
+//                     </div>
+
+//                     {/* Mensaje de Error */}
+//                     {authError && (
+//                         <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+//                             {authError}
+//                         </div>
+//                     )}
+
+//                     {/* Botón de Login/Registro */}
+//                     <button
+//                         type="submit"
+//                         disabled={isLoadingAuth}
+//                         className={`w-full py-3 font-bold rounded-lg transition duration-150 shadow-md text-white flex items-center justify-center ${isLoadingAuth ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+//                     >
+//                         {isLoadingAuth ? (
+//                                 // Si no tienes un componente Loader, usa texto o un emoji
+//                             <><span className="animate-spin mr-2">⚙️</span> Cargando...</> 
+//                         ) : (
+//                             isLoginMode ? 'Entrar' : 'Crear Cuenta'
+//                         )}
+//                     </button>
+//                 </form>
+
+//                 {/* Alternar modo Login/Registro */}
+//                 <button
+//                     onClick={() => {
+//                         setIsLoginMode(!isLoginMode);
+//                         // Opcional: limpiar errores y campos al cambiar de modo
+//                         setPassword(''); 
+//                         setEmail('');
+//                     }}
+//                     className="mt-4 w-full text-sm text-blue-600 hover:text-blue-800 font-medium"
+//                 >
+//                     {isLoginMode ? '¿No tienes cuenta? Regístrate aquí' : '¿Ya tienes cuenta? Inicia sesión'}
+//                 </button>
+//             </div>
+//         </div>
+//     );
+// };
+
+
+// // --- COMPONENTE ProductivityAnalyzer (MODIFICADO) ---
+
+// const ProductivityAnalyzer = () => {
+//     const [productionData, setProductionData] = useState([]);
+//     const [workers, setWorkers] = useState([]); // ¡NUEVO STATE! Lista de objetos {id, name} de trabajadores
+//     const [errorMessage, setErrorMessage] = useState("");
+//     const [isLoading, setIsLoading] = useState(true);
+//     const [db, setDb] = useState(null);
+//     const [userId, setUserId] = useState(null);
+//     const [isAuthReady, setIsAuthReady] = useState(false);
+//     const [activeTab, setActiveTab] = useState("input"); // Inicializamos en "input"
+//     const [selectedWorkerName, setSelectedWorkerName] = useState("");
+//     const [email, setEmail] = useState('');
+//     const [password, setPassword] = useState('');
+//     const [isLoginMode, setIsLoginMode] = useState(true); // true = Login, false = Registro
+//     const [authError, setAuthError] = useState(null);
+//     const [isLoadingAuth, setIsLoadingAuth] = useState(false);
+//     const [selectedDate, setSelectedDate] = useState(
+//         new Date().toISOString().split("T")[0]
+//     );
+//     const authRef = useRef(null);
+
+//     // useEffect para obtener datos de producción
+//     useEffect(() => {
+//         if (!db || !isAuthReady || !userId) { 
+//             setProductionData([]);
+//             setIsLoading(false);
+//             return;
+//         }
+
+//         const collectionPath = `artifacts/${appId}/public/data/productivityEntries`;
+//         const entriesCollection = collection(db, collectionPath);
+        
+//         const q = query(entriesCollection, where("userId", "==", userId));
+
+//         const unsubscribe = onSnapshot(
+//             q,
+//             (snapshot) => {
+//                 const entries = [];
+//                 snapshot.forEach((doc) => {
+//                     entries.push({ id: doc.id, ...doc.data() });
+//                 });
+//                 setProductionData(entries);
+//                 setIsLoading(false);
+//             },
+//             (error) => {
+//                 console.error("Firestore data snapshot error:", error);
+//                 setErrorMessage("Error al cargar los datos de la base de datos.");
+//                 setIsLoading(false);
+//             }
+//         );
+
+//         return () => unsubscribe();
+//     }, [db, isAuthReady, setErrorMessage, userId]); 
+
+
+//     // useEffect para inicializar el trabajador seleccionado para el historial
+//     useEffect(() => {
+//         // Usa la lista de workers obtenida de la colección 'workers'
+//         if (workers.length > 0 && !selectedWorkerName) {
+//             setSelectedWorkerName(workers[0].name); 
+//         }
+//     }, [workers, selectedWorkerName]);
+
+//     // useEffect para inicialización de Firebase/Auth
+//     useEffect(() => {
+//         try {
+//             if (Object.keys(firebaseConfig).length === 0) throw new Error("Firebase config not available.");
+            
+//             const app = initializeApp(firebaseConfig);
+//             const firestore = getFirestore(app);
+//             const firebaseAuth = getAuth(app);
+            
+//             authRef.current = firebaseAuth; 
+//             setDb(firestore);
+
+//             setPersistence(firebaseAuth, browserLocalPersistence)
+//                 .then(() => {
+//                     const unsubscribeAuth = onAuthStateChanged(firebaseAuth, (user) => {
+//                         if (user) {
+//                             setUserId(user.uid);
+//                         } else {
+//                             setUserId(null); 
+//                         }
+//                         setIsAuthReady(true); 
+//                     });
+//                     return () => unsubscribeAuth();
+//                 })
+//                 .catch((error) => {
+//                     console.error("Error al configurar persistencia:", error);
+//                     setErrorMessage('Error de autenticación: No se pudo configurar la sesión.');
+//                     setIsAuthReady(true);
+//                 });
+
+//         } catch (e) {
+//             console.error("Firebase Initialization Error:", e);
+//             setErrorMessage("Error al inicializar la base de datos.");
+//             setIsAuthReady(true);
+//             setIsLoading(false);
+//         }
+//     }, []); 
+
+
+//     // Funciones de Autenticación (Sin cambios significativos)
+//     const handleAuth = useCallback(async (e) => {
+//         e.preventDefault();
+//         setIsLoadingAuth(true);
+//         setAuthError(null);
+        
+//         const authInstance = authRef.current;
+//         if (!authInstance) { setAuthError('Servicio de autenticación no inicializado.'); setIsLoadingAuth(false); return; }
+
+//         try {
+//             if (isLoginMode) {
+//                 await signInWithEmailAndPassword(authInstance, email, password);
+//             } else {
+//                 await createUserWithEmailAndPassword(authInstance, email, password);
+//             }
+//             setEmail('');
+//             setPassword('');
+//         } catch (error) {
+//             let errorMessage = "Ocurrió un error de autenticación.";
+//             if (error.code === 'auth/user-not-found') errorMessage = "Usuario no encontrado.";
+//             else if (error.code === 'auth/wrong-password') errorMessage = "Contraseña incorrecta.";
+//             else if (error.code === 'auth/invalid-email') errorMessage = "El formato del email es inválido.";
+//             else if (error.code === 'auth/email-already-in-use') errorMessage = "Este email ya está registrado.";
+//             else errorMessage = error.message;
+
+//             setAuthError(errorMessage);
+//         } finally {
+//             setIsLoadingAuth(false);
+//         }
+//     }, [email, password, isLoginMode]);
+
+//     const handleSignOut = useCallback(async () => {
+//         const authInstance = authRef.current;
+//         if (authInstance) {
+//             await signOut(authInstance);
+//         }
+//     }, []);
+
+
+//     // useMemo para el resumen (calcula nombres únicos de 'productionData' para el análisis)
+//     const summary = useMemo(() => {
+//         // Los nombres únicos para el resumen se siguen sacando de productionData, 
+//         // ya que el Manager solo gestiona los nombres, no las entradas.
+//         const uniqueNames = [...new Set(productionData.map((e) => e.name))].sort(); 
+        
+//         const totals = productionData.reduce((acc, entry) => {
+//             const entryA = Number(entry.typeA) || 0;
+//             const entryB = Number(entry.typeB) || 0;
+//             const entryC = Number(entry.typeC) || 0;
+//             const entryD = Number(entry.typeD) || 0;
+//             const entryE = Number(entry.typeE) || 0;
+
+//             if (!acc[entry.name])
+//                 acc[entry.name] = {
+//                     total: 0,
+//                     typeA: 0,
+//                     typeB: 0,
+//                     typeC: 0,
+//                     typeD: 0,
+//                     typeE: 0,
+//                 };
+//             acc[entry.name].typeA += entryA;
+//             acc[entry.name].typeB += entryB;
+//             acc[entry.name].typeC += entryC;
+//             acc[entry.name].typeD += entryD;
+//             acc[entry.name].typeE += entryE;
+//             acc[entry.name].total += entryA + entryB + entryC + entryD + entryE;
+//             return acc;
+//         }, {});
+//         const summaryArray = Object.entries(totals)
+//             .map(([name, data]) => ({ name, ...data }))
+//             .sort((a, b) => b.total - a.total);
+//         return { summaryArray, uniqueNames };
+//     }, [productionData]);
+
+
+//     const topPerformer = summary.summaryArray[0] || { name: "N/A", total: 0 };
+//     const getMaxByType = (type) =>
+//         Math.max(...summary.summaryArray.map((w) => w[type] || 0));
+
+//     // useMemo para el historial diario
+//     const dailyEntries = useMemo(() => {
+//         if (!selectedWorkerName || !selectedDate) return [];
+//         return productionData
+//             .filter(
+//                 (entry) =>
+//                     entry.name === selectedWorkerName && entry.date === selectedDate
+//             )
+//             .sort((a, b) => new Date(a.date) - new Date(b.date));
+//     }, [productionData, selectedWorkerName, selectedDate]);
+
+
+//     // Componente de Análisis (Sin cambios significativos)
+//     const AnalysisSection = () => (
+//         <div className="space-y-6 sm:space-y-8">
+//             <section className="bg-yellow-100 p-4 sm:p-6 rounded-lg shadow-inner border border-yellow-300">
+//                 <h2 className="text-xl sm:text-2xl font-semibold text-yellow-800 mb-3">
+//                     ⭐ Resumen General Acumulado
+//                 </h2>
+//                 <p className="text-base sm:text-lg text-yellow-900">
+//                     El trabajador más productivo es:
+//                     <strong className="text-xl sm:text-2xl text-red-600 ml-2">
+//                         {topPerformer.name}
+//                     </strong>{" "}
+//                     con
+//                     <span className="text-xl sm:text-2xl font-extrabold ml-1">
+//                         {" "}
+//                         {topPerformer.total}
+//                     </span>{" "}
+//                     cajas.
+//                 </p>
+//             </section>
+//             <section>
+//                 <h2 className="text-2xl sm:text-3xl font-bold text-blue-800 mb-4 sm:mb-6">
+//                     📊 Visualización de Competitividad
+//                 </h2>
+//                 <ProductivityChart summaryArray={summary.summaryArray} />
+//             </section>
+//             <hr className="border-t-2 border-gray-300 my-6 sm:my-8" />
+//             <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg border border-gray-200">
+//                 <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4 sm:mb-6 border-b pb-2">
+//                     🗓️ Historial por Trabajador y Fecha
+//                 </h2>
+//                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-600 mb-1">
+//                             Seleccionar Trabajador:
+//                         </label>
+//                         {/* MODIFICADO: Usa la lista de `workers` para llenar el select */}
+//                         <select
+//                             value={selectedWorkerName}
+//                             onChange={(e) => setSelectedWorkerName(e.target.value)}
+//                             className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+//                         >
+//                             <option value="">-- Seleccione un trabajador --</option>
+//                             {/* Usa la lista de workers (si está disponible) o uniqueNames (si el worker manager está vacío) */}
+//                             {(workers.length > 0 ? workers.map(w => w.name) : summary.uniqueNames).map((name) => (
+//                                 <option key={name} value={name}>
+//                                     {name}
+//                                 </option>
+//                             ))}
+//                         </select>
+//                         {/* FIN DE MODIFICACIÓN */}
+//                     </div>
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-600 mb-1">
+//                             Seleccionar Fecha:
+//                         </label>
+//                         <input
+//                             type="date"
+//                             value={selectedDate}
+//                             onChange={(e) => setSelectedDate(e.target.value)}
+//                             className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+//                         />
+//                     </div>
+//                 </div>
+//                 {selectedWorkerName && dailyEntries.length > 0 ? (
+//                     <div className="border border-indigo-200 rounded-lg p-3 sm:p-4 bg-indigo-50">
+//                         <h3 className="text-lg sm:text-xl font-bold text-indigo-800 mb-3">
+//                             Producción de {selectedWorkerName} el {selectedDate}
+//                         </h3>
+//                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+//                             {["A", "B", "C", "D", "E"].map((type) => {
+//                                 const totalType = dailyEntries.reduce(
+//                                     (sum, entry) => sum + (entry[`type${type}`] || 0),
+//                                     0
+//                                 );
+//                                 return (
+//                                     <div
+//                                         key={type}
+//                                         className="p-3 bg-white rounded-lg shadow text-center"
+//                                     >
+//                                         <p className="text-xs sm:text-sm text-gray-500">
+//                                             Caja {type}
+//                                         </p>
+//                                         <p className="text-xl sm:text-2xl font-extrabold text-indigo-600">
+//                                             {totalType}
+//                                         </p>
+//                                     </div>
+//                                 );
+//                             })}
+//                         </div>
+//                     </div>
+//                 ) : (
+//                     selectedWorkerName && (
+//                         <p className="text-gray-500 italic p-4 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+//                             No se encontraron entradas para {selectedWorkerName} en la fecha{" "}
+//                             {selectedDate}.
+//                         </p>
+//                     )
+//                 )}
+//             </section>
+//             <hr className="border-t-2 border-gray-300 my-6 sm:my-8" />
+//             <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg">
+//                 <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4">
+//                     🥇 Desempeño por Categoría (Acumulado)
+//                 </h2>
+//                 {summary.summaryArray.length > 0 ? (
+//                     <div className="overflow-x-auto">
+//                         <table className="min-w-full divide-y divide-gray-200 text-sm">
+//                             <thead className="bg-blue-600 text-white">
+//                                 <tr>
+//                                     <th className="px-3 py-2 sm:px-4 sm:py-3 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider rounded-tl-lg">
+//                                         Trabajador
+//                                     </th>
+//                                     <th className="px-3 py-2 sm:px-4 sm:py-3 text-center text-xs sm:text-sm font-semibold uppercase tracking-wider bg-blue-800">
+//                                         TOTAL
+//                                     </th>
+//                                     {["A", "B", "C", "D", "E"].map((type) => (
+//                                         <th
+//                                             key={type}
+//                                             className="px-3 py-2 sm:px-4 sm:py-3 text-center text-xs sm:text-sm font-semibold uppercase tracking-wider"
+//                                         >
+//                                             Caja {type}
+//                                         </th>
+//                                     ))}
+//                                 </tr>
+//                             </thead>
+//                             <tbody className="bg-white divide-y divide-gray-200">
+//                                 {summary.summaryArray.map((item, index) => (
+//                                     <tr
+//                                         key={item.name}
+//                                         className={
+//                                             index === 0
+//                                                 ? "bg-yellow-50 font-bold border-l-4 border-yellow-500"
+//                                                 : "hover:bg-gray-100"
+//                                         }
+//                                     >
+//                                         <td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-left text-gray-900">
+//                                             {item.name}
+//                                         </td>
+//                                         <td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-center text-sm sm:text-lg font-extrabold bg-blue-100 text-blue-900">
+//                                             {item.total}
+//                                         </td>
+//                                         {["typeA", "typeB", "typeC", "typeD", "typeE"].map(
+//                                             (type, typeIndex) => (
+//                                                 <td
+//                                                     key={typeIndex}
+//                                                     className={`px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-center text-sm ${
+//                                                         item[type] === getMaxByType(type)
+//                                                             ? "bg-green-100 font-bold text-green-800"
+//                                                             : "text-gray-700"
+//                                                     }`}
+//                                                 >
+//                                                     {item[type]}
+//                                                 </td>
+//                                             )
+//                                         )}
+//                                     </tr>
+//                                 ))}
+//                             </tbody>
+//                         </table>
+//                     </div>
+//                 ) : (
+//                     <p className="text-gray-500 italic text-sm">
+//                         No hay datos de producción registrados aún.
+//                     </p>
+//                 )}
+//             </section>
+//         </div>
+//     );
+    
+
+// // --- RENDERIZADO PRINCIPAL (MODIFICADO) ---
+
+// if (!isAuthReady) {
+//     return (
+//         <div className="text-center p-10 flex flex-col items-center justify-center h-screen bg-gray-50">
+//             <h1 className="text-2xl text-blue-800 font-bold mb-4">Analizador de Productividad</h1>
+//             <span className="animate-spin text-blue-600 text-4xl">🔄</span>
+//             <p className="mt-4 text-lg text-gray-700">Verificando sesión...</p>
+//         </div>
+//     );
 // }
-// },[productionData,selectedWorkerName]);
 
-// const handleInputChange=(e)=>{
-// const{name,value,type}=e.target;
-// setNewEntry({...newEntry,[name]:type==='number'?parseInt(value)||0:value,});
-// };
-
-// const addProduction=async(e)=>{
-// e.preventDefault();
-// setErrorMessage('');
-// if(!newEntry.name||newEntry.name.trim()===''){{setErrorMessage('Por favor, ingresa un nombre.');return;}}
-// if(!db){setErrorMessage('La base de datos no está lista.');return;}
-// try{
-// const collectionPath=`artifacts/${appId}/public/data/productivityEntries`;
-// await addDoc(collection(db,collectionPath),{
-// ...newEntry,
-// typeA:newEntry.typeA||0,typeB:newEntry.typeB||0,
-// typeC:newEntry.typeC||0,typeD:newEntry.typeD||0,
-// typeE:newEntry.typeE||0,
-// userId:userId,
-// createdAt:serverTimestamp(),
-// });
-// setNewEntry(prev=>({name:prev.name,date:prev.date,typeA:0,typeB:0,typeC:0,typeD:0,typeE:0}));
-// }catch(error){
-// console.error("Error adding document: ",error);
-// setErrorMessage('Error al registrar la producción: '+error.message);
+// if (!userId) {
+//     return (
+//         <AuthForm
+//             email={email} setEmail={setEmail}
+//             password={password} setPassword={setPassword}
+//             isLoginMode={isLoginMode} setIsLoginMode={setIsLoginMode}
+//             authError={authError} isLoadingAuth={isLoadingAuth}
+//             handleAuth={handleAuth}
+//         />
+//     );
 // }
+
+// // Aplicación Principal (Solo si userId existe)
+// return (
+//     <div className="p-4 md:p-8 max-w-7xl mx-auto bg-gray-50 min-h-screen font-sans">
+        
+//         {/* --- CABECERA Y CERRAR SESIÓN --- */}
+//         <div className="flex justify-between items-center border-b-4 border-blue-200 pb-3 mb-6 sm:mb-8">
+//             <h1 className="text-3xl md:text-4xl font-extrabold text-blue-800">
+//                 📦 Analizador de Productividad
+//             </h1>
+//             <button onClick={handleSignOut} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition shadow-md text-sm font-semibold">
+//                 Cerrar Sesión
+//             </button>
+//         </div>
+//         {/* ---------------------------------- */}
+        
+//         {isLoading && (
+//             <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mb-4 text-sm sm:text-base" role="alert">
+//                 <span className="animate-spin inline-block mr-2">⚙️</span> Cargando datos en tiempo real...
+//             </div>
+//         )}
+//         {errorMessage && (
+//             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-sm sm:text-base" role="alert">
+//                 <span className="font-bold">🚨 Error:</span> {errorMessage}
+//             </div>
+//         )}
+
+//         {/* Administrador de Trabajadores (NUEVA SECCIÓN) */}
+//         <WorkerManager
+//             db={db}
+//             userId={userId}
+//             isAuthReady={isAuthReady}
+//             setErrorMessage={setErrorMessage}
+//             workers={workers}
+//             setWorkers={setWorkers}
+//         />
+//         <hr className="border-t-2 border-gray-300 my-8" />
+//         {/* Fin Administrador de Trabajadores */}
+
+
+//         <div className="sm:hidden">
+//             <div className="flex justify-between bg-white rounded-lg shadow-md mb-6 p-1 border border-gray-200">
+//                 <button
+//                     onClick={() => setActiveTab("input")}
+//                     className={`flex-1 text-center py-2 px-1 text-sm font-semibold rounded-lg transition duration-200 ${
+//                         activeTab === "input"
+//                             ? "bg-indigo-600 text-white shadow-indigo-400 shadow-md"
+//                             : "text-gray-600 hover:bg-gray-100"
+//                     }`}
+//                 >
+//                     📝 Registrar
+//                 </button>
+//                 <button
+//                     onClick={() => setActiveTab("analysis")}
+//                     className={`flex-1 text-center py-2 px-1 text-sm font-semibold rounded-lg transition duration-200 ${
+//                         activeTab === "analysis"
+//                             ? "bg-indigo-600 text-white shadow-indigo-400 shadow-md"
+//                             : "text-gray-600 hover:bg-gray-100"
+//                     }`}
+//                 >
+//                     📈 Análisis
+//                 </button>
+//             </div>
+//             {activeTab === "input" && (
+//                 <InputSection
+//                     db={db}
+//                     userId={userId}
+//                     isAuthReady={isAuthReady}
+//                     setErrorMessage={setErrorMessage}
+//                     isLoading={isLoading}
+//                     workers={workers} // Pasa la lista de trabajadores
+//                 />
+//             )}
+//             {activeTab === "analysis" && <AnalysisSection />}
+//         </div>
+//         <div className="hidden sm:block">
+//             {/* Pasa la lista de trabajadores al InputSection */}
+//             <InputSection
+//                 db={db}
+//                 userId={userId}
+//                 isAuthReady={isAuthReady}
+//                 setErrorMessage={setErrorMessage}
+//                 isLoading={isLoading}
+//                 workers={workers} 
+//             />
+//             <hr className="border-t-2 border-gray-300 my-8" />
+//             <AnalysisSection />
+//         </div>
+//         {userId && (
+//             <p className="text-xs text-gray-500 mt-6 text-center">
+//                 ID de Sesión:{" "}
+//                 <span className="font-mono text-gray-700">{userId}</span>
+//             </p>
+//         )}
+//     </div>
+// );
 // };
 
-// const summary=useMemo(()=>{
-// const uniqueNames=[...new Set(productionData.map(e=>e.name))].sort();
-// const totals=productionData.reduce((acc,entry)=>{
-// const entryA=Number(entry.typeA)||0;const entryB=Number(entry.typeB)||0;
-// const entryC=Number(entry.typeC)||0;const entryD=Number(entry.typeD)||0;
-// const entryE=Number(entry.typeE)||0;
-// if(!acc[entry.name])acc[entry.name]={total:0,typeA:0,typeB:0,typeC:0,typeD:0,typeE:0};
-// acc[entry.name].typeA+=entryA;acc[entry.name].typeB+=entryB;
-// acc[entry.name].typeC+=entryC;acc[entry.name].typeD+=entryD;
-// acc[entry.name].typeE+=entryE;
-// acc[entry.name].total+=entryA+entryB+entryC+entryD+entryE;
-// return acc;
-// },{});
-// const summaryArray=Object.entries(totals)
-// .map(([name,data])=>({name,...data}))
-// .sort((a,b)=>b.total-a.total);
-// return{summaryArray,uniqueNames};
-// },[productionData]);
+// export default ProductivityAnalyzer; // Asumiendo que este es el componente exportado
 
-// const topPerformer=summary.summaryArray[0]||{name:'N/A',total:0};
-// const getMaxByType=(type)=>Math.max(...summary.summaryArray.map(w=>w[type]||0));
 
-// const dailyEntries=useMemo(()=>{
-// if(!selectedWorkerName||!selectedDate)return[];
-// return productionData
-// .filter(entry=>entry.name===selectedWorkerName&&entry.date===selectedDate)
-// .sort((a,b)=>(new Date(a.date)-new Date(b.date))); 
-// },[productionData,selectedWorkerName,selectedDate]);
 
-// const InputSection=()=>(
-// <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg border border-gray-200 mb-8 sm:mb-0">
-// <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">➕ Registrar Producción</h2>
-// <form onSubmit={addProduction} className="space-y-4 sm:space-y-6">
-// <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-// <div>
-// <label className="block text-sm font-medium text-gray-600 mb-1">Trabajador:</label>
-// <input type="text" name="name" placeholder="Nombre del Trabajador" value={newEntry.name} onChange={handleInputChange} required className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"/>
-// </div>
-// <div>
-// <label className="block text-sm font-medium text-gray-600 mb-1">Fecha de Registro:</label>
-// <input type="date" name="date" value={newEntry.date} onChange={handleInputChange} className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"/>
-// </div>
-// </div>
-// <div className="p-3 sm:p-4 bg-blue-50 rounded-lg">
-// <h3 className="text-base sm:text-lg font-medium text-blue-800 mb-3 sm:mb-4">Cajas por Tipo (Cantidad)</h3>
-// <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-// {['A','B','C','D','E'].map((type)=>(
-// <div key={type}>
-// <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Tipo {type}:</label>
-// <input type="number" name={`type${type}`} value={newEntry[`type${type}`]} onChange={handleInputChange} min="0" className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"/>
-// </div>
-// ))}
-// </div>
-// </div>
-// <button type="submit" disabled={!isAuthReady||isLoading}className={`w-full md:w-auto px-6 py-3 text-white font-bold rounded-lg transition duration-200 shadow-md ${!isAuthReady||isLoading?'bg-gray-400 cursor-not-allowed':'bg-green-600 hover:bg-green-700'}`}>
-// {isLoading?'Guardando...':'Registrar Entrada'}
-// </button>
-// </form>
-// </section>
-// );
 
-// const AnalysisSection=()=>(
-// <div className="space-y-6 sm:space-y-8">
-// <section className="bg-yellow-100 p-4 sm:p-6 rounded-lg shadow-inner border border-yellow-300">
-// <h2 className="text-xl sm:text-2xl font-semibold text-yellow-800 mb-3">⭐ Resumen General Acumulado</h2>
-// <p className="text-base sm:text-lg text-yellow-900">
-// El trabajador más productivo es: 
-// <strong className="text-xl sm:text-2xl text-red-600 ml-2">{topPerformer.name}</strong> con 
-// <span className="text-xl sm:text-2xl font-extrabold ml-1"> {topPerformer.total}</span> cajas.
-// </p>
-// </section>
-// <section>
-// <h2 className="text-2xl sm:text-3xl font-bold text-blue-800 mb-4 sm:mb-6">📊 Visualización de Competitividad</h2>
-// <ProductivityChart summaryArray={summary.summaryArray}/>
-// </section>
-// <hr className="border-t-2 border-gray-300 my-6 sm:my-8"/>
-// <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg border border-gray-200">
-// <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4 sm:mb-6 border-b pb-2">🗓️ Historial por Trabajador y Fecha</h2>
-// <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-// <div>
-// <label className="block text-sm font-medium text-gray-600 mb-1">Seleccionar Trabajador:</label>
-// <select value={selectedWorkerName} onChange={(e)=>setSelectedWorkerName(e.target.value)} className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-// <option value="">-- Seleccione un trabajador --</option>
-// {summary.uniqueNames.map(name=>(<option key={name} value={name}>{name}</option>))}
-// </select>
-// </div>
-// <div>
-// <label className="block text-sm font-medium text-gray-600 mb-1">Seleccionar Fecha:</label>
-// <input type="date" value={selectedDate} onChange={(e)=>setSelectedDate(e.target.value)} className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"/>
-// </div>
-// </div>
-// {selectedWorkerName&&dailyEntries.length>0?(
-// <div className="border border-indigo-200 rounded-lg p-3 sm:p-4 bg-indigo-50">
-// <h3 className="text-lg sm:text-xl font-bold text-indigo-800 mb-3">
-// Producción de {selectedWorkerName} el {selectedDate}
-// </h3>
-// <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-// {['A','B','C','D','E'].map((type)=>{
-// const totalType=dailyEntries.reduce((sum,entry)=>sum+(entry[`type${type}`]||0),0);
-// return(<div key={type} className="p-3 bg-white rounded-lg shadow text-center">
-// <p className="text-xs sm:text-sm text-gray-500">Caja {type}</p>
-// <p className="text-xl sm:text-2xl font-extrabold text-indigo-600">{totalType}</p>
-// </div>);
-// })}
-// </div>
-// </div>
-// ):selectedWorkerName&&(
-// <p className="text-gray-500 italic p-4 border border-gray-200 rounded-lg bg-gray-50 text-sm">
-// No se encontraron entradas para {selectedWorkerName} en la fecha {selectedDate}.
-// </p>
-// )}
-// </section>
-// <hr className="border-t-2 border-gray-300 my-6 sm:my-8"/>
-// <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg">
-// <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4">🥇 Desempeño por Categoría (Acumulado)</h2>
-// {summary.summaryArray.length>0?(
-// <div className="overflow-x-auto">
-// <table className="min-w-full divide-y divide-gray-200 text-sm">
-// <thead className="bg-blue-600 text-white">
-// <tr>
-// <th className="px-3 py-2 sm:px-4 sm:py-3 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider rounded-tl-lg">Trabajador</th>
-// <th className="px-3 py-2 sm:px-4 sm:py-3 text-center text-xs sm:text-sm font-semibold uppercase tracking-wider bg-blue-800">TOTAL</th>
-// {['A','B','C','D','E'].map((type)=>(
-// <th key={type} className="px-3 py-2 sm:px-4 sm:py-3 text-center text-xs sm:text-sm font-semibold uppercase tracking-wider">Caja {type}</th>
-// ))}
-// </tr>
-// </thead>
-// <tbody className="bg-white divide-y divide-gray-200">
-// {summary.summaryArray.map((item,index)=>(
-// <tr key={item.name} className={index===0?'bg-yellow-50 font-bold border-l-4 border-yellow-500':'hover:bg-gray-100'}>
-// <td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-left text-gray-900">{item.name}</td>
-// <td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-center text-sm sm:text-lg font-extrabold bg-blue-100 text-blue-900">
-// {item.total}
-// </td>
-// {['typeA','typeB','typeC','typeD','typeE'].map((type,typeIndex)=>(
-// <td key={typeIndex} className={`px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-center text-sm ${item[type]===getMaxByType(type)?'bg-green-100 font-bold text-green-800':'text-gray-700'}`}>
-// {item[type]}
-// </td>
-// ))}
-// </tr>
-// ))}
-// </tbody>
-// </table>
-// </div>
-// ):(<p className="text-gray-500 italic text-sm">No hay datos de producción registrados aún.</p>)}
-// </section>
-// </div>
-// );
 
-// return(
-// <div className="p-4 md:p-8 max-w-7xl mx-auto bg-gray-50 min-h-screen font-sans">
-// <h1 className="text-3xl md:text-4xl font-extrabold text-blue-800 border-b-4 border-blue-200 pb-3 mb-6 sm:mb-8">
-// 📦 Analizador de Productividad (Real-Time)
-// </h1>
-// {isLoading&&(
-// <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mb-4 text-sm sm:text-base" role="alert">
-// <span className="animate-spin inline-block mr-2">⚙️</span> Cargando datos en tiempo real...
-// </div>
-// )}
-// {errorMessage&&(
-// <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-sm sm:text-base" role="alert">
-// <span className="font-bold">🚨 Error:</span> {errorMessage}
-// </div>
-// )}
-// <div className="sm:hidden">
-// <div className="flex justify-between bg-white rounded-lg shadow-md mb-6 p-1 border border-gray-200">
-// <button
-// onClick={()=>setActiveTab('input')}
-// className={`flex-1 text-center py-2 px-1 text-sm font-semibold rounded-lg transition duration-200 ${
-// activeTab==='input'?'bg-indigo-600 text-white shadow-indigo-400 shadow-md':'text-gray-600 hover:bg-gray-100'
-// }`}
-// >
-// 📝 Registrar
-// </button>
-// <button
-// onClick={()=>setActiveTab('analysis')}
-// className={`flex-1 text-center py-2 px-1 text-sm font-semibold rounded-lg transition duration-200 ${
-// activeTab==='analysis'?'bg-indigo-600 text-white shadow-indigo-400 shadow-md':'text-gray-600 hover:bg-gray-100'
-// }`}
-// >
-// 📈 Análisis
-// </button>
-// </div>
-// {activeTab==='input'&&<InputSection/>}
-// {activeTab==='analysis'&&<AnalysisSection/>}
-// </div>
-// <div className="hidden sm:block">
-// <InputSection/>
-// <hr className="border-t-2 border-gray-300 my-8"/>
-// <AnalysisSection/>
-// </div>
-// {userId&&(
-// <p className="text-xs text-gray-500 mt-6 text-center">
-// ID de Sesión: <span className="font-mono text-gray-700">{userId}</span>
-// </p>
-// )}
-// </div>
-// );
+// import React, { useState, useMemo, useEffect, useCallback, memo, useRef } from "react";
+// import {
+//     BarChart,
+//     Bar,
+//     XAxis,
+//     YAxis,
+//     CartesianGrid,
+//     Tooltip,
+//     Legend,
+//     ResponsiveContainer,
+// } from "recharts";
+// import { initializeApp } from "firebase/app";
+// import { 
+//     getAuth,
+//     signInWithEmailAndPassword,
+//     createUserWithEmailAndPassword,
+//     signOut,
+//     onAuthStateChanged,
+//     setPersistence,
+//     browserLocalPersistence,
+// } from "firebase/auth";
+// import {
+//     getFirestore,
+//     collection,
+//     query,
+//     onSnapshot,
+//     addDoc,
+//     serverTimestamp,
+//     where,
+//     deleteDoc,
+//     doc,
+//     updateDoc,
+//     getDocs,
+//     writeBatch,
+// } from "firebase/firestore";
+// import { firebaseConfig } from "../../firebaseConfig"; // Asegúrate de que esta ruta sea correcta
+
+
+// // --- FUNCIONES Y CONSTANTES GENERALES ---
+
+// const getAppId = () => {
+//     if (typeof window.__app_id !== "undefined") {
+//         return window.__app_id;
+//     }
+//     return "default-calendar-app-id";
+// };
+// const appId = getAppId();
+
+// // --- COMPONENTE ProductivityChart (Sin cambios) ---
+
+// const ProductivityChart = ({ summaryArray }) => {
+//     const colors = {
+//         typeA: "#8884d8",
+//         typeB: "#82ca9d",
+//         typeC: "#ffc658",
+//         typeD: "#ff7300",
+//         typeE: "#00c49f",
+//     };
+//     if (!summaryArray || summaryArray.length === 0) {
+//         return (
+//             <div className="h-64 sm:h-96 w-full p-4 flex items-center justify-center bg-white rounded-lg shadow-md border border-gray-100">
+//                 <p className="text-gray-500 italic">
+//                     No hay datos suficientes para generar el gráfico.
+//                 </p>
+//             </div>
+//         );
+//     }
+//     return (
+//         <div className="h-64 sm:h-96 w-full p-4 bg-white rounded-lg shadow-md border border-gray-100">
+//             <ResponsiveContainer width="100%" height="100%">
+//                 <BarChart
+//                     data={summaryArray}
+//                     margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+//                 >
+//                     <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+//                     <XAxis
+//                         dataKey="name"
+//                         stroke="#333"
+//                         tick={{ fill: "#4b5563", fontSize: 10 }}
+//                     />
+//                     <YAxis stroke="#333" tick={{ fill: "#4b5563", fontSize: 10 }} />
+//                     <Tooltip
+//                         cursor={{ fill: "rgba(0, 0, 0, 0.05)" }}
+//                         contentStyle={{
+//                             borderRadius: "8px",
+//                             border: "1px solid #ccc",
+//                             background: "#fff",
+//                             fontSize: "12px",
+//                             padding: "5px",
+//                         }}
+//                         labelStyle={{ fontWeight: "bold", color: "#1f2937" }}
+//                         formatter={(value, name) => [value, name.replace("type", "Caja ")]}
+//                     />
+//                     <Legend
+//                         wrapperStyle={{ paddingTop: "10px", fontSize: "12px" }}
+//                         formatter={(value) => value.replace("type", "Caja ")}
+//                     />
+//                     <Bar
+//                         dataKey="typeA"
+//                         stackId="a"
+//                         fill={colors.typeA}
+//                         name="Caja A"
+//                         radius={[4, 4, 0, 0]}
+//                     />
+//                     <Bar
+//                         dataKey="typeB"
+//                         stackId="a"
+//                         fill={colors.typeB}
+//                         name="Caja B"
+//                         radius={[4, 4, 0, 0]}
+//                     />
+//                     <Bar
+//                         dataKey="typeC"
+//                         stackId="a"
+//                         fill={colors.typeC}
+//                         name="Caja C"
+//                         radius={[4, 4, 0, 0]}
+//                     />
+//                     <Bar
+//                         dataKey="typeD"
+//                         stackId="a"
+//                         fill={colors.typeD}
+//                         name="Caja D"
+//                         radius={[4, 4, 0, 0]}
+//                     />
+//                     <Bar
+//                         dataKey="typeE"
+//                         stackId="a"
+//                         fill={colors.typeE}
+//                         name="Caja E"
+//                         radius={[4, 4, 0, 0]}
+//                     />
+//                 </BarChart>
+//             </ResponsiveContainer>
+//         </div>
+//     );
+// };
+
+// // --- COMPONENTE WorkerManager (MODIFICADO) ---
+// const WorkerManagerComponent = ({ db, userId, isAuthReady, setErrorMessage, workers, setWorkers, onDeleteWorker }) => {
+//     const [newWorkerName, setNewWorkerName] = useState("");
+//     const [isSaving, setIsSaving] = useState(false);
+    
+//     // ESTADO PARA EDICIÓN
+//     const [editingWorker, setEditingWorker] = useState(null); // { id, name }
+//     const [editedName, setEditedName] = useState("");
+
+
+//     // 2. AGREGAR TRABAJADOR (Sin cambios)
+//     const addWorker = useCallback(async (e) => {
+//         e.preventDefault();
+//         setErrorMessage("");
+//         const name = newWorkerName.trim();
+//         if (!name) {
+//             setErrorMessage("Por favor, ingresa un nombre para el trabajador.");
+//             return;
+//         }
+//         if (workers.some(w => w.name.toLowerCase() === name.toLowerCase())) {
+//             setErrorMessage(`El trabajador "${name}" ya existe.`);
+//             return;
+//         }
+//         if (!db) {
+//             setErrorMessage("La base de datos no está lista.");
+//             return;
+//         }
+
+//         setIsSaving(true);
+//         try {
+//             const collectionPath = `artifacts/${appId}/public/data/workers`; 
+//             await addDoc(collection(db, collectionPath), {
+//                 name: name,
+//                 userId: userId,
+//                 createdAt: serverTimestamp(),
+//             });
+//             setNewWorkerName("");
+//         } catch (error) {
+//             console.error("Error adding worker: ", error);
+//             setErrorMessage("Error al guardar el trabajador: " + error.message);
+//         } finally {
+//             setIsSaving(false);
+//         }
+//     }, [db, newWorkerName, userId, setErrorMessage, workers]);
+    
+//     // 3. ACTUALIZAR TRABAJADOR
+//     const updateWorker = useCallback(async (e) => {
+//         e.preventDefault();
+//         setErrorMessage("");
+//         const newName = editedName.trim();
+//         if (!newName) {
+//             setErrorMessage("El nombre del trabajador no puede estar vacío.");
+//             return;
+//         }
+//         if (!editingWorker) return;
+
+//         const nameConflict = workers.some(w => 
+//             w.name.toLowerCase() === newName.toLowerCase() && w.id !== editingWorker.id
+//         );
+//         if (nameConflict) {
+//             setErrorMessage(`El nombre "${newName}" ya está en uso por otro trabajador.`);
+//             return;
+//         }
+//         if (!db) {
+//             setErrorMessage("La base de datos no está lista.");
+//             return;
+//         }
+
+//         setIsSaving(true);
+//         try {
+//             const workerRef = doc(db, `artifacts/${appId}/public/data/workers`, editingWorker.id);
+//             await updateDoc(workerRef, { 
+//                 name: newName,
+//                 updatedAt: serverTimestamp(),
+//             });
+            
+//             // Aquí puedes añadir la lógica para actualizar el nombre en TODOS los registros de productionEntries
+//             // si el nombre del trabajador ha cambiado.
+//             // Para simplificar, asumiremos que los reportes se regeneran correctamente con el nuevo nombre.
+            
+//             setEditingWorker(null); 
+//             setEditedName("");
+//         } catch (error) {
+//             console.error("Error updating worker: ", error);
+//             setErrorMessage("Error al actualizar el trabajador: " + error.message);
+//         } finally {
+//             setIsSaving(false);
+//         }
+//     }, [db, editedName, editingWorker, setErrorMessage, workers]);
+
+
+//     // 4. ELIMINAR TRABAJADOR (MODIFICADO para eliminación en cascada)
+//     const deleteWorker = useCallback(async (workerId, workerName) => {
+//         if (!window.confirm(`⚠️ ADVERTENCIA: ¿Estás seguro de ELIMINAR al trabajador "${workerName}"? Esto también ELIMINARÁ todos los registros de producción asociados a su nombre (Visulización de Competitividad y Desempeño Acumulado).`)) {
+//             return;
+//         }
+//         setErrorMessage("");
+//         if (!db) {
+//             setErrorMessage("La base de datos no está lista.");
+//             return;
+//         }
+
+//         try {
+//             // 1. Eliminar entradas de producción (lógica de cascada)
+//             await onDeleteWorker(workerName);
+            
+//             // 2. Eliminar el documento del trabajador
+//             const docRef = doc(db, `artifacts/${appId}/public/data/workers`, workerId);
+//             await deleteDoc(docRef);
+
+//         } catch (error) {
+//             console.error("Error deleting worker: ", error);
+//             setErrorMessage("Error al eliminar el trabajador y/o sus registros: " + error.message);
+//         }
+//     }, [db, setErrorMessage, onDeleteWorker]);
+
+
+//     // 5. Lógica de Subscripción para trabajadores (Sin cambios)
+//     useEffect(() => {
+//         if (!db || !isAuthReady || !userId) {
+//             setWorkers([]); 
+//             return;
+//         }
+
+//         const collectionPath = `artifacts/${appId}/public/data/workers`;
+//         const workersCollection = collection(db, collectionPath);
+        
+//         const q = query(workersCollection, where("userId", "==", userId));
+
+//         const unsubscribe = onSnapshot(
+//             q,
+//             (snapshot) => {
+//                 const workerList = [];
+//                 snapshot.forEach((doc) => {
+//                     workerList.push({ id: doc.id, ...doc.data() });
+//                 });
+//                 workerList.sort((a, b) => a.name.localeCompare(b.name)); 
+//                 setWorkers(workerList);
+//             },
+//             (error) => {
+//                 console.error("Firestore workers snapshot error:", error);
+//                 setErrorMessage("Error al cargar la lista de trabajadores.");
+//             }
+//         );
+
+//         return () => unsubscribe();
+//     }, [db, isAuthReady, userId, setErrorMessage, setWorkers]);
+
+//     return (
+//         <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg border border-gray-200 mb-8">
+//             <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">
+//                 👥 Administrar Trabajadores Guardados
+//             </h2>
+            
+//             {/* Formulario para Agregar Trabajador */}
+//             <form onSubmit={addWorker} className="flex gap-2 mb-6">
+//                 <input
+//                     type="text"
+//                     placeholder="Nuevo Nombre de Trabajador"
+//                     value={newWorkerName}
+//                     onChange={(e) => setNewWorkerName(e.target.value)}
+//                     required
+//                     className="flex-grow p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+//                 />
+//                 <button
+//                     type="submit"
+//                     disabled={!isAuthReady || isSaving}
+//                     className={`px-4 py-2 text-white font-bold rounded-lg transition duration-200 shadow-md text-sm ${
+//                         !isAuthReady || isSaving
+//                             ? "bg-gray-400 cursor-not-allowed"
+//                             : "bg-blue-600 hover:bg-blue-700"
+//                     }`}
+//                 >
+//                     {isSaving ? "Guardando..." : "Agregar"}
+//                 </button>
+//             </form>
+
+//             {/* Lista de Trabajadores */}
+//             <div className="border border-gray-200 rounded-lg p-3 max-h-60 overflow-y-auto">
+//                 <h3 className="text-base font-medium text-gray-700 mb-2">Lista ({workers.length})</h3>
+//                 <ul className="space-y-2">
+//                     {workers.length === 0 ? (
+//                             <p className="text-gray-500 italic text-sm">No hay trabajadores guardados aún.</p>
+//                     ) : (
+//                         workers.map((worker) => (
+//                             <li key={worker.id} className="flex justify-between items-center p-2 bg-gray-50 rounded-md border border-gray-100">
+//                                 <span className="text-sm font-medium text-gray-800">{worker.name}</span>
+//                                 <div className="space-x-2">
+//                                     <button
+//                                         onClick={() => {
+//                                             setEditingWorker(worker);
+//                                             setEditedName(worker.name);
+//                                         }}
+//                                         className="text-indigo-500 hover:text-indigo-700 transition duration-150 p-1"
+//                                         title="Editar Trabajador"
+//                                     >
+//                                         ✏️
+//                                     </button>
+//                                     <button
+//                                         onClick={() => deleteWorker(worker.id, worker.name)}
+//                                         className="text-red-500 hover:text-red-700 transition duration-150 p-1"
+//                                         title="Eliminar Trabajador y todos sus registros"
+//                                     >
+//                                         🗑️
+//                                     </button>
+//                                 </div>
+//                             </li>
+//                         ))
+//                     )}
+//                 </ul>
+//             </div>
+            
+//             {/* Modal de Edición */}
+//             {editingWorker && (
+//                 <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+//                     <form onSubmit={updateWorker} className="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm">
+//                         <h3 className="text-lg font-bold mb-4">Editar Trabajador</h3>
+//                         <label className="block text-sm font-medium text-gray-700 mb-2">Nuevo Nombre:</label>
+//                         <input
+//                             type="text"
+//                             value={editedName}
+//                             onChange={(e) => setEditedName(e.target.value)}
+//                             required
+//                             className="w-full p-2 border border-gray-300 rounded-lg mb-4"
+//                         />
+//                         <div className="flex justify-end space-x-3">
+//                             <button
+//                                 type="button"
+//                                 onClick={() => setEditingWorker(null)}
+//                                 className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100"
+//                                 disabled={isSaving}
+//                             >
+//                                 Cancelar
+//                             </button>
+//                             <button
+//                                 type="submit"
+//                                 className={`px-4 py-2 text-white font-bold rounded-lg ${isSaving ? 'bg-green-400' : 'bg-green-600 hover:bg-green-700'}`}
+//                                 disabled={isSaving}
+//                             >
+//                                 {isSaving ? "Actualizando..." : "Guardar Cambios"}
+//                             </button>
+//                         </div>
+//                     </form>
+//                 </div>
+//             )}
+
+//         </section>
+//     );
+// };
+// const WorkerManager = memo(WorkerManagerComponent);
+
+
+// // --- COMPONENTE InputSection (Sin cambios importantes, solo la adaptación de props) ---
+
+// const InputSectionComponent = ({
+//     db,
+//     userId,
+//     isAuthReady,
+//     setErrorMessage,
+//     isLoading,
+//     workers, 
+// }) => {
+//     // MODIFICADO: 'name' se convierte en 'selectedWorkers' (un array de nombres)
+//     const [newEntry, setNewEntry] = useState({
+//         selectedWorkers: [], // Array para guardar múltiples nombres
+//         date: new Date().toISOString().split("T")[0],
+//         typeA: 0,
+//         typeB: 0,
+//         typeC: 0,
+//         typeD: 0,
+//         typeE: 0,
+//     });
+
+//     const handleInputChange = useCallback((e) => {
+//         const { name, value, type } = e.target;
+//         if (name === "selectedWorkers") {
+//             // Manejar la selección de múltiples opciones
+//             const selectedOptions = Array.from(e.target.options)
+//                 .filter(option => option.selected)
+//                 .map(option => option.value);
+//             setNewEntry((prev) => ({
+//                 ...prev,
+//                 selectedWorkers: selectedOptions,
+//             }));
+//         } else {
+//             // Manejar inputs de número y fecha
+//             setNewEntry((prev) => ({
+//                 ...prev,
+//                 [name]: type === "number" ? parseInt(value) || 0 : value,
+//             }));
+//         }
+//     }, []);
+
+//     const addProduction = useCallback(
+//         async (e) => {
+//             e.preventDefault();
+//             setErrorMessage("");
+            
+//             if (newEntry.selectedWorkers.length === 0) {
+//                 setErrorMessage("Por favor, selecciona al menos un trabajador.");
+//                 return;
+//             }
+
+//             const totalCajas = newEntry.typeA + newEntry.typeB + newEntry.typeC + newEntry.typeD + newEntry.typeE;
+//             if (totalCajas === 0) {
+//                 setErrorMessage("Debes registrar al menos una caja en algún tipo.");
+//                 return;
+//             }
+
+//             if (!db) {
+//                 setErrorMessage("La base de datos no está lista.");
+//                 return;
+//             }
+
+//             try {
+//                 const collectionPath = `artifacts/${appId}/public/data/productivityEntries`;
+//                 const batchPromises = newEntry.selectedWorkers.map(workerName => {
+//                     // Crea una entrada por cada trabajador seleccionado
+//                     return addDoc(collection(db, collectionPath), {
+//                         name: workerName, // El nombre del trabajador seleccionado
+//                         date: newEntry.date,
+//                         typeA: newEntry.typeA || 0,
+//                         typeB: newEntry.typeB || 0,
+//                         typeC: newEntry.typeC || 0,
+//                         typeD: newEntry.typeD || 0,
+//                         typeE: newEntry.typeE || 0,
+//                         userId: userId,
+//                         createdAt: serverTimestamp(),
+//                     });
+//                 });
+
+//                 await Promise.all(batchPromises);
+
+//                 // Reinicia las cajas y la selección de trabajadores, manteniendo la fecha
+//                 setNewEntry((prev) => ({
+//                     selectedWorkers: [],
+//                     date: prev.date,
+//                     typeA: 0,
+//                     typeB: 0,
+//                     typeC: 0,
+//                     typeD: 0,
+//                     typeE: 0,
+//                 }));
+//             } catch (error) {
+//                 console.error("Error adding documents: ", error);
+//                 setErrorMessage("Error al registrar la producción: " + error.message);
+//             }
+//         },
+//         [db, newEntry, userId, setErrorMessage]
+//     );
+
+//     return (
+//         <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg border border-gray-200 mb-8 sm:mb-0">
+//             <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">
+//                 ➕ Registrar Producción
+//             </h2>
+//             <form onSubmit={addProduction} className="space-y-4 sm:space-y-6">
+//                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//                     {/* Campo Select para Trabajadores */}
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-600 mb-1">
+//                             Trabajador(es):
+//                         </label>
+//                         <select
+//                             // MODIFICADO: Agregamos 'multiple' para seleccionar varios
+//                             multiple 
+//                             size={workers.length > 1 ? (workers.length > 5 ? 5 : workers.length) : 1} // Ajusta el tamaño de la lista
+//                             name="selectedWorkers"
+//                             value={newEntry.selectedWorkers}
+//                             onChange={handleInputChange}
+//                             required
+//                             className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 h-24"
+//                             disabled={workers.length === 0}
+//                         >
+//                             {workers.length === 0 ? (
+//                                 <option value="" disabled>-- Primero agrega trabajadores en el Administrador --</option>
+//                             ) : (
+//                                 workers.map((worker) => (
+//                                     <option key={worker.id} value={worker.name}>
+//                                         {worker.name}
+//                                     </option>
+//                                 ))
+//                             )}
+//                         </select>
+//                         <p className="text-xs text-gray-500 mt-1">
+//                             (Mantén **Ctrl** o **Cmd** presionado para seleccionar múltiples)
+//                         </p>
+//                     </div>
+//                     {/* FIN DE MODIFICACIÓN */}
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-600 mb-1">
+//                             Fecha de Registro:
+//                         </label>
+//                         <input
+//                             type="date"
+//                             name="date"
+//                             value={newEntry.date}
+//                             onChange={handleInputChange}
+//                             className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+//                         />
+//                     </div>
+//                 </div>
+//                 <div className="p-3 sm:p-4 bg-blue-50 rounded-lg">
+//                     <h3 className="text-base sm:text-lg font-medium text-blue-800 mb-3 sm:mb-4">
+//                         Cajas por Tipo (Cantidad)
+//                     </h3>
+//                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+//                         {["A", "B", "C", "D", "E"].map((type) => (
+//                             <div key={type}>
+//                                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+//                                     Tipo {type}:
+//                                 </label>
+//                                 <input
+//                                     type="number"
+//                                     name={`type${type}`}
+//                                     value={newEntry[`type${type}`]}
+//                                     onChange={handleInputChange}
+//                                     min="0"
+//                                     className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+//                                 />
+//                             </div>
+//                         ))}
+//                     </div>
+//                 </div>
+//                 <button
+//                     type="submit"
+//                     // Deshabilita si no hay trabajadores seleccionados
+//                     disabled={!isAuthReady || isLoading || newEntry.selectedWorkers.length === 0} 
+//                     className={`w-full md:w-auto px-6 py-3 text-white font-bold rounded-lg transition duration-200 shadow-md ${
+//                         !isAuthReady || isLoading || newEntry.selectedWorkers.length === 0
+//                             ? "bg-gray-400 cursor-not-allowed"
+//                             : "bg-green-600 hover:bg-green-700"
+//                     }`}
+//                 >
+//                     {isLoading ? "Guardando..." : `Registrar ${newEntry.selectedWorkers.length} Entrada(s)`}
+//                 </button>
+//             </form>
+//         </section>
+//     );
+// };
+// const InputSection = memo(InputSectionComponent);
+
+
+// // --- COMPONENTE HistorySection (NUEVO) ---
+
+// const HistorySection = ({
+//     workers, 
+//     selectedWorkerName, 
+//     setSelectedWorkerName, 
+//     selectedDate, 
+//     setSelectedDate,
+//     dailyEntries,
+//     setErrorMessage,
+//     onDeleteEntry, // Función para eliminar una sola entrada
+//     onUpdateEntry, // Función para actualizar una sola entrada
+// }) => {
+//     // Estado para la edición de una entrada de producción
+//     const [editingEntry, setEditingEntry] = useState(null); // Contiene la entrada completa a editar
+//     const [editData, setEditData] = useState({}); // Datos del formulario de edición
+
+//     // Inicia el proceso de edición
+//     const startEdit = useCallback((entry) => {
+//         setEditingEntry(entry);
+//         setEditData({
+//             typeA: entry.typeA || 0,
+//             typeB: entry.typeB || 0,
+//             typeC: entry.typeC || 0,
+//             typeD: entry.typeD || 0,
+//             typeE: entry.typeE || 0,
+//         });
+//     }, []);
+
+//     // Maneja los cambios en el formulario de edición
+//     const handleEditChange = useCallback((e) => {
+//         const { name, value, type } = e.target;
+//         setEditData((prev) => ({
+//             ...prev,
+//             [name]: type === "number" ? parseInt(value) || 0 : value,
+//         }));
+//     }, []);
+
+//     // Guarda los cambios de la entrada editada
+//     const handleSaveEdit = useCallback(async (e) => {
+//         e.preventDefault();
+//         setErrorMessage("");
+
+//         const totalCajas = editData.typeA + editData.typeB + editData.typeC + editData.typeD + editData.typeE;
+//         if (totalCajas === 0) {
+//             setErrorMessage("Debes registrar al menos una caja en algún tipo.");
+//             return;
+//         }
+
+//         try {
+//             await onUpdateEntry(editingEntry.id, {
+//                 typeA: editData.typeA,
+//                 typeB: editData.typeB,
+//                 typeC: editData.typeC,
+//                 typeD: editData.typeD,
+//                 typeE: editData.typeE,
+//             });
+
+//             // Cierra el formulario de edición
+//             setEditingEntry(null);
+//             setEditData({});
+//         } catch (error) {
+//             setErrorMessage("Error al guardar la edición: " + error.message);
+//         }
+
+//     }, [editData, editingEntry, onUpdateEntry, setErrorMessage]);
+
+//     return (
+//         <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg border border-gray-200">
+//             <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">
+//                 🗓️ Historial por Trabajador y Fecha
+//             </h2>
+//             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+//                 <div>
+//                     <label className="block text-sm font-medium text-gray-600 mb-1">
+//                         Seleccionar Trabajador:
+//                     </label>
+//                     <select
+//                         value={selectedWorkerName}
+//                         onChange={(e) => setSelectedWorkerName(e.target.value)}
+//                         className="w-full p-2 text-sm border border-gray-300 rounded-lg"
+//                         disabled={workers.length === 0}
+//                     >
+//                         {workers.length === 0 ? (
+//                             <option value="" disabled>No hay trabajadores</option>
+//                         ) : (
+//                             workers.map((worker) => (
+//                                 <option key={worker.id} value={worker.name}>
+//                                     {worker.name}
+//                                 </option>
+//                             ))
+//                         )}
+//                     </select>
+//                 </div>
+//                 <div>
+//                     <label className="block text-sm font-medium text-gray-600 mb-1">
+//                         Seleccionar Fecha:
+//                     </label>
+//                     <input
+//                         type="date"
+//                         value={selectedDate}
+//                         onChange={(e) => setSelectedDate(e.target.value)}
+//                         className="w-full p-2 text-sm border border-gray-300 rounded-lg"
+//                     />
+//                 </div>
+//             </div>
+
+//             <h3 className="text-lg font-medium text-gray-700 mb-3">
+//                 Registros para **{selectedWorkerName || 'N/A'}** el {selectedDate} ({dailyEntries.length})
+//             </h3>
+            
+//             <div className="overflow-x-auto border border-gray-200 rounded-lg">
+//                 <table className="min-w-full divide-y divide-gray-200">
+//                     <thead className="bg-gray-50">
+//                         <tr>
+//                             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                                 Hora
+//                             </th>
+//                             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                                 Cajas
+//                             </th>
+//                             <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                                 Acciones
+//                             </th>
+//                         </tr>
+//                     </thead>
+//                     <tbody className="bg-white divide-y divide-gray-200">
+//                         {dailyEntries.length === 0 ? (
+//                             <tr>
+//                                 <td colSpan="3" className="px-3 py-4 text-center text-sm text-gray-500 italic">
+//                                     No hay registros para este trabajador en esta fecha.
+//                                 </td>
+//                             </tr>
+//                         ) : (
+//                             dailyEntries.map((entry) => (
+//                                 <tr key={entry.id}>
+//                                     <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+//                                         {entry.createdAt?.toDate ? 
+//                                             entry.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+//                                             : 'N/A'}
+//                                     </td>
+//                                     <td className="px-3 py-2 text-sm text-gray-600">
+//                                         {/* Muestra los tipos de caja que tienen valor > 0 */}
+//                                         {["A", "B", "C", "D", "E"].map(type => 
+//                                             (entry[`type${type}`] > 0) ? (
+//                                                 <span key={type} className="inline-block bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">
+//                                                     T{type}: {entry[`type${type}`]}
+//                                                 </span>
+//                                             ) : null
+//                                         )}
+//                                     </td>
+//                                     <td className="px-3 py-2 whitespace-nowrap text-center text-sm font-medium space-x-2">
+//                                         <button
+//                                             onClick={() => startEdit(entry)}
+//                                             className="text-indigo-600 hover:text-indigo-900 transition duration-150 p-1"
+//                                             title="Editar Entrada"
+//                                         >
+//                                             ✏️
+//                                         </button>
+//                                         <button
+//                                             onClick={() => onDeleteEntry(entry.id)}
+//                                             className="text-red-600 hover:text-red-900 transition duration-150 p-1"
+//                                             title="Eliminar Entrada"
+//                                         >
+//                                             🗑️
+//                                         </button>
+//                                     </td>
+//                                 </tr>
+//                             ))
+//                         )}
+//                     </tbody>
+//                 </table>
+//             </div>
+
+//             {/* Modal de Edición de Entrada */}
+//             {editingEntry && (
+//                 <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+//                     <form onSubmit={handleSaveEdit} className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
+//                         <h3 className="text-xl font-bold mb-4 text-gray-800">
+//                             Editar Entrada de {editingEntry.name} ({editingEntry.date})
+//                         </h3>
+//                         <div className="grid grid-cols-2 gap-4 mb-6 p-4 border rounded-lg bg-yellow-50">
+//                             {["A", "B", "C", "D", "E"].map((type) => (
+//                                 <div key={type}>
+//                                     <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                         Cajas Tipo {type}:
+//                                     </label>
+//                                     <input
+//                                         type="number"
+//                                         name={`type${type}`}
+//                                         value={editData[`type${type}`]}
+//                                         onChange={handleEditChange}
+//                                         min="0"
+//                                         className="w-full p-2 text-sm border border-gray-300 rounded-lg"
+//                                     />
+//                                 </div>
+//                             ))}
+//                         </div>
+
+//                         <div className="flex justify-end space-x-3">
+//                             <button
+//                                 type="button"
+//                                 onClick={() => setEditingEntry(null)}
+//                                 className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100"
+//                             >
+//                                 Cancelar
+//                             </button>
+//                             <button
+//                                 type="submit"
+//                                 className={`px-4 py-2 text-white font-bold rounded-lg bg-green-600 hover:bg-green-700`}
+//                             >
+//                                 Guardar Edición
+//                             </button>
+//                         </div>
+//                     </form>
+//                 </div>
+//             )}
+//         </section>
+//     );
+// };
+
+
+// // --- COMPONENTE AuthForm (Sin cambios) ---
+
+// const AuthForm = ({
+//     email, setEmail, password, setPassword,
+//     isLoginMode, setIsLoginMode,
+//     authError, isLoadingAuth, handleAuth
+// }) => {
+//     return (
+//         <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+//             <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-sm border-t-4 border-blue-600">
+//                 <h2 className="text-3xl font-bold text-center mb-6 text-blue-800">
+//                     {isLoginMode ? 'Iniciar Sesión' : 'Registrarse'}
+//                 </h2>
+
+//                 <form onSubmit={(e) => { e.preventDefault(); handleAuth(e); }} className="space-y-4">
+//                     {/* Input de Email */}
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="email">Email</label>
+//                         <input
+//                             type="email" id="email"
+//                             value={email} onChange={(e) => setEmail(e.target.value)}
+//                             required
+//                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+//                             placeholder="ejemplo@correo.com"
+//                         />
+//                     </div>
+//                     {/* Input de Contraseña */}
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="password">Contraseña</label>
+//                         <input
+//                             type="password" id="password"
+//                             value={password} onChange={(e) => setPassword(e.target.value)}
+//                             required
+//                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+//                             placeholder="Mínimo 6 caracteres"
+//                         />
+//                     </div>
+
+//                     {/* Mensaje de Error */}
+//                     {authError && (
+//                         <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+//                             {authError}
+//                         </div>
+//                     )}
+
+//                     {/* Botón de Login/Registro */}
+//                     <button
+//                         type="submit"
+//                         disabled={isLoadingAuth}
+//                         className={`w-full py-3 font-bold rounded-lg transition duration-150 shadow-md text-white flex items-center justify-center ${isLoadingAuth ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+//                     >
+//                         {isLoadingAuth ? (
+//                             <><span className="animate-spin mr-2">⚙️</span> Cargando...</> 
+//                         ) : (
+//                             isLoginMode ? 'Entrar' : 'Crear Cuenta'
+//                         )}
+//                     </button>
+//                 </form>
+
+//                 {/* Alternar modo Login/Registro */}
+//                 <button
+//                     onClick={() => {
+//                         setIsLoginMode(!isLoginMode);
+//                         setPassword(''); 
+//                         setEmail('');
+//                     }}
+//                     className="mt-4 w-full text-sm text-blue-600 hover:text-blue-800 font-medium"
+//                 >
+//                     {isLoginMode ? '¿No tienes cuenta? Regístrate aquí' : '¿Ya tienes cuenta? Inicia sesión'}
+//                 </button>
+//             </div>
+//         </div>
+//     );
+// };
+
+
+// // --- COMPONENTE ProductivityAnalyzer (MODIFICADO con las funciones de manejo de datos) ---
+
+// const ProductivityAnalyzer = () => {
+//     const [productionData, setProductionData] = useState([]);
+//     const [workers, setWorkers] = useState([]); 
+//     const [errorMessage, setErrorMessage] = useState("");
+//     const [isLoading, setIsLoading] = useState(true);
+//     const [db, setDb] = useState(null);
+//     const [userId, setUserId] = useState(null);
+//     const [isAuthReady, setIsAuthReady] = useState(false);
+//     const [activeTab, setActiveTab] = useState("input"); 
+//     const [selectedWorkerName, setSelectedWorkerName] = useState("");
+//     const [email, setEmail] = useState('');
+//     const [password, setPassword] = useState('');
+//     const [isLoginMode, setIsLoginMode] = useState(true); 
+//     const [authError, setAuthError] = useState(null);
+//     const [isLoadingAuth, setIsLoadingAuth] = useState(false);
+//     const [selectedDate, setSelectedDate] = useState(
+//         new Date().toISOString().split("T")[0]
+//     );
+//     const authRef = useRef(null);
+
+//     // --- FUNCIONES DE MANEJO DE DATOS CRUD ---
+
+//     // 1. ELIMINAR UNA ÚNICA ENTRADA DE PRODUCCIÓN
+//     const deleteProductionEntry = useCallback(async (entryId) => {
+//         if (!window.confirm("¿Estás seguro de eliminar esta entrada de producción?")) {
+//             return;
+//         }
+//         setErrorMessage("");
+//         if (!db) {
+//             setErrorMessage("La base de datos no está lista.");
+//             return;
+//         }
+//         try {
+//             const docRef = doc(db, `artifacts/${appId}/public/data/productivityEntries`, entryId);
+//             await deleteDoc(docRef);
+//         } catch (error) {
+//             console.error("Error deleting production entry: ", error);
+//             setErrorMessage("Error al eliminar el registro: " + error.message);
+//         }
+//     }, [db, setErrorMessage]);
+
+//     // 2. ACTUALIZAR UNA ÚNICA ENTRADA DE PRODUCCIÓN
+//     const updateProductionEntry = useCallback(async (entryId, updatedFields) => {
+//         setErrorMessage("");
+//         if (!db) {
+//             setErrorMessage("La base de datos no está lista.");
+//             throw new Error("La base de datos no está lista.");
+//         }
+//         try {
+//             const docRef = doc(db, `artifacts/${appId}/public/data/productivityEntries`, entryId);
+//             await updateDoc(docRef, updatedFields);
+//         } catch (error) {
+//             console.error("Error updating production entry: ", error);
+//             throw new Error("Error al actualizar el registro: " + error.message);
+//         }
+//     }, [db, setErrorMessage]);
+
+//     // 3. ELIMINAR TODAS LAS ENTRADAS DE UN TRABAJADOR (ELIMINACIÓN EN CASCADA)
+//     const handleWorkerDeletion = useCallback(async (workerName) => {
+//         setErrorMessage("");
+//         if (!db || !userId) {
+//             setErrorMessage("La base de datos o autenticación no está lista.");
+//             return;
+//         }
+
+//         try {
+//             const collectionPath = `artifacts/${appId}/public/data/productivityEntries`;
+//             const entriesCollection = collection(db, collectionPath);
+            
+//             // Buscar todos los documentos del usuario con el nombre del trabajador
+//             const q = query(
+//                 entriesCollection, 
+//                 where("userId", "==", userId), 
+//                 where("name", "==", workerName)
+//             );
+
+//             const snapshot = await getDocs(q);
+            
+//             if (!snapshot.empty) {
+//                 // Eliminar en lote (Batch Write) para eficiencia
+//                 const batch = writeBatch(db);
+//                 snapshot.forEach((docEntry) => {
+//                     batch.delete(docEntry.ref);
+//                 });
+//                 await batch.commit();
+//                 console.log(`Se eliminaron ${snapshot.size} registros de producción para ${workerName}.`);
+//             }
+
+//         } catch (error) {
+//             console.error("Error deleting worker's production entries: ", error);
+//             // Re-lanza el error para que WorkerManager pueda mostrar el mensaje correcto
+//             throw new Error("Fallo al limpiar registros de producción: " + error.message); 
+//         }
+//     }, [db, userId, setErrorMessage]);
+
+
+//     // --- useEffects (Sin cambios funcionales, solo limpieza) ---
+
+//     // useEffect para obtener datos de producción
+//     useEffect(() => {
+//         if (!db || !isAuthReady || !userId) { 
+//             setProductionData([]);
+//             setIsLoading(false);
+//             return;
+//         }
+
+//         const collectionPath = `artifacts/${appId}/public/data/productivityEntries`;
+//         const entriesCollection = collection(db, collectionPath);
+        
+//         const q = query(entriesCollection, where("userId", "==", userId));
+
+//         const unsubscribe = onSnapshot(
+//             q,
+//             (snapshot) => {
+//                 const entries = [];
+//                 snapshot.forEach((doc) => {
+//                     entries.push({ id: doc.id, ...doc.data() });
+//                 });
+//                 setProductionData(entries);
+//                 setIsLoading(false);
+//             },
+//             (error) => {
+//                 console.error("Firestore data snapshot error:", error);
+//                 setErrorMessage("Error al cargar los datos de la base de datos.");
+//                 setIsLoading(false);
+//             }
+//         );
+
+//         return () => unsubscribe();
+//     }, [db, isAuthReady, setErrorMessage, userId]); 
+
+
+//     // useEffect para inicializar y limpiar el trabajador seleccionado
+//     useEffect(() => {
+//         const workerNames = workers.map(w => w.name);
+
+//         if (workers.length > 0) {
+//             // Si no hay selección o la selección actual ya no existe, selecciona el primero
+//             if (!selectedWorkerName || !workerNames.includes(selectedWorkerName)) {
+//                 setSelectedWorkerName(workers[0].name); 
+//             }
+//         } else {
+//             // Si no hay trabajadores, limpia la selección
+//             setSelectedWorkerName("");
+//         }
+//     }, [workers, selectedWorkerName]);
+
+//     // useEffect para inicialización de Firebase/Auth
+//     useEffect(() => {
+//         try {
+//             if (Object.keys(firebaseConfig).length === 0) throw new Error("Firebase config not available.");
+            
+//             const app = initializeApp(firebaseConfig);
+//             const firestore = getFirestore(app);
+//             const firebaseAuth = getAuth(app);
+            
+//             authRef.current = firebaseAuth; 
+//             setDb(firestore);
+
+//             setPersistence(firebaseAuth, browserLocalPersistence)
+//                 .then(() => {
+//                     const unsubscribeAuth = onAuthStateChanged(firebaseAuth, (user) => {
+//                         if (user) {
+//                             setUserId(user.uid);
+//                         } else {
+//                             setUserId(null); 
+//                         }
+//                         setIsAuthReady(true); 
+//                     });
+//                     return () => unsubscribeAuth();
+//                 })
+//                 .catch((error) => {
+//                     console.error("Error al configurar persistencia:", error);
+//                     setErrorMessage('Error de autenticación: No se pudo configurar la sesión.');
+//                     setIsAuthReady(true);
+//                 });
+
+//         } catch (e) {
+//             console.error("Firebase Initialization Error:", e);
+//             setErrorMessage("Error al inicializar la base de datos.");
+//             setIsAuthReady(true);
+//             setIsLoading(false);
+//         }
+//     }, []); 
+
+
+//     // Funciones de Autenticación (Sin cambios significativos)
+//     const handleAuth = useCallback(async (e) => {
+//         e.preventDefault();
+//         setIsLoadingAuth(true);
+//         setAuthError(null);
+        
+//         const authInstance = authRef.current;
+//         if (!authInstance) { setAuthError('Servicio de autenticación no inicializado.'); setIsLoadingAuth(false); return; }
+
+//         try {
+//             if (isLoginMode) {
+//                 await signInWithEmailAndPassword(authInstance, email, password);
+//             } else {
+//                 await createUserWithEmailAndPassword(authInstance, email, password);
+//             }
+//             setEmail('');
+//             setPassword('');
+//         } catch (error) {
+//             let errorMessage = "Ocurrió un error de autenticación.";
+//             if (error.code === 'auth/user-not-found') errorMessage = "Usuario no encontrado.";
+//             else if (error.code === 'auth/wrong-password') errorMessage = "Contraseña incorrecta.";
+//             else if (error.code === 'auth/invalid-email') errorMessage = "El formato del email es inválido.";
+//             else if (error.code === 'auth/email-already-in-use') errorMessage = "Este email ya está registrado.";
+//             else errorMessage = error.message;
+
+//             setAuthError(errorMessage);
+//         } finally {
+//             setIsLoadingAuth(false);
+//         }
+//     }, [email, password, isLoginMode]);
+
+//     const handleSignOut = useCallback(async () => {
+//         const authInstance = authRef.current;
+//         if (authInstance) {
+//             await signOut(authInstance);
+//         }
+//     }, []);
+
+
+//     // useMemo para el resumen (Sin cambios)
+//     const summary = useMemo(() => {
+//         const uniqueNames = [...new Set(productionData.map((e) => e.name))].sort(); 
+        
+//         const totals = productionData.reduce((acc, entry) => {
+//             const entryA = Number(entry.typeA) || 0;
+//             const entryB = Number(entry.typeB) || 0;
+//             const entryC = Number(entry.typeC) || 0;
+//             const entryD = Number(entry.typeD) || 0;
+//             const entryE = Number(entry.typeE) || 0;
+
+//             if (!acc[entry.name])
+//                 acc[entry.name] = {
+//                     total: 0,
+//                     typeA: 0,
+//                     typeB: 0,
+//                     typeC: 0,
+//                     typeD: 0,
+//                     typeE: 0,
+//                 };
+//             acc[entry.name].typeA += entryA;
+//             acc[entry.name].typeB += entryB;
+//             acc[entry.name].typeC += entryC;
+//             acc[entry.name].typeD += entryD;
+//             acc[entry.name].typeE += entryE;
+//             acc[entry.name].total += entryA + entryB + entryC + entryD + entryE;
+//             return acc;
+//         }, {});
+//         const summaryArray = Object.entries(totals)
+//             .map(([name, data]) => ({ name, ...data }))
+//             .sort((a, b) => b.total - a.total);
+//         return { summaryArray, uniqueNames };
+//     }, [productionData]);
+
+
+//     const topPerformer = summary.summaryArray[0] || { name: "N/A", total: 0 };
+//     const getMaxByType = (type) =>
+//         Math.max(...summary.summaryArray.map((w) => w[type] || 0));
+
+//     // useMemo para el historial diario
+//     const dailyEntries = useMemo(() => {
+//         if (!selectedWorkerName || !selectedDate) return [];
+//         return productionData
+//             .filter(
+//                 (entry) =>
+//                     entry.name === selectedWorkerName && entry.date === selectedDate
+//             )
+//             .sort((a, b) => {
+//                 // Ordenar por hora de creación (más reciente primero)
+//                 const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+//                 const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+//                 return timeB - timeA;
+//             });
+//     }, [productionData, selectedWorkerName, selectedDate]);
+
+
+//     // Componente de Análisis
+//     const AnalysisSection = () => (
+//         <div className="space-y-6 sm:space-y-8">
+//             <section className="bg-yellow-100 p-4 sm:p-6 rounded-lg shadow-inner border border-yellow-300">
+//                 <h2 className="text-xl sm:text-2xl font-semibold text-yellow-800 mb-3">
+//                     ⭐ Resumen General Acumulado
+//                 </h2>
+//                 <p className="text-base sm:text-lg text-yellow-800">
+//                     El trabajador con el mayor rendimiento acumulado es:{" "}
+//                     <strong className="text-yellow-900">
+//                         {topPerformer.name}
+//                     </strong>{" "}
+//                     con un total de{" "}
+//                     <strong className="text-yellow-900">
+//                         {topPerformer.total}
+//                     </strong>{" "}
+//                     cajas producidas.
+//                 </p>
+//             </section>
+            
+//             {/* Visualización de Competitividad */}
+//             <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4 border-b pb-2">
+//                 📊 Visualización de Competitividad (Todos los Trabajadores)
+//             </h2>
+//             <ProductivityChart summaryArray={summary.summaryArray} />
+            
+//             {/* Desempeño por Categoría (Acumulado) */}
+//             <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg border border-gray-200">
+//                 <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4 border-b pb-2">
+//                     🥇 Desempeño por Categoría (Acumulado)
+//                 </h2>
+//                 <div className="space-y-4">
+//                     {summary.summaryArray.map((worker) => {
+//                         const total = worker.total;
+//                         return (
+//                             <div key={worker.name} className="p-3 border rounded-lg bg-gray-50">
+//                                 <h3 className="font-bold text-gray-800 mb-2">
+//                                     {worker.name} (Total: {total})
+//                                 </h3>
+//                                 <div className="space-y-2">
+//                                     {["typeA", "typeB", "typeC", "typeD", "typeE"].map((type, index) => {
+//                                         const value = worker[type] || 0;
+//                                         const max = getMaxByType(type);
+//                                         const percentage = max > 0 ? (value / max) * 100 : 0;
+//                                         const typeLabel = `Caja ${type.replace("type", "")}`;
+//                                         const color = ["#8884d8", "#82ca9d", "#ffc658", "#ff7300", "#00c49f"][index % 5];
+//                                         return (
+//                                             <div key={type} className="text-sm">
+//                                                 <div className="flex justify-between mb-1 text-gray-600">
+//                                                     <span>{typeLabel}: {value}</span>
+//                                                     <span>{max > 0 ? `${Math.round(percentage)}%` : '0%'} (Máx de Tipo)</span>
+//                                                 </div>
+//                                                 <div className="w-full bg-gray-200 rounded-full h-2.5">
+//                                                     <div
+//                                                         className="h-2.5 rounded-full"
+//                                                         style={{ width: `${percentage}%`, backgroundColor: color }}
+//                                                     ></div>
+//                                                 </div>
+//                                             </div>
+//                                         );
+//                                     })}
+//                                 </div>
+//                             </div>
+//                         );
+//                     })}
+//                     {summary.summaryArray.length === 0 && (
+//                         <p className="text-gray-500 italic">No hay datos de rendimiento disponibles.</p>
+//                     )}
+//                 </div>
+//             </section>
+//         </div>
+//     );
+
+
+//     // Renderizado principal
+//     if (!userId) {
+//         return (
+//             <AuthForm 
+//                 email={email} setEmail={setEmail} 
+//                 password={password} setPassword={setPassword}
+//                 isLoginMode={isLoginMode} setIsLoginMode={setIsLoginMode}
+//                 authError={authError} isLoadingAuth={isLoadingAuth} 
+//                 handleAuth={handleAuth} 
+//             />
+//         );
+//     }
+
+//     return (
+//         <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8">
+//             <header className="flex justify-between items-center mb-8 pb-4 border-b border-gray-300">
+//                 <h1 className="text-3xl sm:text-4xl font-extrabold text-blue-700">
+//                     📈 Productivity Dashboard
+//                 </h1>
+//                 <div className="flex items-center space-x-4">
+//                     <span className="text-sm text-gray-600 hidden sm:inline">
+//                         Usuario: {authRef.current?.currentUser?.email || 'N/A'}
+//                     </span>
+//                     <button
+//                         onClick={handleSignOut}
+//                         className="px-3 py-1 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition duration-150 text-sm"
+//                     >
+//                         Cerrar Sesión
+//                     </button>
+//                 </div>
+//             </header>
+
+//             {/* Mensaje de Error Global */}
+//             {errorMessage && (
+//                 <div className="mb-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 rounded-lg">
+//                     <p className="font-bold">Error:</p>
+//                     <p>{errorMessage}</p>
+//                 </div>
+//             )}
+
+//             {/* Navegación por Pestañas */}
+//             <div className="flex border-b border-gray-300 mb-8">
+//                 {["input", "history", "analysis", "workers"].map((tab) => (
+//                     <button
+//                         key={tab}
+//                         onClick={() => setActiveTab(tab)}
+//                         className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors duration-200 ${
+//                             activeTab === tab
+//                                 ? "border-blue-600 text-blue-600 font-bold"
+//                                 : "border-transparent text-gray-500 hover:text-gray-700"
+//                         }`}
+//                     >
+//                         {tab === "input" && "➕ Registro Diario"}
+//                         {tab === "history" && "🗓️ Historial"}
+//                         {tab === "analysis" && "📊 Análisis"}
+//                         {tab === "workers" && "👥 Trabajadores"}
+//                     </button>
+//                 ))}
+//             </div>
+
+//             <main>
+//                 {/* PESTAÑA DE REGISTRO */}
+//                 {activeTab === "input" && (
+//                     <InputSection 
+//                         db={db}
+//                         userId={userId}
+//                         isAuthReady={isAuthReady}
+//                         setErrorMessage={setErrorMessage}
+//                         isLoading={isLoading}
+//                         workers={workers} 
+//                     />
+//                 )}
+
+//                 {/* PESTAÑA DE HISTORIAL */}
+//                 {activeTab === "history" && (
+//                     <HistorySection 
+//                         workers={workers}
+//                         selectedWorkerName={selectedWorkerName}
+//                         setSelectedWorkerName={setSelectedWorkerName}
+//                         selectedDate={selectedDate}
+//                         setSelectedDate={setSelectedDate}
+//                         dailyEntries={dailyEntries}
+//                         setErrorMessage={setErrorMessage}
+//                         onDeleteEntry={deleteProductionEntry}
+//                         onUpdateEntry={updateProductionEntry}
+//                     />
+//                 )}
+
+
+//                 {/* PESTAÑA DE ANÁLISIS */}
+//                 {activeTab === "analysis" && <AnalysisSection />}
+
+//                 {/* PESTAÑA DE ADMINISTRACIÓN DE TRABAJADORES */}
+//                 {activeTab === "workers" && (
+//                     <WorkerManager
+//                         db={db}
+//                         userId={userId}
+//                         isAuthReady={isAuthReady}
+//                         setErrorMessage={setErrorMessage}
+//                         workers={workers}
+//                         setWorkers={setWorkers}
+//                         onDeleteWorker={handleWorkerDeletion} // La función de eliminación en cascada
+//                     />
+//                 )}
+//             </main>
+//         </div>
+//     );
 // };
 
 // export default ProductivityAnalyzer;
 
+import React, { useState, useMemo, useEffect, useCallback, memo, useRef } from "react";
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    ResponsiveContainer,
+} from "recharts";
+import { initializeApp } from "firebase/app";
+import { 
+    getAuth,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged,
+    setPersistence,
+    browserLocalPersistence,
+} from "firebase/auth";
+import {
+    getFirestore,
+    collection,
+    query,
+    onSnapshot,
+    addDoc,
+    serverTimestamp,
+    where,
+    deleteDoc,
+    doc,
+    updateDoc,
+    getDocs,
+    writeBatch,
+} from "firebase/firestore";
+import { firebaseConfig } from "../../firebaseConfig"; // Asegúrate de que esta ruta sea correcta
 
 
-import React, { useState, useMemo, useEffect, useCallback, memo } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, collection, query, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
-import { firebaseConfig } from "../../firebaseConfig";
-const getAppId = () => { if (typeof window.__app_id !== "undefined") { return window.__app_id; } return "default-calendar-app-id"; };
-const appId = getAppId();
-const ProductivityChart = ({ summaryArray }) => {
-const colors = {typeA: '#8884d8',typeB: '#82ca9d',typeC: '#ffc658',typeD: '#ff7300',typeE: '#00c49f',};
-if (!summaryArray || summaryArray.length === 0) { return (<div className="h-64 sm:h-96 w-full p-4 flex items-center justify-center bg-white rounded-lg shadow-md border border-gray-100"><p className="text-gray-500 italic">No hay datos suficientes para generar el gráfico.</p></div>); }
-return (<div className="h-64 sm:h-96 w-full p-4 bg-white rounded-lg shadow-md border border-gray-100">
-<ResponsiveContainer width="100%" height="100%">
-<BarChart data={summaryArray} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-<CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-<XAxis dataKey="name" stroke="#333" tick={{ fill: '#4b5563', fontSize: 10 }} />
-<YAxis stroke="#333" tick={{ fill: '#4b5563', fontSize: 10 }} />
-<Tooltip cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }} contentStyle={{ borderRadius: '8px', border: '1px solid #ccc', background: '#fff', fontSize: '12px', padding: '5px' }} labelStyle={{ fontWeight: 'bold', color: '#1f2937' }} formatter={(value, name) => [value, name.replace('type', 'Caja ')]}/>
-<Legend wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} formatter={(value) => value.replace('type', 'Caja ')} />
-<Bar dataKey="typeA" stackId="a" fill={colors.typeA} name="Caja A" radius={[4, 4, 0, 0]} />
-<Bar dataKey="typeB" stackId="a" fill={colors.typeB} name="Caja B" radius={[4, 4, 0, 0]} />
-<Bar dataKey="typeC" stackId="a" fill={colors.typeC} name="Caja C" radius={[4, 4, 0, 0]} />
-<Bar dataKey="typeD" stackId="a" fill={colors.typeD} name="Caja D" radius={[4, 4, 0, 0]} />
-<Bar dataKey="typeE" stackId="a" fill={colors.typeE} name="Caja E" radius={[4, 4, 0, 0]} />
-</BarChart>
-</ResponsiveContainer>
-</div>);
+// --- FUNCIONES Y CONSTANTES GENERALES ---
+
+const getAppId = () => {
+    if (typeof window.__app_id !== "undefined") {
+        return window.__app_id;
+    }
+    return "default-calendar-app-id";
 };
-const InputSectionComponent = ({ db, userId, isAuthReady, setErrorMessage, isLoading }) => {
-const [newEntry, setNewEntry] = useState({ 
-name: '', 
-date: new Date().toISOString().split('T')[0],
-typeA: 0, typeB: 0, typeC: 0, typeD: 0, typeE: 0 
-});
-const handleInputChange = useCallback((e) => {
-const { name, value, type } = e.target;
-setNewEntry(prev => ({
-...prev,
-[name]: type === 'number' ? parseInt(value) || 0 : value,
-}));
-}, []);
-const addProduction = useCallback(async (e) => {
-e.preventDefault();
-setErrorMessage('');
-if (!newEntry.name || newEntry.name.trim() === '') { setErrorMessage('Por favor, ingresa un nombre.'); return; }
-if (!db) { setErrorMessage('La base de datos no está lista.'); return; }
-try {
-const collectionPath = `artifacts/${appId}/public/data/productivityEntries`;
-await addDoc(collection(db, collectionPath), {
-...newEntry,
-typeA: newEntry.typeA || 0, typeB: newEntry.typeB || 0,
-typeC: newEntry.typeC || 0, typeD: newEntry.typeD || 0,
-typeE: newEntry.typeE || 0,
-userId: userId,
-createdAt: serverTimestamp(),
-});
-setNewEntry(prev => ({ 
-name: prev.name, 
-date: prev.date, 
-typeA: 0, typeB: 0, typeC: 0, typeD: 0, typeE: 0 
-}));
-} catch (error) {
-console.error("Error adding document: ", error);
-setErrorMessage('Error al registrar la producción: ' + error.message);
-}
-}, [db, newEntry, userId, setErrorMessage]);
-return (
-<section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg border border-gray-200 mb-8 sm:mb-0">
-<h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">➕ Registrar Producción</h2>
-<form onSubmit={addProduction} className="space-y-4 sm:space-y-6">
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-<div>
-<label className="block text-sm font-medium text-gray-600 mb-1">Trabajador:</label>
-<input type="text" name="name" placeholder="Nombre del Trabajador" value={newEntry.name} onChange={handleInputChange} required className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" />
-</div>
-<div>
-<label className="block text-sm font-medium text-gray-600 mb-1">Fecha de Registro:</label>
-<input type="date" name="date" value={newEntry.date} onChange={handleInputChange} className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" />
-</div>
-</div>
-<div className="p-3 sm:p-4 bg-blue-50 rounded-lg">
-<h3 className="text-base sm:text-lg font-medium text-blue-800 mb-3 sm:mb-4">Cajas por Tipo (Cantidad)</h3>
-<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-{['A', 'B', 'C', 'D', 'E'].map((type) => (
-<div key={type}>
-<label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Tipo {type}:</label>
-<input type="number" name={`type${type}`} value={newEntry[`type${type}`]} onChange={handleInputChange} min="0" className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" />
-</div>
-))}
-</div>
-</div>
-<button type="submit" disabled={!isAuthReady || isLoading} className={`w-full md:w-auto px-6 py-3 text-white font-bold rounded-lg transition duration-200 shadow-md ${!isAuthReady || isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}>
-{isLoading ? 'Guardando...' : 'Registrar Entrada'}
-</button>
-</form>
-</section>
-);
+const appId = getAppId();
+
+// --- COMPONENTE ProductivityChart (Sin cambios) ---
+
+const ProductivityChart = ({ summaryArray }) => {
+    const colors = {
+        typeA: "#8884d8",
+        typeB: "#82ca9d",
+        typeC: "#ffc658",
+        typeD: "#ff7300",
+        typeE: "#00c49f",
+    };
+    if (!summaryArray || summaryArray.length === 0) {
+        return (
+            <div className="h-64 sm:h-96 w-full p-4 flex items-center justify-center bg-white rounded-lg shadow-md border border-gray-100">
+                <p className="text-gray-500 italic">
+                    No hay datos suficientes para generar el gráfico.
+                </p>
+            </div>
+        );
+    }
+    return (
+        <div className="h-64 sm:h-96 w-full p-4 bg-white rounded-lg shadow-md border border-gray-100">
+            <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                    data={summaryArray}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                    <XAxis
+                        dataKey="name"
+                        stroke="#333"
+                        tick={{ fill: "#4b5563", fontSize: 10 }}
+                    />
+                    <YAxis stroke="#333" tick={{ fill: "#4b5563", fontSize: 10 }} />
+                    <Tooltip
+                        cursor={{ fill: "rgba(0, 0, 0, 0.05)" }}
+                        contentStyle={{
+                            borderRadius: "8px",
+                            border: "1px solid #ccc",
+                            background: "#fff",
+                            fontSize: "12px",
+                            padding: "5px",
+                        }}
+                        labelStyle={{ fontWeight: "bold", color: "#1f2937" }}
+                        formatter={(value, name) => [value, name.replace("type", "Caja ")]}
+                    />
+                    <Legend
+                        wrapperStyle={{ paddingTop: "10px", fontSize: "12px" }}
+                        formatter={(value) => value.replace("type", "Caja ")}
+                    />
+                    <Bar
+                        dataKey="typeA"
+                        stackId="a"
+                        fill={colors.typeA}
+                        name="Caja A"
+                        radius={[4, 4, 0, 0]}
+                    />
+                    <Bar
+                        dataKey="typeB"
+                        stackId="a"
+                        fill={colors.typeB}
+                        name="Caja B"
+                        radius={[4, 4, 0, 0]}
+                    />
+                    <Bar
+                        dataKey="typeC"
+                        stackId="a"
+                        fill={colors.typeC}
+                        name="Caja C"
+                        radius={[4, 4, 0, 0]}
+                    />
+                    <Bar
+                        dataKey="typeD"
+                        stackId="a"
+                        fill={colors.typeD}
+                        name="Caja D"
+                        radius={[4, 4, 0, 0]}
+                    />
+                    <Bar
+                        dataKey="typeE"
+                        stackId="a"
+                        fill={colors.typeE}
+                        name="Caja E"
+                        radius={[4, 4, 0, 0]}
+                    />
+                </BarChart>
+            </ResponsiveContainer>
+        </div>
+    );
+};
+
+// --- COMPONENTE WorkerManager (Sin cambios) ---
+const WorkerManagerComponent = ({ db, userId, isAuthReady, setErrorMessage, workers, setWorkers, onDeleteWorker }) => {
+    const [newWorkerName, setNewWorkerName] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
+    
+    // ESTADO PARA EDICIÓN
+    const [editingWorker, setEditingWorker] = useState(null); // { id, name }
+    const [editedName, setEditedName] = useState("");
+
+
+    // 2. AGREGAR TRABAJADOR
+    const addWorker = useCallback(async (e) => {
+        e.preventDefault();
+        setErrorMessage("");
+        const name = newWorkerName.trim();
+        if (!name) {
+            setErrorMessage("Por favor, ingresa un nombre para el trabajador.");
+            return;
+        }
+        if (workers.some(w => w.name.toLowerCase() === name.toLowerCase())) {
+            setErrorMessage(`El trabajador "${name}" ya existe.`);
+            return;
+        }
+        if (!db) {
+            setErrorMessage("La base de datos no está lista.");
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            const collectionPath = `artifacts/${appId}/public/data/workers`; 
+            await addDoc(collection(db, collectionPath), {
+                name: name,
+                userId: userId,
+                createdAt: serverTimestamp(),
+            });
+            setNewWorkerName("");
+        } catch (error) {
+            console.error("Error adding worker: ", error);
+            setErrorMessage("Error al guardar el trabajador: " + error.message);
+        } finally {
+            setIsSaving(false);
+        }
+    }, [db, newWorkerName, userId, setErrorMessage, workers]);
+    
+    // 3. ACTUALIZAR TRABAJADOR
+    const updateWorker = useCallback(async (e) => {
+        e.preventDefault();
+        setErrorMessage("");
+        const newName = editedName.trim();
+        if (!newName) {
+            setErrorMessage("El nombre del trabajador no puede estar vacío.");
+            return;
+        }
+        if (!editingWorker) return;
+
+        const nameConflict = workers.some(w => 
+            w.name.toLowerCase() === newName.toLowerCase() && w.id !== editingWorker.id
+        );
+        if (nameConflict) {
+            setErrorMessage(`El nombre "${newName}" ya está en uso por otro trabajador.`);
+            return;
+        }
+        if (!db) {
+            setErrorMessage("La base de datos no está lista.");
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            const workerRef = doc(db, `artifacts/${appId}/public/data/workers`, editingWorker.id);
+            await updateDoc(workerRef, { 
+                name: newName,
+                updatedAt: serverTimestamp(),
+            });
+            
+            setEditingWorker(null); 
+            setEditedName("");
+        } catch (error) {
+            console.error("Error updating worker: ", error);
+            setErrorMessage("Error al actualizar el trabajador: " + error.message);
+        } finally {
+            setIsSaving(false);
+        }
+    }, [db, editedName, editingWorker, setErrorMessage, workers]);
+
+
+    // 4. ELIMINAR TRABAJADOR (MODIFICADO para eliminación en cascada)
+    const deleteWorker = useCallback(async (workerId, workerName) => {
+        if (!window.confirm(`⚠️ ADVERTENCIA: ¿Estás seguro de ELIMINAR al trabajador "${workerName}"? Esto también ELIMINARÁ todos los registros de producción asociados a su nombre (Visulización de Competitividad y Desempeño Acumulado).`)) {
+            return;
+        }
+        setErrorMessage("");
+        if (!db) {
+            setErrorMessage("La base de datos no está lista.");
+            return;
+        }
+
+        try {
+            // 1. Eliminar entradas de producción (lógica de cascada)
+            await onDeleteWorker(workerName);
+            
+            // 2. Eliminar el documento del trabajador
+            const docRef = doc(db, `artifacts/${appId}/public/data/workers`, workerId);
+            await deleteDoc(docRef);
+
+        } catch (error) {
+            console.error("Error deleting worker: ", error);
+            setErrorMessage("Error al eliminar el trabajador y/o sus registros: " + error.message);
+        }
+    }, [db, setErrorMessage, onDeleteWorker]);
+
+
+    // 5. Lógica de Subscripción para trabajadores
+    useEffect(() => {
+        if (!db || !isAuthReady || !userId) {
+            setWorkers([]); 
+            return;
+        }
+
+        const collectionPath = `artifacts/${appId}/public/data/workers`;
+        const workersCollection = collection(db, collectionPath);
+        
+        const q = query(workersCollection, where("userId", "==", userId));
+
+        const unsubscribe = onSnapshot(
+            q,
+            (snapshot) => {
+                const workerList = [];
+                snapshot.forEach((doc) => {
+                    workerList.push({ id: doc.id, ...doc.data() });
+                });
+                workerList.sort((a, b) => a.name.localeCompare(b.name)); 
+                setWorkers(workerList);
+            },
+            (error) => {
+                console.error("Firestore workers snapshot error:", error);
+                setErrorMessage("Error al cargar la lista de trabajadores.");
+            }
+        );
+
+        return () => unsubscribe();
+    }, [db, isAuthReady, userId, setErrorMessage, setWorkers]);
+
+    return (
+        <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg border border-gray-200 mb-8">
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">
+                👥 Administrar Trabajadores Guardados
+            </h2>
+            
+            {/* Formulario para Agregar Trabajador */}
+            <form onSubmit={addWorker} className="flex gap-2 mb-6">
+                <input
+                    type="text"
+                    placeholder="Nuevo Nombre de Trabajador"
+                    value={newWorkerName}
+                    onChange={(e) => setNewWorkerName(e.target.value)}
+                    required
+                    className="flex-grow p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                />
+                <button
+                    type="submit"
+                    disabled={!isAuthReady || isSaving}
+                    className={`px-4 py-2 text-white font-bold rounded-lg transition duration-200 shadow-md text-sm ${
+                        !isAuthReady || isSaving
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : "bg-blue-600 hover:bg-blue-700"
+                    }`}
+                >
+                    {isSaving ? "Guardando..." : "Agregar"}
+                </button>
+            </form>
+
+            {/* Lista de Trabajadores */}
+            <div className="border border-gray-200 rounded-lg p-3 max-h-60 overflow-y-auto">
+                <h3 className="text-base font-medium text-gray-700 mb-2">Lista ({workers.length})</h3>
+                <ul className="space-y-2">
+                    {workers.length === 0 ? (
+                            <p className="text-gray-500 italic text-sm">No hay trabajadores guardados aún.</p>
+                    ) : (
+                        workers.map((worker) => (
+                            <li key={worker.id} className="flex justify-between items-center p-2 bg-gray-50 rounded-md border border-gray-100">
+                                <span className="text-sm font-medium text-gray-800">{worker.name}</span>
+                                <div className="space-x-2">
+                                    <button
+                                        onClick={() => {
+                                            setEditingWorker(worker);
+                                            setEditedName(worker.name);
+                                        }}
+                                        className="text-indigo-500 hover:text-indigo-700 transition duration-150 p-1"
+                                        title="Editar Trabajador"
+                                    >
+                                        ✏️
+                                    </button>
+                                    <button
+                                        onClick={() => deleteWorker(worker.id, worker.name)}
+                                        className="text-red-500 hover:text-red-700 transition duration-150 p-1"
+                                        title="Eliminar Trabajador y todos sus registros"
+                                    >
+                                        🗑️
+                                    </button>
+                                </div>
+                            </li>
+                        ))
+                    )}
+                </ul>
+            </div>
+            
+            {/* Modal de Edición */}
+            {editingWorker && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+                    <form onSubmit={updateWorker} className="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm">
+                        <h3 className="text-lg font-bold mb-4">Editar Trabajador</h3>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Nuevo Nombre:</label>
+                        <input
+                            type="text"
+                            value={editedName}
+                            onChange={(e) => setEditedName(e.target.value)}
+                            required
+                            className="w-full p-2 border border-gray-300 rounded-lg mb-4"
+                        />
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                type="button"
+                                onClick={() => setEditingWorker(null)}
+                                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100"
+                                disabled={isSaving}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="submit"
+                                className={`px-4 py-2 text-white font-bold rounded-lg ${isSaving ? 'bg-green-400' : 'bg-green-600 hover:bg-green-700'}`}
+                                disabled={isSaving}
+                            >
+                                {isSaving ? "Actualizando..." : "Guardar Cambios"}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
+        </section>
+    );
+};
+const WorkerManager = memo(WorkerManagerComponent);
+
+
+// --- COMPONENTE InputSection (Sin cambios) ---
+
+const InputSectionComponent = ({
+    db,
+    userId,
+    isAuthReady,
+    setErrorMessage,
+    isLoading,
+    workers, 
+}) => {
+    // MODIFICADO: 'name' se convierte en 'selectedWorkers' (un array de nombres)
+    const [newEntry, setNewEntry] = useState({
+        selectedWorkers: [], // Array para guardar múltiples nombres
+        date: new Date().toISOString().split("T")[0],
+        typeA: 0,
+        typeB: 0,
+        typeC: 0,
+        typeD: 0,
+        typeE: 0,
+    });
+
+    const handleInputChange = useCallback((e) => {
+        const { name, value, type } = e.target;
+        if (name === "selectedWorkers") {
+            // Manejar la selección de múltiples opciones
+            const selectedOptions = Array.from(e.target.options)
+                .filter(option => option.selected)
+                .map(option => option.value);
+            setNewEntry((prev) => ({
+                ...prev,
+                selectedWorkers: selectedOptions,
+            }));
+        } else {
+            // Manejar inputs de número y fecha
+            setNewEntry((prev) => ({
+                ...prev,
+                [name]: type === "number" ? parseInt(value) || 0 : value,
+            }));
+        }
+    }, []);
+
+    const addProduction = useCallback(
+        async (e) => {
+            e.preventDefault();
+            setErrorMessage("");
+            
+            if (newEntry.selectedWorkers.length === 0) {
+                setErrorMessage("Por favor, selecciona al menos un trabajador.");
+                return;
+            }
+
+            const totalCajas = newEntry.typeA + newEntry.typeB + newEntry.typeC + newEntry.typeD + newEntry.typeE;
+            if (totalCajas === 0) {
+                setErrorMessage("Debes registrar al menos una caja en algún tipo.");
+                return;
+            }
+
+            if (!db) {
+                setErrorMessage("La base de datos no está lista.");
+                return;
+            }
+
+            try {
+                const collectionPath = `artifacts/${appId}/public/data/productivityEntries`;
+                const batchPromises = newEntry.selectedWorkers.map(workerName => {
+                    // Crea una entrada por cada trabajador seleccionado
+                    return addDoc(collection(db, collectionPath), {
+                        name: workerName, // El nombre del trabajador seleccionado
+                        date: newEntry.date,
+                        typeA: newEntry.typeA || 0,
+                        typeB: newEntry.typeB || 0,
+                        typeC: newEntry.typeC || 0,
+                        typeD: newEntry.typeD || 0,
+                        typeE: newEntry.typeE || 0,
+                        userId: userId,
+                        createdAt: serverTimestamp(),
+                    });
+                });
+
+                await Promise.all(batchPromises);
+
+                // Reinicia las cajas y la selección de trabajadores, manteniendo la fecha
+                setNewEntry((prev) => ({
+                    selectedWorkers: [],
+                    date: prev.date,
+                    typeA: 0,
+                    typeB: 0,
+                    typeC: 0,
+                    typeD: 0,
+                    typeE: 0,
+                }));
+            } catch (error) {
+                console.error("Error adding documents: ", error);
+                setErrorMessage("Error al registrar la producción: " + error.message);
+            }
+        },
+        [db, newEntry, userId, setErrorMessage]
+    );
+
+    return (
+        <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg border border-gray-200 mb-8 sm:mb-0">
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">
+                ➕ Registrar Producción
+            </h2>
+            <form onSubmit={addProduction} className="space-y-4 sm:space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Campo Select para Trabajadores */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                            Trabajador(es):
+                        </label>
+                        <select
+                            // MODIFICADO: Agregamos 'multiple' para seleccionar varios
+                            multiple 
+                            size={workers.length > 1 ? (workers.length > 5 ? 5 : workers.length) : 1} // Ajusta el tamaño de la lista
+                            name="selectedWorkers"
+                            value={newEntry.selectedWorkers}
+                            onChange={handleInputChange}
+                            required
+                            className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 h-24"
+                            disabled={workers.length === 0}
+                        >
+                            {workers.length === 0 ? (
+                                <option value="" disabled>-- Primero agrega trabajadores en el Administrador --</option>
+                            ) : (
+                                workers.map((worker) => (
+                                    <option key={worker.id} value={worker.name}>
+                                        {worker.name}
+                                    </option>
+                                ))
+                            )}
+                        </select>
+                        <p className="text-xs text-gray-500 mt-1">
+                            (Mantén **Ctrl** o **Cmd** presionado para seleccionar múltiples)
+                        </p>
+                    </div>
+                    {/* FIN DE MODIFICACIÓN */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                            Fecha de Registro:
+                        </label>
+                        <input
+                            type="date"
+                            name="date"
+                            value={newEntry.date}
+                            onChange={handleInputChange}
+                            className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
+                </div>
+                <div className="p-3 sm:p-4 bg-blue-50 rounded-lg">
+                    <h3 className="text-base sm:text-lg font-medium text-blue-800 mb-3 sm:mb-4">
+                        Cajas por Tipo (Cantidad)
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+                        {["A", "B", "C", "D", "E"].map((type) => (
+                            <div key={type}>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                                    Tipo {type}:
+                                </label>
+                                <input
+                                    type="number"
+                                    name={`type${type}`}
+                                    value={newEntry[`type${type}`]}
+                                    onChange={handleInputChange}
+                                    min="0"
+                                    className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <button
+                    type="submit"
+                    // Deshabilita si no hay trabajadores seleccionados
+                    disabled={!isAuthReady || isLoading || newEntry.selectedWorkers.length === 0} 
+                    className={`w-full md:w-auto px-6 py-3 text-white font-bold rounded-lg transition duration-200 shadow-md ${
+                        !isAuthReady || isLoading || newEntry.selectedWorkers.length === 0
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : "bg-green-600 hover:bg-green-700"
+                    }`}
+                >
+                    {isLoading ? "Guardando..." : `Registrar ${newEntry.selectedWorkers.length} Entrada(s)`}
+                </button>
+            </form>
+        </section>
+    );
 };
 const InputSection = memo(InputSectionComponent);
-const ProductivityAnalyzer = () => {
-const [productionData, setProductionData] = useState([]);
-const [errorMessage, setErrorMessage] = useState('');
-const [isLoading, setIsLoading] = useState(true);
-const [db, setDb] = useState(null);
-const [userId, setUserId] = useState(null);
-const [isAuthReady, setIsAuthReady] = useState(false);
-const [activeTab, setActiveTab] = useState('input');
-const [selectedWorkerName, setSelectedWorkerName] = useState('');
-const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-useEffect(() => {
-try {
-if (Object.keys(firebaseConfig).length === 0) throw new Error("Firebase config not available.");
-const app = initializeApp(firebaseConfig);
-const firestore = getFirestore(app);
-const firebaseAuth = getAuth(app);
-setDb(firestore);
-onAuthStateChanged(firebaseAuth, async (user) => {
-if (!user) { try { await signInAnonymously(firebaseAuth); } catch (e) { console.error("Firebase auth error:", e); } }
-setUserId(firebaseAuth.currentUser?.uid || 'anonymous');
-setIsAuthReady(true);
-});
-} catch (e) {
-console.error("Firebase Initialization Error:", e);
-setErrorMessage("Error al inicializar la base de datos.");
-setIsAuthReady(true);
-setIsLoading(false);
-}
-}, []);
-useEffect(() => {
-if (!db || !isAuthReady) return;
-const collectionPath = `artifacts/${appId}/public/data/productivityEntries`;
-const entriesCollection = collection(db, collectionPath);
-const q = query(entriesCollection); 
-const unsubscribe = onSnapshot(q, (snapshot) => {
-const entries = [];
-snapshot.forEach((doc) => { entries.push({ id: doc.id, ...doc.data() }); });
-setProductionData(entries);
-setIsLoading(false);
-}, (error) => {
-console.error("Firestore data snapshot error:", error);
-setErrorMessage("Error al cargar los datos de la base de datos.");
-setIsLoading(false);
-});
-return () => unsubscribe();
-}, [db, isAuthReady, setErrorMessage]);
-useEffect(() => {
-if (productionData.length > 0 && !selectedWorkerName) {
-const uniqueNames = [...new Set(productionData.map(e => e.name))];
-setSelectedWorkerName(uniqueNames[0]);
-}
-}, [productionData, selectedWorkerName]);
-const summary = useMemo(() => {
-const uniqueNames = [...new Set(productionData.map(e => e.name))].sort();
-const totals = productionData.reduce((acc, entry) => {
-const entryA = Number(entry.typeA) || 0; const entryB = Number(entry.typeB) || 0;
-const entryC = Number(entry.typeC) || 0; const entryD = Number(entry.typeD) || 0;
-const entryE = Number(entry.typeE) || 0;
-if (!acc[entry.name]) acc[entry.name] = { total: 0, typeA: 0, typeB: 0, typeC: 0, typeD: 0, typeE: 0 };
-acc[entry.name].typeA += entryA; acc[entry.name].typeB += entryB;
-acc[entry.name].typeC += entryC; acc[entry.name].typeD += entryD;
-acc[entry.name].typeE += entryE;
-acc[entry.name].total += entryA + entryB + entryC + entryD + entryE;
-return acc;
-}, {});
-const summaryArray = Object.entries(totals).map(([name, data]) => ({ name, ...data })).sort((a, b) => b.total - a.total);
-return { summaryArray, uniqueNames };
-}, [productionData]);
-const topPerformer = summary.summaryArray[0] || { name: 'N/A', total: 0 };
-const getMaxByType = (type) => Math.max(...summary.summaryArray.map(w => w[type] || 0));
-const dailyEntries = useMemo(() => {
-if (!selectedWorkerName || !selectedDate) return [];
-return productionData.filter(entry => entry.name === selectedWorkerName && entry.date === selectedDate).sort((a, b) => (new Date(a.date) - new Date(b.date))); 
-}, [productionData, selectedWorkerName, selectedDate]);
-const AnalysisSection = () => (
-<div className="space-y-6 sm:space-y-8">
-<section className="bg-yellow-100 p-4 sm:p-6 rounded-lg shadow-inner border border-yellow-300">
-<h2 className="text-xl sm:text-2xl font-semibold text-yellow-800 mb-3">⭐ Resumen General Acumulado</h2>
-<p className="text-base sm:text-lg text-yellow-900">
-El trabajador más productivo es: 
-<strong className="text-xl sm:text-2xl text-red-600 ml-2">{topPerformer.name}</strong> con 
-<span className="text-xl sm:text-2xl font-extrabold ml-1"> {topPerformer.total}</span> cajas.
-</p>
-</section>
-<section>
-<h2 className="text-2xl sm:text-3xl font-bold text-blue-800 mb-4 sm:mb-6">📊 Visualización de Competitividad</h2>
-<ProductivityChart summaryArray={summary.summaryArray} />
-</section>
-<hr className="border-t-2 border-gray-300 my-6 sm:my-8" />
-<section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg border border-gray-200">
-<h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4 sm:mb-6 border-b pb-2">🗓️ Historial por Trabajador y Fecha</h2>
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-<div>
-<label className="block text-sm font-medium text-gray-600 mb-1">Seleccionar Trabajador:</label>
-<select value={selectedWorkerName} onChange={(e) => setSelectedWorkerName(e.target.value)} className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-<option value="">-- Seleccione un trabajador --</option>
-{summary.uniqueNames.map(name => (<option key={name} value={name}>{name}</option>))}
-</select>
-</div>
-<div>
-<label className="block text-sm font-medium text-gray-600 mb-1">Seleccionar Fecha:</label>
-<input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" />
-</div>
-</div>
-{selectedWorkerName && dailyEntries.length > 0 ? (
-<div className="border border-indigo-200 rounded-lg p-3 sm:p-4 bg-indigo-50">
-<h3 className="text-lg sm:text-xl font-bold text-indigo-800 mb-3">
-Producción de {selectedWorkerName} el {selectedDate}
-</h3>
-<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-{['A', 'B', 'C', 'D', 'E'].map((type) => {
-const totalType = dailyEntries.reduce((sum, entry) => sum + (entry[`type${type}`] || 0), 0);
-return (
-<div key={type} className="p-3 bg-white rounded-lg shadow text-center">
-<p className="text-xs sm:text-sm text-gray-500">Caja {type}</p>
-<p className="text-xl sm:text-2xl font-extrabold text-indigo-600">{totalType}</p>
-</div>
-);
-})}
-</div>
-</div>
-) : selectedWorkerName && (
-<p className="text-gray-500 italic p-4 border border-gray-200 rounded-lg bg-gray-50 text-sm">
-No se encontraron entradas para {selectedWorkerName} en la fecha {selectedDate}.
-</p>
-)}
-</section>
-<hr className="border-t-2 border-gray-300 my-6 sm:my-8" />
-<section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg">
-<h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4">🥇 Desempeño por Categoría (Acumulado)</h2>
-{summary.summaryArray.length > 0 ? (
-<div className="overflow-x-auto">
-<table className="min-w-full divide-y divide-gray-200 text-sm">
-<thead className="bg-blue-600 text-white">
-<tr>
-<th className="px-3 py-2 sm:px-4 sm:py-3 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider rounded-tl-lg">Trabajador</th>
-<th className="px-3 py-2 sm:px-4 sm:py-3 text-center text-xs sm:text-sm font-semibold uppercase tracking-wider bg-blue-800">TOTAL</th>
-{['A', 'B', 'C', 'D', 'E'].map((type) => (
-<th key={type} className="px-3 py-2 sm:px-4 sm:py-3 text-center text-xs sm:text-sm font-semibold uppercase tracking-wider">Caja {type}</th>
-))}
-</tr>
-</thead>
-<tbody className="bg-white divide-y divide-gray-200">
-{summary.summaryArray.map((item, index) => (
-<tr key={item.name} className={index === 0 ? 'bg-yellow-50 font-bold border-l-4 border-yellow-500' : 'hover:bg-gray-100'}>
-<td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-left text-gray-900">{item.name}</td>
-<td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-center text-sm sm:text-lg font-extrabold bg-blue-100 text-blue-900">
-{item.total}
-</td>
-{['typeA', 'typeB', 'typeC', 'typeD', 'typeE'].map((type, typeIndex) => (
-<td key={typeIndex} className={`px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-center text-sm ${item[type] === getMaxByType(type) ? 'bg-green-100 font-bold text-green-800' : 'text-gray-700'}`}>
-{item[type]}
-</td>
-))}
-</tr>
-))}
-</tbody>
-</table>
-</div>
-) : (
-<p className="text-gray-500 italic text-sm">No hay datos de producción registrados aún.</p>
-)}
-</section>
-</div>
-);
-return (
-<div className="p-4 md:p-8 max-w-7xl mx-auto bg-gray-50 min-h-screen font-sans">
-<h1 className="text-3xl md:text-4xl font-extrabold text-blue-800 border-b-4 border-blue-200 pb-3 mb-6 sm:mb-8">
-📦 Analizador de Productividad (Real-Time)
-</h1>
-{isLoading && (
-<div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mb-4 text-sm sm:text-base" role="alert">
-<span className="animate-spin inline-block mr-2">⚙️</span> Cargando datos en tiempo real...
-</div>
-)}
-{errorMessage && (
-<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-sm sm:text-base" role="alert">
-<span className="font-bold">🚨 Error:</span> {errorMessage}
-</div>
-)}
-<div className="sm:hidden">
-<div className="flex justify-between bg-white rounded-lg shadow-md mb-6 p-1 border border-gray-200">
-<button onClick={() => setActiveTab('input')} className={`flex-1 text-center py-2 px-1 text-sm font-semibold rounded-lg transition duration-200 ${activeTab === 'input' ? 'bg-indigo-600 text-white shadow-indigo-400 shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}>
-📝 Registrar
-</button>
-<button onClick={() => setActiveTab('analysis')} className={`flex-1 text-center py-2 px-1 text-sm font-semibold rounded-lg transition duration-200 ${activeTab === 'analysis' ? 'bg-indigo-600 text-white shadow-indigo-400 shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}>
-📈 Análisis
-</button>
-</div>
-{activeTab === 'input' && <InputSection db={db} userId={userId} isAuthReady={isAuthReady} setErrorMessage={setErrorMessage} isLoading={isLoading} />}
-{activeTab === 'analysis' && <AnalysisSection />}
-</div>
-<div className="hidden sm:block">
-<InputSection db={db} userId={userId} isAuthReady={isAuthReady} setErrorMessage={setErrorMessage} isLoading={isLoading} />
-<hr className="border-t-2 border-gray-300 my-8" />
-<AnalysisSection />
-</div>
-{userId && (
-<p className="text-xs text-gray-500 mt-6 text-center">
-ID de Sesión: <span className="font-mono text-gray-700">{userId}</span>
-</p>
-)}
-</div>
-);
+
+
+// --- COMPONENTE HistorySection (Sin cambios) ---
+
+const HistorySection = ({
+    workers, 
+    selectedWorkerName, 
+    setSelectedWorkerName, 
+    selectedDate, 
+    setSelectedDate,
+    dailyEntries,
+    setErrorMessage,
+    onDeleteEntry, // Función para eliminar una sola entrada
+    onUpdateEntry, // Función para actualizar una sola entrada
+}) => {
+    // Estado para la edición de una entrada de producción
+    const [editingEntry, setEditingEntry] = useState(null); // Contiene la entrada completa a editar
+    const [editData, setEditData] = useState({}); // Datos del formulario de edición
+
+    // Inicia el proceso de edición
+    const startEdit = useCallback((entry) => {
+        setEditingEntry(entry);
+        setEditData({
+            typeA: entry.typeA || 0,
+            typeB: entry.typeB || 0,
+            typeC: entry.typeC || 0,
+            typeD: entry.typeD || 0,
+            typeE: entry.typeE || 0,
+        });
+    }, []);
+
+    // Maneja los cambios en el formulario de edición
+    const handleEditChange = useCallback((e) => {
+        const { name, value, type } = e.target;
+        setEditData((prev) => ({
+            ...prev,
+            [name]: type === "number" ? parseInt(value) || 0 : value,
+        }));
+    }, []);
+
+    // Guarda los cambios de la entrada editada
+    const handleSaveEdit = useCallback(async (e) => {
+        e.preventDefault();
+        setErrorMessage("");
+
+        const totalCajas = editData.typeA + editData.typeB + editData.typeC + editData.typeD + editData.typeE;
+        if (totalCajas === 0) {
+            setErrorMessage("Debes registrar al menos una caja en algún tipo.");
+            return;
+        }
+
+        try {
+            await onUpdateEntry(editingEntry.id, {
+                typeA: editData.typeA,
+                typeB: editData.typeB,
+                typeC: editData.typeC,
+                typeD: editData.typeD,
+                typeE: editData.typeE,
+            });
+
+            // Cierra el formulario de edición
+            setEditingEntry(null);
+            setEditData({});
+        } catch (error) {
+            setErrorMessage("Error al guardar la edición: " + error.message);
+        }
+
+    }, [editData, editingEntry, onUpdateEntry, setErrorMessage]);
+
+    return (
+        <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg border border-gray-200">
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-6 border-b pb-2">
+                🗓️ Historial por Trabajador y Fecha
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                        Seleccionar Trabajador:
+                    </label>
+                    <select
+                        value={selectedWorkerName}
+                        onChange={(e) => setSelectedWorkerName(e.target.value)}
+                        className="w-full p-2 text-sm border border-gray-300 rounded-lg"
+                        disabled={workers.length === 0}
+                    >
+                        {workers.length === 0 ? (
+                            <option value="" disabled>No hay trabajadores</option>
+                        ) : (
+                            workers.map((worker) => (
+                                <option key={worker.id} value={worker.name}>
+                                    {worker.name}
+                                </option>
+                            ))
+                        )}
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                        Seleccionar Fecha:
+                    </label>
+                    <input
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        className="w-full p-2 text-sm border border-gray-300 rounded-lg"
+                    />
+                </div>
+            </div>
+
+            <h3 className="text-lg font-medium text-gray-700 mb-3">
+                Registros para **{selectedWorkerName || 'N/A'}** el {selectedDate} ({dailyEntries.length})
+            </h3>
+            
+            <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                        <tr>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Hora
+                            </th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Cajas
+                            </th>
+                            <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Acciones
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                        {dailyEntries.length === 0 ? (
+                            <tr>
+                                <td colSpan="3" className="px-3 py-4 text-center text-sm text-gray-500 italic">
+                                    No hay registros para este trabajador en esta fecha.
+                                </td>
+                            </tr>
+                        ) : (
+                            dailyEntries.map((entry) => (
+                                <tr key={entry.id}>
+                                    <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                                        {entry.createdAt?.toDate ? 
+                                            entry.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+                                            : 'N/A'}
+                                    </td>
+                                    <td className="px-3 py-2 text-sm text-gray-600">
+                                        {/* Muestra los tipos de caja que tienen valor > 0 */}
+                                        {["A", "B", "C", "D", "E"].map(type => 
+                                            (entry[`type${type}`] > 0) ? (
+                                                <span key={type} className="inline-block bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">
+                                                    T{type}: {entry[`type${type}`]}
+                                                </span>
+                                            ) : null
+                                        )}
+                                    </td>
+                                    <td className="px-3 py-2 whitespace-nowrap text-center text-sm font-medium space-x-2">
+                                        <button
+                                            onClick={() => startEdit(entry)}
+                                            className="text-indigo-600 hover:text-indigo-900 transition duration-150 p-1"
+                                            title="Editar Entrada"
+                                        >
+                                            ✏️
+                                        </button>
+                                        <button
+                                            onClick={() => onDeleteEntry(entry.id)}
+                                            className="text-red-600 hover:text-red-900 transition duration-150 p-1"
+                                            title="Eliminar Entrada"
+                                        >
+                                            🗑️
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Modal de Edición de Entrada */}
+            {editingEntry && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+                    <form onSubmit={handleSaveEdit} className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
+                        <h3 className="text-xl font-bold mb-4 text-gray-800">
+                            Editar Entrada de {editingEntry.name} ({editingEntry.date})
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4 mb-6 p-4 border rounded-lg bg-yellow-50">
+                            {["A", "B", "C", "D", "E"].map((type) => (
+                                <div key={type}>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Cajas Tipo {type}:
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name={`type${type}`}
+                                        value={editData[`type${type}`]}
+                                        onChange={handleEditChange}
+                                        min="0"
+                                        className="w-full p-2 text-sm border border-gray-300 rounded-lg"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                type="button"
+                                onClick={() => setEditingEntry(null)}
+                                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="submit"
+                                className={`px-4 py-2 text-white font-bold rounded-lg bg-green-600 hover:bg-green-700`}
+                            >
+                                Guardar Edición
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
+        </section>
+    );
 };
+
+
+// --- COMPONENTE AuthForm (Sin cambios) ---
+
+const AuthForm = ({
+    email, setEmail, password, setPassword,
+    isLoginMode, setIsLoginMode,
+    authError, isLoadingAuth, handleAuth
+}) => {
+    return (
+        <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+            <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-sm border-t-4 border-blue-600">
+                <h2 className="text-3xl font-bold text-center mb-6 text-blue-800">
+                    {isLoginMode ? 'Iniciar Sesión' : 'Registrarse'}
+                </h2>
+
+                <form onSubmit={(e) => { e.preventDefault(); handleAuth(e); }} className="space-y-4">
+                    {/* Input de Email */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="email">Email</label>
+                        <input
+                            type="email" id="email"
+                            value={email} onChange={(e) => setEmail(e.target.value)}
+                            required
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="ejemplo@correo.com"
+                        />
+                    </div>
+                    {/* Input de Contraseña */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="password">Contraseña</label>
+                        <input
+                            type="password" id="password"
+                            value={password} onChange={(e) => setPassword(e.target.value)}
+                            required
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Mínimo 6 caracteres"
+                        />
+                    </div>
+
+                    {/* Mensaje de Error */}
+                    {authError && (
+                        <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+                            {authError}
+                        </div>
+                    )}
+
+                    {/* Botón de Login/Registro */}
+                    <button
+                        type="submit"
+                        disabled={isLoadingAuth}
+                        className={`w-full py-3 font-bold rounded-lg transition duration-150 shadow-md text-white flex items-center justify-center ${isLoadingAuth ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+                    >
+                        {isLoadingAuth ? (
+                            <><span className="animate-spin mr-2">⚙️</span> Cargando...</> 
+                        ) : (
+                            isLoginMode ? 'Entrar' : 'Crear Cuenta'
+                        )}
+                    </button>
+                </form>
+
+                {/* Alternar modo Login/Registro */}
+                <button
+                    onClick={() => {
+                        setIsLoginMode(!isLoginMode);
+                        setPassword(''); 
+                        setEmail('');
+                    }}
+                    className="mt-4 w-full text-sm text-blue-600 hover:text-blue-800 font-medium"
+                >
+                    {isLoginMode ? '¿No tienes cuenta? Regístrate aquí' : '¿Ya tienes cuenta? Inicia sesión'}
+                </button>
+            </div>
+        </div>
+    );
+};
+
+
+// --- COMPONENTE ProductivityAnalyzer (MODIFICADO con nuevo estilo de tabla) ---
+
+const ProductivityAnalyzer = () => {
+    const [productionData, setProductionData] = useState([]);
+    const [workers, setWorkers] = useState([]); 
+    const [errorMessage, setErrorMessage] = useState("");
+    const [isLoading, setIsLoading] = useState(true);
+    const [db, setDb] = useState(null);
+    const [userId, setUserId] = useState(null);
+    const [isAuthReady, setIsAuthReady] = useState(false);
+    const [activeTab, setActiveTab] = useState("input"); 
+    const [selectedWorkerName, setSelectedWorkerName] = useState("");
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [isLoginMode, setIsLoginMode] = useState(true); 
+    const [authError, setAuthError] = useState(null);
+    const [isLoadingAuth, setIsLoadingAuth] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(
+        new Date().toISOString().split("T")[0]
+    );
+    const authRef = useRef(null);
+
+    // --- FUNCIONES DE MANEJO DE DATOS CRUD (Sin cambios) ---
+
+    const deleteProductionEntry = useCallback(async (entryId) => {
+        if (!window.confirm("¿Estás seguro de eliminar esta entrada de producción?")) {
+            return;
+        }
+        setErrorMessage("");
+        if (!db) {
+            setErrorMessage("La base de datos no está lista.");
+            return;
+        }
+        try {
+            const docRef = doc(db, `artifacts/${appId}/public/data/productivityEntries`, entryId);
+            await deleteDoc(docRef);
+        } catch (error) {
+            console.error("Error deleting production entry: ", error);
+            setErrorMessage("Error al eliminar el registro: " + error.message);
+        }
+    }, [db, setErrorMessage]);
+
+    const updateProductionEntry = useCallback(async (entryId, updatedFields) => {
+        setErrorMessage("");
+        if (!db) {
+            setErrorMessage("La base de datos no está lista.");
+            throw new Error("La base de datos no está lista.");
+        }
+        try {
+            const docRef = doc(db, `artifacts/${appId}/public/data/productivityEntries`, entryId);
+            await updateDoc(docRef, updatedFields);
+        } catch (error) {
+            console.error("Error updating production entry: ", error);
+            throw new Error("Error al actualizar el registro: " + error.message);
+        }
+    }, [db, setErrorMessage]);
+
+    const handleWorkerDeletion = useCallback(async (workerName) => {
+        setErrorMessage("");
+        if (!db || !userId) {
+            setErrorMessage("La base de datos o autenticación no está lista.");
+            return;
+        }
+
+        try {
+            const collectionPath = `artifacts/${appId}/public/data/productivityEntries`;
+            const entriesCollection = collection(db, collectionPath);
+            
+            const q = query(
+                entriesCollection, 
+                where("userId", "==", userId), 
+                where("name", "==", workerName)
+            );
+
+            const snapshot = await getDocs(q);
+            
+            if (!snapshot.empty) {
+                const batch = writeBatch(db);
+                snapshot.forEach((docEntry) => {
+                    batch.delete(docEntry.ref);
+                });
+                await batch.commit();
+                console.log(`Se eliminaron ${snapshot.size} registros de producción para ${workerName}.`);
+            }
+
+        } catch (error) {
+            console.error("Error deleting worker's production entries: ", error);
+            throw new Error("Fallo al limpiar registros de producción: " + error.message); 
+        }
+    }, [db, userId, setErrorMessage]);
+
+
+    // --- useEffects (Sin cambios) ---
+
+    useEffect(() => {
+        if (!db || !isAuthReady || !userId) { 
+            setProductionData([]);
+            setIsLoading(false);
+            return;
+        }
+
+        const collectionPath = `artifacts/${appId}/public/data/productivityEntries`;
+        const entriesCollection = collection(db, collectionPath);
+        
+        const q = query(entriesCollection, where("userId", "==", userId));
+
+        const unsubscribe = onSnapshot(
+            q,
+            (snapshot) => {
+                const entries = [];
+                snapshot.forEach((doc) => {
+                    entries.push({ id: doc.id, ...doc.data() });
+                });
+                setProductionData(entries);
+                setIsLoading(false);
+            },
+            (error) => {
+                console.error("Firestore data snapshot error:", error);
+                setErrorMessage("Error al cargar los datos de la base de datos.");
+                setIsLoading(false);
+            }
+        );
+
+        return () => unsubscribe();
+    }, [db, isAuthReady, setErrorMessage, userId]); 
+
+
+    useEffect(() => {
+        const workerNames = workers.map(w => w.name);
+
+        if (workers.length > 0) {
+            if (!selectedWorkerName || !workerNames.includes(selectedWorkerName)) {
+                setSelectedWorkerName(workers[0].name); 
+            }
+        } else {
+            setSelectedWorkerName("");
+        }
+    }, [workers, selectedWorkerName]);
+
+    useEffect(() => {
+        try {
+            if (Object.keys(firebaseConfig).length === 0) throw new Error("Firebase config not available.");
+            
+            const app = initializeApp(firebaseConfig);
+            const firestore = getFirestore(app);
+            const firebaseAuth = getAuth(app);
+            
+            authRef.current = firebaseAuth; 
+            setDb(firestore);
+
+            setPersistence(firebaseAuth, browserLocalPersistence)
+                .then(() => {
+                    const unsubscribeAuth = onAuthStateChanged(firebaseAuth, (user) => {
+                        if (user) {
+                            setUserId(user.uid);
+                        } else {
+                            setUserId(null); 
+                        }
+                        setIsAuthReady(true); 
+                    });
+                    return () => unsubscribeAuth();
+                })
+                .catch((error) => {
+                    console.error("Error al configurar persistencia:", error);
+                    setErrorMessage('Error de autenticación: No se pudo configurar la sesión.');
+                    setIsAuthReady(true);
+                });
+
+        } catch (e) {
+            console.error("Firebase Initialization Error:", e);
+            setErrorMessage("Error al inicializar la base de datos.");
+            setIsAuthReady(true);
+            setIsLoading(false);
+        }
+    }, []); 
+
+    const handleAuth = useCallback(async (e) => {
+        e.preventDefault();
+        setIsLoadingAuth(true);
+        setAuthError(null);
+        
+        const authInstance = authRef.current;
+        if (!authInstance) { setAuthError('Servicio de autenticación no inicializado.'); setIsLoadingAuth(false); return; }
+
+        try {
+            if (isLoginMode) {
+                await signInWithEmailAndPassword(authInstance, email, password);
+            } else {
+                await createUserWithEmailAndPassword(authInstance, email, password);
+            }
+            setEmail('');
+            setPassword('');
+        } catch (error) {
+            let errorMessage = "Ocurrió un error de autenticación.";
+            if (error.code === 'auth/user-not-found') errorMessage = "Usuario no encontrado.";
+            else if (error.code === 'auth/wrong-password') errorMessage = "Contraseña incorrecta.";
+            else if (error.code === 'auth/invalid-email') errorMessage = "El formato del email es inválido.";
+            else if (error.code === 'auth/email-already-in-use') errorMessage = "Este email ya está registrado.";
+            else errorMessage = error.message;
+
+            setAuthError(errorMessage);
+        } finally {
+            setIsLoadingAuth(false);
+        }
+    }, [email, password, isLoginMode]);
+
+    const handleSignOut = useCallback(async () => {
+        const authInstance = authRef.current;
+        if (authInstance) {
+            await signOut(authInstance);
+        }
+    }, []);
+
+
+    // useMemo para el resumen
+    const summary = useMemo(() => {
+        const uniqueNames = [...new Set(productionData.map((e) => e.name))].sort(); 
+        
+        const totals = productionData.reduce((acc, entry) => {
+            const entryA = Number(entry.typeA) || 0;
+            const entryB = Number(entry.typeB) || 0;
+            const entryC = Number(entry.typeC) || 0;
+            const entryD = Number(entry.typeD) || 0;
+            const entryE = Number(entry.typeE) || 0;
+
+            if (!acc[entry.name])
+                acc[entry.name] = {
+                    total: 0,
+                    typeA: 0,
+                    typeB: 0,
+                    typeC: 0,
+                    typeD: 0,
+                    typeE: 0,
+                };
+            acc[entry.name].typeA += entryA;
+            acc[entry.name].typeB += entryB;
+            acc[entry.name].typeC += entryC;
+            acc[entry.name].typeD += entryD;
+            acc[entry.name].typeE += entryE;
+            acc[entry.name].total += entryA + entryB + entryC + entryD + entryE;
+            return acc;
+        }, {});
+        const summaryArray = Object.entries(totals)
+            .map(([name, data]) => ({ name, ...data }))
+            .sort((a, b) => b.total - a.total);
+        return { summaryArray, uniqueNames };
+    }, [productionData]);
+
+
+    const topPerformer = summary.summaryArray[0] || { name: "N/A", total: 0 };
+    
+    // useMemo para el historial diario (Sin cambios)
+    const dailyEntries = useMemo(() => {
+        if (!selectedWorkerName || !selectedDate) return [];
+        return productionData
+            .filter(
+                (entry) =>
+                    entry.name === selectedWorkerName && entry.date === selectedDate
+            )
+            .sort((a, b) => {
+                const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+                const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+                return timeB - timeA;
+            });
+    }, [productionData, selectedWorkerName, selectedDate]);
+
+
+    // Componente de Análisis (MODIFICADO AQUÍ con el nuevo estilo de tabla)
+    const AnalysisSection = () => {
+        
+        // Función para calcular los máximos de cada tipo de caja (necesario para el resaltado verde)
+        const maxByType = useMemo(() => {
+            const types = ["typeA", "typeB", "typeC", "typeD", "typeE"];
+            const maxes = {};
+            types.forEach(type => {
+                maxes[type] = Math.max(...summary.summaryArray.map(w => w[type] || 0));
+            });
+            return maxes;
+        }, [summary.summaryArray]);
+
+        // Función auxiliar para obtener el máximo (para usarlo dentro del map)
+        const getMaxByType = useCallback((type) => {
+            return maxByType[type] || 0;
+        }, [maxByType]);
+
+        return (
+            <div className="space-y-6 sm:space-y-8">
+                <section className="bg-yellow-100 p-4 sm:p-6 rounded-lg shadow-inner border border-yellow-300">
+                    <h2 className="text-xl sm:text-2xl font-semibold text-yellow-800 mb-3">
+                        ⭐ Resumen General Acumulado
+                    </h2>
+                    <p className="text-base sm:text-lg text-yellow-800">
+                        El trabajador con el mayor rendimiento acumulado es:{" "}
+                        <strong className="text-yellow-900">
+                            {topPerformer.name}
+                        </strong>{" "}
+                        con un total de{" "}
+                        <strong className="text-yellow-900">
+                            {topPerformer.total}
+                        </strong>{" "}
+                        cajas producidas.
+                    </p>
+                </section>
+                
+                {/* Visualización de Competitividad (Gráfico - Sin cambios) */}
+                <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4 border-b pb-2">
+                    📊 Visualización de Competitividad (Todos los Trabajadores)
+                </h2>
+                <ProductivityChart summaryArray={summary.summaryArray} />
+                
+                {/* Desempeño por Categoría (Acumulado) - APLICANDO EL NUEVO ESTILO */}
+                <section className="bg-white p-4 sm:p-6 shadow-xl rounded-lg">
+                    <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4">
+                        🥇 Desempeño por Categoría (Acumulado)
+                    </h2>
+                    {summary.summaryArray.length > 0 ? (
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200 text-sm">
+                                <thead className="bg-blue-600 text-white">
+                                    <tr>
+                                        <th className="px-3 py-2 sm:px-4 sm:py-3 text-left text-xs sm:text-sm font-semibold uppercase tracking-wider rounded-tl-lg">
+                                            Trabajador
+                                        </th>
+                                        <th className="px-3 py-2 sm:px-4 sm:py-3 text-center text-xs sm:text-sm font-semibold uppercase tracking-wider bg-blue-800">
+                                            TOTAL
+                                        </th>
+                                        {['A', 'B', 'C', 'D', 'E'].map((type) => (
+                                            <th key={type} className="px-3 py-2 sm:px-4 sm:py-3 text-center text-xs sm:text-sm font-semibold uppercase tracking-wider">
+                                                Caja {type}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {summary.summaryArray.map((item, index) => (
+                                        <tr 
+                                            key={item.name} 
+                                            // Primera fila resaltada en amarillo
+                                            className={index === 0 ? 'bg-yellow-50 font-bold border-l-4 border-yellow-500' : 'hover:bg-gray-100'}
+                                        >
+                                            <td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-left text-gray-900">
+                                                {item.name}
+                                            </td>
+                                            {/* Columna TOTAL resaltada con estilo específico */}
+                                            <td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-center text-sm sm:text-lg font-extrabold bg-blue-100 text-blue-900">
+                                                {item.total}
+                                            </td>
+                                            {/* Columnas de Tipos de Caja con Resaltado Verde */}
+                                            {['typeA', 'typeB', 'typeC', 'typeD', 'typeE'].map((type, typeIndex) => (
+                                                <td 
+                                                    key={typeIndex} 
+                                                    className={`px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-center text-sm ${
+                                                        // Aplica el resaltado verde si es el máximo en esa categoría
+                                                        (item[type] || 0) > 0 && item[type] === getMaxByType(type) 
+                                                            ? 'bg-green-100 font-bold text-green-800' 
+                                                            : 'text-gray-700'
+                                                    }`}
+                                                >
+                                                    {item[type] || 0}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <p className="text-gray-500 italic text-sm">No hay datos de producción registrados aún.</p>
+                    )}
+                </section>
+            </div>
+        );
+    };
+
+
+    // Renderizado principal (Sin cambios)
+    if (!userId) {
+        return (
+            <AuthForm 
+                email={email} setEmail={setEmail} 
+                password={password} setPassword={setPassword}
+                isLoginMode={isLoginMode} setIsLoginMode={setIsLoginMode}
+                authError={authError} isLoadingAuth={isLoadingAuth} 
+                handleAuth={handleAuth} 
+            />
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8">
+            <header className="flex justify-between items-center mb-8 pb-4 border-b border-gray-300">
+                <h1 className="text-3xl sm:text-4xl font-extrabold text-blue-700">
+                    📈 Productivity Dashboard
+                </h1>
+                <div className="flex items-center space-x-4">
+                    <span className="text-sm text-gray-600 hidden sm:inline">
+                        Usuario: {authRef.current?.currentUser?.email || 'N/A'}
+                    </span>
+                    <button
+                        onClick={handleSignOut}
+                        className="px-3 py-1 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition duration-150 text-sm"
+                    >
+                        Cerrar Sesión
+                    </button>
+                </div>
+            </header>
+
+            {/* Mensaje de Error Global */}
+            {errorMessage && (
+                <div className="mb-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 rounded-lg">
+                    <p className="font-bold">Error:</p>
+                    <p>{errorMessage}</p>
+                </div>
+            )}
+
+            {/* Navegación por Pestañas */}
+            <div className="flex border-b border-gray-300 mb-8">
+                {["input", "history", "analysis", "workers"].map((tab) => (
+                    <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors duration-200 ${
+                            activeTab === tab
+                                ? "border-blue-600 text-blue-600 font-bold"
+                                : "border-transparent text-gray-500 hover:text-gray-700"
+                        }`}
+                    >
+                        {tab === "input" && "➕ Registro Diario"}
+                        {tab === "history" && "🗓️ Historial"}
+                        {tab === "analysis" && "📊 Análisis"}
+                        {tab === "workers" && "👥 Trabajadores"}
+                    </button>
+                ))}
+            </div>
+
+            <main>
+                {/* PESTAÑA DE REGISTRO */}
+                {activeTab === "input" && (
+                    <InputSection 
+                        db={db}
+                        userId={userId}
+                        isAuthReady={isAuthReady}
+                        setErrorMessage={setErrorMessage}
+                        isLoading={isLoading}
+                        workers={workers} 
+                    />
+                )}
+
+                {/* PESTAÑA DE HISTORIAL */}
+                {activeTab === "history" && (
+                    <HistorySection 
+                        workers={workers}
+                        selectedWorkerName={selectedWorkerName}
+                        setSelectedWorkerName={setSelectedWorkerName}
+                        selectedDate={selectedDate}
+                        setSelectedDate={setSelectedDate}
+                        dailyEntries={dailyEntries}
+                        setErrorMessage={setErrorMessage}
+                        onDeleteEntry={deleteProductionEntry}
+                        onUpdateEntry={updateProductionEntry}
+                    />
+                )}
+
+
+                {/* PESTAÑA DE ANÁLISIS */}
+                {activeTab === "analysis" && <AnalysisSection />}
+
+                {/* PESTAÑA DE ADMINISTRACIÓN DE TRABAJADORES */}
+                {activeTab === "workers" && (
+                    <WorkerManager
+                        db={db}
+                        userId={userId}
+                        isAuthReady={isAuthReady}
+                        setErrorMessage={setErrorMessage}
+                        workers={workers}
+                        setWorkers={setWorkers}
+                        onDeleteWorker={handleWorkerDeletion} // La función de eliminación en cascada
+                    />
+                )}
+            </main>
+        </div>
+    );
+};
+
 export default ProductivityAnalyzer;
