@@ -1,7 +1,104 @@
+// module.exports = {
+//   content: ["./src/**/*.{js,jsx,ts,tsx}"],
+//   theme: {
+//     extend: {
+//       width: {
+//         150: "150px",
+//         190: "190px",
+//         225: "225px",
+//         275: "275px",
+//         300: "300px",
+//         340: "340px",
+//         350: "350px",
+//         375: "375px",
+//         460: "460px",
+//         656: "656px",
+//         880: "880px",
+//         508: "508px",
+//       },
+//       variants: {
+//         lineClamp: ["responsive"],
+//       },
+//       height: {
+//         80: "80px",
+//         150: "150px",
+//         225: "225px",
+//         300: "300px",
+//         340: "340px",
+//         370: "370px",
+//         420: "420px",
+//         510: "510px",
+//         600: "600px",
+//         650: "650px",
+//         685: "685px",
+//         800: "800px",
+//         "90vh": "90vh",
+//         "80vh": "80vh",
+//         "50vh": "50vh",
+//         "60vh": "60vh",
+//         "70vh": "70vh",
+//         "75vh": "75vh",
+//       },
+//       minWidth: {
+//         210: "210px",
+//         350: "350px",
+//         620: "620px",
+//         "90vh": "90vh",
+//         "80vh": "80vh",
+//         "50vh": "50vh",
+//         "60vh": "60vh",
+//         "70vh": "70vh",
+//         "75vh": "75vh",
+//       },
+//       minHeight: {
+//         "90vh": "90vh",
+//         "80vh": "80vh",
+//         "50vh": "50vh",
+//         "60vh": "60vh",
+//         "70vh": "70vh",
+//         "73vh": "73vh",
+//         "10vh": "10vh",
+//       },
+//       maxHeight: {
+//         "90vh": "90vh",
+//         "80vh": "80vh",
+//         "50vh": "50vh",
+//         "60vh": "60vh",
+//         "70vh": "70vh",
+//         "75vh": "75vh",
+//         "10vh": "10vh",
+//       },
+//       screens: {
+//         lg: "1024px",
+//         xl: "1280px",
+//         "2xl": "1536px",
+//       },
+//       colors: {
+//         boton: "#F5EFDB",
+//         headingColor: "#DCCA87",
+//         textColor: "#515151",
+//         cartNumBg: "#e80013",
+//         primary: "#f5f3f3",
+//         cardOverlay: "rgba(256,256,256,0.4)",
+//         lighttextGray: "#9ca0ab",
+//         card: "rgba(256,256,256,0.8)",
+//         cartBg: "#282a2c",
+//         cartItem: "#2e3033",
+//         cartTotal: "#343739",
+//         video: "rgba(0,0,0,65)",
+//       },
+//     },
+//   },
+//   plugins: [],
+// };
+
+
+
 module.exports = {
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      // Configuraciones de Width, Height, etc.
       width: {
         150: "150px",
         190: "190px",
@@ -87,6 +184,28 @@ module.exports = {
         cartTotal: "#343739",
         video: "rgba(0,0,0,65)",
       },
+
+      // 🔑 ANIMACIONES PARA EL FONDO AVANZADO 🔑
+      animation: {
+        'pulse-slow': 'pulse-slow 8s infinite',
+        'pulse-reverse-slow': 'pulse-reverse-slow 8s infinite reverse',
+      },
+      keyframes: {
+        'pulse-slow': {
+          '0%, 100%': { transform: 'translateX(0) translateY(0) scale(1)' },
+          '25%': { transform: 'translateX(-20%) translateY(10%) scale(1.05)' },
+          '50%': { transform: 'translateX(0) translateY(-20%) scale(1.1)' },
+          '75%': { transform: 'translateX(20%) translateY(10%) scale(1.05)' },
+        },
+        'pulse-reverse-slow': {
+          '0%, 100%': { transform: 'translateX(0) translateY(0) scale(1)' },
+          '25%': { transform: 'translateX(20%) translateY(-10%) scale(1.05)' },
+          '50%': { transform: 'translateX(0) translateY(20%) scale(1.1)' },
+          '75%': { transform: 'translateX(-20%) translateY(-10%) scale(1.05)' },
+        }
+      }
+      // ------------------------------------------
+
     },
   },
   plugins: [],

@@ -15,27 +15,27 @@
 
 // export default Layout;
 
-import React from "react";
-import Footer from "../Footer/Footer";
-import Header from "../Header/Header";
+// import React from "react";
+// import Footer from "../Footer/Footer";
+// import Header from "../Header/Header";
 
-const Layout = ({ children }) => {
-  // CLASES CORREGIDAS:
-  // 1. Añadimos 'flex flex-col' para usar Flexbox vertical.
-  // 2. Usamos 'h-full' o 'min-h-full' para asegurar que toma la altura de su padre (el <div> flex-1 del SideBar).
-  return (
-    <div className=" h-full flex-1">
-      <Header />
+// const Layout = ({ children }) => {
+//   // CLASES CORREGIDAS:
+//   // 1. Añadimos 'flex flex-col' para usar Flexbox vertical.
+//   // 2. Usamos 'h-full' o 'min-h-full' para asegurar que toma la altura de su padre (el <div> flex-1 del SideBar).
+//   return (
+//     <div className=" h-full flex-1">
+//       <Header />
 
-      {/* El contenido se estira para llenar el espacio restante entre Header y Footer */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 border ">{children}</div>
+//       {/* El contenido se estira para llenar el espacio restante entre Header y Footer */}
+//       <div className="flex-1 overflow-y-auto p-4 sm:p-6 border ">{children}</div>
 
-      <Footer />
-    </div>
-  );
-};
+//       <Footer />
+//     </div>
+//   );
+// };
 
-export default Layout;
+// export default Layout;
 
 
 // import React from "react";
@@ -71,3 +71,29 @@ export default Layout;
 
 // export default Layout;
 
+
+
+
+import React from "react";
+import Footer from "../Footer/Footer";
+import Header from "../Header/Header";
+
+const Layout = ({ children }) => {
+    // 🛑 Estructura de layout principal: min-h-screen y flex-col
+    return (
+        // Fondo base de la aplicación. Usa 'min-h-screen' para garantizar altura mínima.
+        <div className="min-h-screen flex flex-col bg-gray-50">
+            <Header />
+
+            {/* Contenido: Toma el espacio restante y añade un padding general */}
+            {/* Se elimina el 'border' que tenías para un look más limpio */}
+            <main className="flex-1 w-full max-w-full mx-auto p-4 sm:p-6 lg:p-8">
+                {children}
+            </main>
+
+            <Footer />
+        </div>
+    );
+};
+
+export default Layout;

@@ -74,30 +74,59 @@
 // export default useRedirectLoggedOutUser;
 
 
+// import { useEffect } from "react";
+// import { useDispatch } from "react-redux";
+// import { useNavigate } from "react-router-dom";
+// import { toast } from "react-toastify";
+// import { SET_LOGIN } from "../features/auth/authSlice/authSlice";
+// import { getLoginStatus } from "../services/Services";
+// const useRedirectLoggedOutUser = (path) => {
+//   const navigate = useNavigate();
+//   const dispatch = useDispatch();
+
+//   useEffect(() => {
+//     const redirectLoggedOutUser = async () => {
+//       const isLoggedIn = await getLoginStatus();
+//       dispatch(SET_LOGIN(isLoggedIn));
+
+//       if (!isLoggedIn) {
+//         toast.info("Session expired, please login to continue.");
+//         navigate(path);
+//         return;
+//       }
+//     };
+//     redirectLoggedOutUser();
+//   }, [navigate, path, dispatch]);
+// };
+
+// export default useRedirectLoggedOutUser;
+
+
+
+
+
 import { useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import { SET_LOGIN } from "../features/auth/authSlice/authSlice";
-import { getLoginStatus } from "../services/Services";
+import { toast } from "react-toastify"; // ⬅️ Asegúrate de importar esto
+import { selectIsLoggedIn } from "../features/auth/authSlice/authSlice"; 
+
+
 const useRedirectLoggedOutUser = (path) => {
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
+    const navigate = useNavigate();
+    // Leer el estado de login directamente desde Redux
+    const isLoggedIn = useSelector(selectIsLoggedIn); 
 
-  useEffect(() => {
-    const redirectLoggedOutUser = async () => {
-      const isLoggedIn = await getLoginStatus();
-      dispatch(SET_LOGIN(isLoggedIn));
-
-      if (!isLoggedIn) {
-        toast.info("Session expired, please login to continue.");
-        navigate(path);
-        return;
-      }
-    };
-    redirectLoggedOutUser();
-  }, [navigate, path, dispatch]);
+    useEffect(() => {
+        // La redirección se basa directamente en el estado de Redux.
+        // El estado de Redux es gestionado por el listener de Firebase en App.jsx.
+        if (isLoggedIn === false) { 
+            // 🚀 Muestra el mensaje de aviso
+            toast.info("Session expired, please login to continue."); 
+            navigate(path);
+        }
+    // Añadimos 'isLoggedIn' como dependencia para que reaccione al cambio de estado de Redux
+    }, [navigate, path, isLoggedIn]); 
 };
 
 export default useRedirectLoggedOutUser;
-

@@ -4812,7 +4812,7 @@ import WeatherForecast from '../COSTOS/WeatherForecast';
 
 import GreenhouseMap from '../GreenhouseMap/GreenhouseMap'; 
 import GreenhouseSummaryCard from '../../Pages/produccionC/GreenhouseSummaryCard'; 
-import  {CostDashboard} from '../COSTOS/CostDashboard'; 
+import { CostDashboard} from '../COSTOS/CostDashboard'; 
 import EntityAndProjectManager from '../COSTOS/EntityAndProjectManager';
 import EmployeeManagement from '../COSTOS/EmployeeManagement';
 import TimeSheetWizard from '../COSTOS/TimeSheetWizard'; 
@@ -5366,77 +5366,102 @@ const useTimesheetsData = (db, userId, setErrorMessage) => {
 //     );
 // };
 
-const DashboardCard = ({ 
-    title, 
-    icon, 
-    // Usaremos un color neutro por defecto, más profesional
-    borderColor = 'border-gray-300', 
-    titleColor = 'text-gray-800', // Color más oscuro por defecto para legibilidad
-    children, 
-    className = '', 
-    headerContent, 
-    // Eliminamos 'fullHeight' ya que podemos manejar esto directamente en 'className' 
-    // o el componente padre usando flex/grid.
-}) => {
+// const DashboardCard = ({ 
+//     title, 
+//     icon, 
+//     // Usaremos un color neutro por defecto, más profesional
+//     borderColor = 'border-gray-300', 
+//     titleColor = 'text-gray-800', // Color más oscuro por defecto para legibilidad
+//     children, 
+//     className = '', 
+//     headerContent, 
+//     // Eliminamos 'fullHeight' ya que podemos manejar esto directamente en 'className' 
+//     // o el componente padre usando flex/grid.
+// }) => {
 
-    const cardClasses = `
-        bg-white 
-        rounded-lg 
-        shadow-lg          
-        border-t-4 
-        ${borderColor} 
-        p-5 
-        transition-shadow 
-        duration-300 
-        ${className} 
-        // Siempre usamos flex-col para controlar mejor el espacio interno
-        flex flex-col 
-    `;
+//     const cardClasses = `
+//         bg-white 
+//         rounded-lg 
+//         shadow-lg          
+//         border-t-4 
+//         ${borderColor} 
+//         p-5 
+//         transition-shadow 
+//         duration-300 
+//         ${className} 
+//         // Siempre usamos flex-col para controlar mejor el espacio interno
+//         flex flex-col 
+//     `;
 
-    const headerClasses = `
-        text-lg sm:text-xl // Ajuste de tamaño de fuente responsivo
-        font-bold 
-        ${titleColor} 
-        border-b 
-        border-gray-100 
-        pb-3 
-        mb-3 
-        flex 
-        items-center
-        justify-between // Asegura que title y headerContent se separen
-        flex-wrap // Permite que el contenido del encabezado se ajuste en pantallas pequeñas
-    `;
+//     const headerClasses = `
+//         text-lg sm:text-xl // Ajuste de tamaño de fuente responsivo
+//         font-bold 
+//         ${titleColor} 
+//         border-b 
+//         border-gray-100 
+//         pb-3 
+//         mb-3 
+//         flex 
+//         items-center
+//         justify-between // Asegura que title y headerContent se separen
+//         flex-wrap // Permite que el contenido del encabezado se ajuste en pantallas pequeñas
+//     `;
 
-    return (
-        <div className={cardClasses}>
+//     return (
+//         <div className={cardClasses}>
             
-            {/* ENCABEZADO */}
-            <h3 className={headerClasses}>
-                <div className="flex items-center">
-                    {icon && <span className="text-xl sm:text-2xl mr-2 text-gray-600">{icon}</span>}
-                    {title}
-                </div>
-                {headerContent && <div className="mt-1 sm:mt-0 ml-4">{headerContent}</div>}
+//             {/* ENCABEZADO */}
+//             <h3 className={headerClasses}>
+//                 <div className="flex items-center">
+//                     {icon && <span className="text-xl sm:text-2xl mr-2 text-gray-600">{icon}</span>}
+//                     {title}
+//                 </div>
+//                 {headerContent && <div className="mt-1 sm:mt-0 ml-4">{headerContent}</div>}
+//             </h3>
+            
+//             {/* CONTENIDO (Aseguramos que el contenido ocupe el espacio restante) */}
+//             <div className="flex-grow min-h-0 overflow-auto">
+//                 {children}
+//             </div>
+            
+//         </div>
+//     );
+// };
+
+
+
+const DashboardCard = ({ title, icon, borderColor, titleColor, className = '', children }) => (
+    <div className={`bg-white p-4 rounded-xl shadow-lg border border-gray-100 ${borderColor ? `border-l-4 ${borderColor}` : ''} ${className}`}>
+        <div className="flex items-center justify-between mb-3">
+            <h3 className={`text-lg font-bold ${titleColor}`}>
+                <span className="mr-2 inline-block align-middle text-xl">{icon}</span>
+                {title}
             </h3>
-            
-            {/* CONTENIDO (Aseguramos que el contenido ocupe el espacio restante) */}
-            <div className="flex-grow min-h-0 overflow-auto">
-                {children}
-            </div>
-            
+            <span className="text-sm text-gray-400">Panel</span>
         </div>
-    );
-};
-
-
-
+        {children}
+    </div>
+);
 
 
 
 // =======================================================================
 // === 4. COMPONENTE HomeView (Con componentes de clima)
 // =======================================================================
-// const HomeView = ({ dailyData, greenhouses = [], selectedGreenhouseId, setSelectedGreenhouseId, updateGreenhouseConfig, greenhouseConfig, timesheets }) => {
+
+// export const HomeView = ({ 
+//     dailyData, 
+//     greenhouses = [], 
+//     selectedGreenhouseId, 
+//     setSelectedGreenhouseId, 
+//     updateGreenhouseConfig, 
+//     greenhouseConfig, 
+//     timesheets,
+//     handleEdit, // Asumiendo que vienen de un hook
+//     handleDelete // Asumiendo que vienen de un hook
+// }) => {
+    
+//     // Lógica existente
 //     const config = greenhouseConfig || {}; 
 //     const currentCropName = config.cropName || "Cultivo no asignado"; 
     
@@ -5447,118 +5472,276 @@ const DashboardCard = ({
 //     }, 0);
 
 //     const handleMapSelect = (id) => { setSelectedGreenhouseId(id); };
-
-
 //     const handleCardSelect = (e) => { setSelectedGreenhouseId(e.target.value); };
 
 
+
+
+
+
 // return (
-//         // Contenedor principal: usa un fondo suave
-//         <div className="p-4 sm:p-6 bg-gray-100 min-h-screen">
+//     // 🚨 ÚNICO DIV PRINCIPAL: Fondo ligero, grilla fluida (1 col -> 2 cols -> 3 cols)
+//     <div className="p-4 sm:p-6 bg-gray-50 min-h-screen 
+//         grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> 
+        
+//         {/* 1. RESUMEN GLOBAL (Ocupa todo el ancho siempre, alta prioridad) */}
+//         <div className="col-span-1 md:col-span-2 lg:col-span-3 mb-0"> 
+//             <SummaryCard timesheets={timesheets} /> 
+//         </div>
+
+//         {/* --- SECCIÓN PRINCIPAL: MAPA Y DECISIONES CRÍTICAS --- */}
+
+//         {/* 2. MAPA: Máxima Prioridad Visual (Ocupa 1/2 en MD, 2/3 en LG) */}
+//         <div className="col-span-1 md:col-span-1 lg:col-span-2">
+//             <DashboardCard 
+//                 title="Visión General de Invernaderos" 
+//                 icon={<FaMapMarkerAlt />} 
+//                 borderColor="border-gray-500"
+//                 titleColor="text-gray-700" 
+//                 // Altura responsiva CLAVE para que el mapa sea el foco
+//                 className="h-[400px] sm:h-[500px] lg:h-[65vh] overflow-hidden" 
+//             >
+//                 {/* Asegúrate de que GreenhouseMap tiene h-full w-full internamente */}
+//                 <GreenhouseMap 
+//                     greenhouses={greenhouses} 
+//                     onGreenhouseSelect={handleMapSelect} 
+//                     selectedGreenhouseId={selectedGreenhouseId} 
+//                 />
+//             </DashboardCard>
+//         </div>
+
+//         {/* 3. ASESORAMIENTO CRÍTICO (Reposicionado para compartir fila con el Mapa) */}
+//         <div className="col-span-1 md:col-span-1 lg:col-span-1">
+//             <DashboardCard 
+//                 title="Asesoramiento Crítico de Pulverización" 
+//                 icon={<FaBell />} 
+//                 borderColor="border-green-600" 
+//                 titleColor="text-green-800"
+//                 // CLAVE RESPONSIVA: Altura completa (h-full) para estirarse al lado del mapa en desktop
+//                 className="h-full max-h-fit overflow-y-auto" 
+//             >
+//                 <div className="p-1"> 
+//                     {/* SprayAdvisory tiene que gestionar su propia responsividad dual (Tabla vs. Tarjetas) */}
+//                     <SprayAdvisory/>
+//                 </div>
+//             </DashboardCard>
+//         </div>
+
+//         {/* --- SECCIÓN SECUNDARIA: PRONÓSTICO Y ANÁLISIS --- */}
+
+//         {/* 4. PRONÓSTICO EXTENDIDO (Ocupa 2/3 en LG) */}
+//         <div className="col-span-1 md:col-span-1 lg:col-span-2">
+//             <DashboardCard 
+//                 title="Pronóstico Extendido (5 Días)" 
+//                 icon={<FaCloudSun />} 
+//                 borderColor="border-blue-500" 
+//                 titleColor="text-blue-700"
+//             >
+//                 {/* CLAVE ANTI-DESBORDE: Contenedor para manejar el scroll horizontal de la tabla de 5 días */}
+//                 <div className="p-2 overflow-x-auto">
+//                     <WeatherForecast apiKey={OPENWEATHER_API_KEY} city={DEFAULT_CITY} days={5} /> 
+//                 </div>
+//             </DashboardCard>
+//         </div>
+
+//         {/* 5. GRÁFICA / KPI (Añadido para balancear la fila 3, ocupa 1/3 en LG) */}
+//         {/* Tu código anterior estaba comentado, lo agregamos como un contenedor funcional */}
+//         <div className="col-span-1 md:col-span-1 lg:col-span-1"> 
+//             <DashboardCard 
+//                 title="Producción vs. Meta" 
+//                 icon={<FaChartLine />} 
+//                 borderColor="border-orange-500"
+//                 titleColor="text-orange-700"
+//                 // Altura completa para ajustarse al Pronóstico Extendido
+//                 className="h-full" 
+//             >
+//                 <div className="h-full flex items-center justify-center text-gray-400">
+//                     [Área para Gráfica de Series de Tiempo]
+//                 </div>
+//             </DashboardCard>
+//         </div>
+
+
+//         {/* 6. DETALLE DE MANO DE OBRA (Ocupa todo el ancho al final, baja prioridad de lectura) */}
+//         <div className="col-span-1 md:col-span-2 lg:col-span-3"> 
+//             <DashboardCard
+//                 title={`Detalle de Registros de Mano de Obra (${timesheets ? timesheets.length : 0})`}
+//                 icon={<FaListAlt />}
+//                 borderColor="border-gray-300" 
+//                 titleColor="text-gray-700"
+//                 // Altura limitada para que la tabla no sea infinita
+//                 className="h-auto max-h-[500px] overflow-y-auto" 
+//             >
+//                 {/* CLAVE ANTI-DESBORDE: Contenedor para manejar el scroll horizontal de la tabla de costos */}
+//                 <div className="overflow-x-auto">
+//                     <LaborCostDashboardDisplay 
+//                         timesheets={timesheets || []}
+//                         onEditRecord={handleEdit}
+//                         onDeleteRecord={handleDelete}
+//                     />
+//                 </div>
+//             </DashboardCard>
+//         </div>
+        
+//     </div>
+//     // Fin del único DIV principal
+// );
+//  }
+
+
+
+
+
+
+// export const HomeView = ({ 
+//     dailyData, 
+//     greenhouses = [], 
+//     selectedGreenhouseId, 
+//     setSelectedGreenhouseId, 
+//     updateGreenhouseConfig, 
+//     greenhouseConfig, 
+//     timesheets,
+//     handleEdit,
+//     handleDelete
+// }) => {
+    
+//     // ... [Lógica existente - sin cambios] ...
+//     const config = greenhouseConfig || {}; 
+//     const currentCropName = config.cropName || "Cultivo no asignado"; 
+    
+//     const totalProduction = Object.values(dailyData || {}).reduce((sum, day) => { 
+//         const dayTotal = (day.items || []).reduce((itemSum, item) => 
+//             itemSum + parseFloat(item.result || 0), 0);
+//         return sum + dayTotal;
+//     }, 0);
+
+//     const handleMapSelect = (id) => { setSelectedGreenhouseId(id); };
+//     const handleCardSelect = (e) => { setSelectedGreenhouseId(e.target.value); };
+    
+//     // ------------------------------------------
+//     // El DashboardCard es crucial para el estilo:
+//     // Asegúrate de que DashboardCard aplica el estilo minimalista,
+//     // por ejemplo: "bg-white p-4 rounded-xl shadow-lg border border-l-4"
+//     // ------------------------------------------
+
+//     return (
+//         // 🚨 CAMBIO CLAVE: Grid principal con 1 columna por defecto, 2 en pantallas medianas y grandes.
+//         // Se añade `items-start` para evitar que las tarjetas se estiren infinitamente si no tienen `h-full`.
+//         <div className="p-4 sm:p-6 bg-gray-50 min-h-screen grid grid-cols-1 md:grid-cols-2 gap-6 items-start"> 
             
-//             {/* 1. Tarjeta de Resumen de Mano de Obra (Full Width) */}
-//             <div className="mb-6">
-//                 <SummaryCard timesheets={timesheets} />
+//             {/* 1. RESUMEN GLOBAL (Ocupa todo el ancho siempre - Fila 1) */}
+//             <div className="col-span-1 md:col-span-2"> 
+//                 {/* SummaryCard ya es minimalista y compacto, encaja perfecto. */}
+//                 <SummaryCard timesheets={timesheets} /> 
 //             </div>
 
-//             {/* 2. DASHBOARD PRINCIPAL - GRID de 4 COLUMNAS (Responsive) */}
-//             <div className="grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-4 gap-6">
+//             {/* --- SECCIÓN PRINCIPAL DE 2 PANELES --- */}
+            
+//             {/* PANELA I (Izquierda/Principal) - Ocupa 1/2 */}
+//             <div className="col-span-1 grid grid-cols-1 gap-6">
+                
+//                 {/* 2. MAPA: Componente principal con altura fija/alta */}
+//                 <DashboardCard 
+//                     title="Visión General de Invernaderos" 
+//                     icon={<FaMapMarkerAlt />} 
+//                     borderColor="border-gray-500"
+//                     titleColor="text-gray-700" 
+//                     // Altura fija/mínima para dominar el panel
+//                     className="h-[400px] lg:h-[600px] overflow-hidden" 
+//                 >
+//                     <GreenhouseMap 
+//                         greenhouses={greenhouses} 
+//                         onGreenhouseSelect={handleMapSelect} 
+//                         selectedGreenhouseId={selectedGreenhouseId} 
+//                     />
+//                 </DashboardCard>
+                
+//                 {/* 3. PRONÓSTICO EXTENDIDO (Debajo del Mapa) */}
+//                 <DashboardCard 
+//                     title="Pronóstico Extendido (5 Días)" 
+//                     icon={<FaCloudSun />} 
+//                     borderColor="border-blue-500" 
+//                     titleColor="text-blue-700"
+//                     className="h-auto" // Se ajusta al contenido
+//                 >
+//                     <div className="p-2 overflow-x-auto">
+//                         {/* WeatherForecast tiene que gestionar su propia tabla o diseño horizontal */}
+//                         <WeatherForecast apiKey={'OPENWEATHER_API_KEY'} city={'DEFAULT_CITY'} days={5} /> 
+//                     </div>
+//                 </DashboardCard>
+                
+//             </div>
+            
+//             {/* PANEL B (Derecha/Secundario) - Ocupa 1/2 */}
+//             <div className="col-span-1 grid grid-cols-1 gap-6">
+                
+//                 {/* 4. ASESORAMIENTO CRÍTICO (Arriba, comparte el espacio vertical) */}
+//                 <DashboardCard 
+//                     title="Asesoramiento Crítico de Pulverización" 
+//                     icon={<FaBell />} 
+//                     borderColor="border-green-600" 
+//                     titleColor="text-green-800"
+//                     // Altura ajustada: CLAVE para encajar con los otros componentes del panel B
+//                     className="h-auto max-h-[400px] overflow-y-auto" 
+//                 >
+//                     <div className="p-1"> 
+//                         <SprayAdvisory/>
+//                     </div>
+//                 </DashboardCard>
 
-//                 {/* COLUMNA 1: WIDGETS LATERALES (lg:col-span-1) */}
-//                 {/* Widgets de Foco Rápido */}
-//                 <div className="lg:col-span-1 space-y-6">
-                    
-//                     {/* Tarjeta 1: PRONÓSTICO INMEDIATO (Widget Destacado) */}
-//                     {/* Estilo profesional con sombra más suave y color de fondo sutil */}
-//                     <div className="bg-white p-6 rounded-2xl shadow-xl border border-gray-100 flex flex-col">
-//                         <h3 className="text-xl font-extrabold text-blue-600 border-b-2 border-blue-100 pb-3 mb-4 flex items-center">
-//                             <span className="text-2xl mr-2">🌞</span> Clima Ahora
-//                         </h3>
-//                         {/* El componente debe ocupar el espacio que necesite sin altura forzada */}
-//                         <div className="flex-grow flex flex-col justify-start">
-//                             <WeatherForecast apiKey={OPENWEATHER_API_KEY} city={DEFAULT_CITY} />
-//                         </div>
+//                 {/* 5. GRÁFICA / KPI (Medio) */}
+//                 <DashboardCard 
+//                     title="Producción vs. Meta" 
+//                     icon={<FaChartLine />} 
+//                     borderColor="border-orange-500"
+//                     titleColor="text-orange-700"
+//                     className="h-[250px]" // Altura fija para visualización de gráfica
+//                 >
+//                     <div className="h-full flex items-center justify-center text-gray-400">
+//                         [Área para Gráfica de Series de Tiempo]
 //                     </div>
-                    
-//                     {/* Tarjeta 2: ACTIVIDADES RECIENTES */}
-//                     <div className="bg-white p-6 rounded-2xl shadow-xl border border-gray-100 flex flex-col min-h-[250px]">
-//                         <h3 className="text-xl font-extrabold text-red-600 border-b-2 border-red-100 pb-3 mb-4 flex items-center">
-//                             <span className="text-2xl mr-2">📋</span> Actividades Recientes
-//                         </h3>
-//                         <div className="flex-grow flex items-center justify-center text-center">
-//                              <p className="text-gray-500 italic p-4 w-full">
-//                                 Registro de las últimas tareas y alertas.
-//                             </p>
-//                         </div>
+//                 </DashboardCard>
+                
+//                 {/* 6. OTRO KPI O TARJETA DE RESUMEN PEQUEÑA (Abajo) */}
+//                 <DashboardCard 
+//                     title="Resumen de Cultivo" 
+//                     icon={<FaCloudSun />} 
+//                     borderColor="border-purple-500"
+//                     titleColor="text-purple-700"
+//                     className="h-auto" 
+//                 >
+//                     <div className="p-2">
+//                          <div className="text-sm text-gray-600">Cultivo Activo: **{currentCropName}**</div>
+//                          <div className="text-sm text-gray-600">Producción Total: **{totalProduction.toFixed(2)}** kg</div>
+//                          {/* [Añadir más KPIs aquí] */}
 //                     </div>
-
-//                     {/* Tarjeta 3: MÉTRICAS CLAVE (Nuevo Espacio para KPIs/Alertas) */}
-//                     <div className="bg-white p-6 rounded-2xl shadow-xl border border-gray-100 flex flex-col min-h-[200px]">
-//                         <h3 className="text-xl font-extrabold text-purple-600 border-b-2 border-purple-100 pb-3 mb-4 flex items-center">
-//                             <span className="text-2xl mr-2">📊</span> Métricas Clave
-//                         </h3>
-//                         <div className="flex-grow flex items-center justify-center text-center">
-//                              <p className="text-gray-400 italic">
-//                                 Espacio para KPI de rápido vistazo.
-//                             </p>
-//                         </div>
-//                     </div>
-//                 </div>
-
-//                 {/* COLUMNA 2: MAPA Y DATOS DE PRODUCCIÓN (lg:col-span-3) */}
-//                 {/* Esta columna tiene mayor prioridad visual */}
-//                 <div className="lg:col-span-3 space-y-6">
-                    
-//                     {/* 2.1. MAPA (Principal) */}
-//                     <div className="bg-white p-4 rounded-xl shadow-2xl h-[550px] flex flex-col relative overflow-hidden border border-gray-200"> 
-//                          <h3 className="text-xl font-bold text-gray-800 border-b pb-2 mb-3 flex items-center">
-//                             <span className="text-2xl mr-2">🗺️</span> Visión General de Invernaderos
-//                         </h3>
-//                         <div className="flex-grow min-h-0 z-10">
-//                             <GreenhouseMap 
-//                                 greenhouses={greenhouses} 
-//                                 onGreenhouseSelect={handleMapSelect} 
-//                                 selectedGreenhouseId={selectedGreenhouseId} 
-//                             />
-//                         </div>
-//                     </div>
-
-//                     {/* 2.2. PRONÓSTICO EXTENDIDO (¡Ahora con full width!) */}
-//                     {/* Moverlo aquí le da el espacio visual que un pronóstico de 5 días necesita */}
-//                     <div className="bg-white p-6 rounded-xl shadow-lg border border-green-100 flex flex-col">
-//                         <h3 className="text-xl font-bold text-green-700 border-b-2 border-green-100 pb-3 mb-4 flex items-center">
-//                             <span className="text-2xl mr-2">🗓️</span> Pronóstico de 5 Días
-//                         </h3>
-//                          <div className="flex-grow flex justify-center">
-//                             <WeatherForecast apiKey={OPENWEATHER_API_KEY} city={DEFAULT_CITY} days={5} /> 
-//                         </div>
-//                     </div>
-                    
-//                     {/* 2.3. SUB-GRID para Resumen y Gráfica */}
-//                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        
-//                         {/* Tarjeta de Resumen de Invernadero (GreenhouseSummaryCard) */}
-//                         <GreenhouseSummaryCard 
-//                             config={config} totalProduction={totalProduction} currentCrop={currentCropName} 
-//                             selectedGreenhouseId={selectedGreenhouseId} updateGreenhouseConfig={updateGreenhouseConfig} 
-//                             greenhouses={greenhouses} onSelectGreenhouse={handleCardSelect}
+//                 </DashboardCard>
+//             </div>
+            
+//             {/* 7. DETALLE DE MANO DE OBRA (Ocupa todo el ancho al final - Fila 3) */}
+//             <div className="col-span-1 md:col-span-2"> 
+//                 <DashboardCard
+//                     title={`Histórico de Registros de Mano de Obra (${timesheets ? timesheets.length : 0})`}
+//                     icon={<FaListAlt />}
+//                     borderColor="border-gray-300" 
+//                     titleColor="text-gray-700"
+//                     className="h-auto max-h-[400px] overflow-y-auto" 
+//                 >
+//                     <div className="overflow-x-auto p-1">
+//                         <LaborCostDashboardDisplay 
+//                             timesheets={timesheets || []}
+//                             onEditRecord={handleEdit}
+//                             onDeleteRecord={handleDelete}
 //                         />
-
-//                         {/* Tarjeta de Gráfica de Producción */}
-//                         <div className="bg-white p-6 rounded-xl shadow-lg flex flex-col items-center justify-center border border-gray-200 min-h-[200px]">
-//                             <h3 className="text-xl font-bold text-gray-800 mb-4">📈 Producción vs. Meta</h3>
-//                             <div className="flex-grow flex items-center justify-center w-full">
-//                                 <p className="text-gray-500 italic p-4 border border-dashed rounded-lg w-full text-center">
-//                                     Área para el componente de Gráfica (ej. Chart.js, Recharts).
-//                                 </p>
-//                             </div>
-//                         </div>
 //                     </div>
-//                 </div>
+//                 </DashboardCard>
 //             </div>
+            
 //         </div>
 //     );
 // };
+
+
 
 
 export const HomeView = ({ 
@@ -5569,8 +5752,8 @@ export const HomeView = ({
     updateGreenhouseConfig, 
     greenhouseConfig, 
     timesheets,
-    handleEdit, // Asumiendo que vienen de un hook
-    handleDelete // Asumiendo que vienen de un hook
+    handleEdit,
+    handleDelete
 }) => {
     
     // Lógica existente
@@ -5584,502 +5767,125 @@ export const HomeView = ({
     }, 0);
 
     const handleMapSelect = (id) => { setSelectedGreenhouseId(id); };
-    const handleCardSelect = (e) => { setSelectedGreenhouseId(e.target.value); };
-
-
-
-
-//     return (
-//         <div className="p-4 sm:p-6 bg-gray-100 min-h-screen">
+    
+    return (
+        // Contenedor principal: 1 columna, 2 columnas en MD y LG. Gap constante.
+        <div className="p-4 sm:p-6 bg-gray-50 min-h-screen grid grid-cols-1 md:grid-cols-2 gap-6 items-start"> 
             
-//             {/* ENCABEZADO Y RESUMEN DE COSTO GLOBAL (Full Width) */}
-//             <div className="mb-6">
-//                 <SummaryCard timesheets={timesheets} /> 
-//             </div>
+            {/* 1. RESUMEN GLOBAL (Ocupa todo el ancho siempre - Fila 1) */}
+            <div className="col-span-1 md:col-span-2"> 
+                <SummaryCard timesheets={timesheets} /> 
+            </div>
 
-//             {/* DASHBOARD PRINCIPAL - GRID de 12 COLUMNAS VIRTUALES (lg:grid-cols-12) */}
-//             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-12 gap-6">
-
-//                 {/* COLUMNA 1-7: MAPA Y DATOS CRÍTICOS (7/12 de ancho) */}
-//                 <div className="lg:col-span-7 space-y-6">
-                    
-//                     {/* 1. MAPA (Máxima Prioridad Visual) */}
-//                     <DashboardCard 
-//                         title="Visión General de Invernaderos" 
-//                         icon={<FaMapMarkerAlt />} 
-//                         borderColor="border-gray-500" // Color neutro para el mapa
-//                         titleColor="text-gray-700" 
-//                         fullHeight={true}
-//                         className="h-[500px]" // Altura fija para el mapa
-//                     >
-//                         <SprayAdvisory/>
-//                         <GreenhouseMap 
-//                             greenhouses={greenhouses} 
-//                             onGreenhouseSelect={handleMapSelect} 
-//                             selectedGreenhouseId={selectedGreenhouseId} 
-//                         />
-//                     </DashboardCard>
-
-//                     {/* 2. PRONÓSTICO EXTENDIDO (Necesita ancho) */}
-//                     <DashboardCard 
-//                         title="Pronóstico Extendido (5 Días)" 
-//                         icon={<FaCloudSun />} 
-//                         borderColor="border-blue-400" 
-//                         titleColor="text-blue-600"
-//                     >
-//                         <div className="flex justify-center p-2">
-//                            <WeatherForecast apiKey={OPENWEATHER_API_KEY} city={DEFAULT_CITY} days={5} /> 
-//                         </div>
-//                     </DashboardCard>
-//                 </div>
-
-//                 {/* COLUMNA 8-12: RESUMEN, RIESGOS Y BIOCLIMÁTICOS (5/12 de ancho) */}
-//                 <div className="lg:col-span-5 space-y-6">
-                    
-//                     {/* 3. RESUMEN DEL CULTIVO SELECCIONADO (Alta Prioridad) */}
-//                     <GreenhouseSummaryCard 
-//                         config={config} 
-//                         totalProduction={totalProduction} 
-//                         currentCrop={currentCropName} 
-//                         selectedGreenhouseId={selectedGreenhouseId} 
-//                         updateGreenhouseConfig={updateGreenhouseConfig} 
-//                         greenhouses={greenhouses} 
-//                         onSelectGreenhouse={handleCardSelect}
-//                     />
-                    
-//                     {/* 4. RIESGOS Y BIOCLIMÁTICOS (Agrupados en una sub-grid) */}
-//                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        
-//                         {/* 4.1. Riesgos */}
-//                         <DashboardCard 
-//                             title="Riesgos" 
-//                             icon={<FaBell />} 
-//                             borderColor="border-red-500" // Alerta
-//                             titleColor="text-red-700"
-//                         >
-//                             <div className="text-center p-3 bg-red-50 rounded-lg text-sm font-semibold text-red-700">
-//                                 🔴 ALERTA: Plaga Potencial
-//                             </div>
-//                         </DashboardCard>
-
-//                         {/* 4.2. Bioclimáticos */}
-//                         <DashboardCard 
-//                             title="Bioclimáticos" 
-//                             icon={<FaCalculator />} 
-//                             borderColor="border-purple-500"
-//                             titleColor="text-purple-700"
-//                         >
-//                             <div className="space-y-2 text-sm">
-//                                 <p><span className="font-semibold">Horas Frío:</span> <span className="float-right font-bold text-purple-700">45 HF</span></p>
-//                                 <p><span className="font-semibold">GDD Acumulado:</span> <span className="float-right font-bold text-purple-700">125 GDD</span></p>
-//                             </div>
-//                         </DashboardCard>
-//                     </div>
-
-//                     {/* 5. GRÁFICA / KPI (Ejemplo) */}
-//                     <DashboardCard 
-//                         title="Producción vs. Meta" 
-//                         icon={<FaChartLine />} 
-//                         borderColor="border-orange-500"
-//                         titleColor="text-orange-700"
-//                     >
-//                          <div className="h-40 flex items-center justify-center border border-dashed rounded-lg bg-gray-50 text-gray-400">
-//                             [Área para Gráfica de Series de Tiempo]
-//                          </div>
-//                     </DashboardCard>
-
-//                 </div>
-//             </div>
-
-//             {/* SECCIÓN INFERIOR: DETALLE DE MANO DE OBRA (Full Width) */}
-//             <div className="mt-6">
-//                  <DashboardCard
-//                     title={`Detalle de Registros de Mano de Obra (${timesheets ? timesheets.length : 0})`}
-//                     icon={<FaListAlt />}
-//                     borderColor="border-gray-300" 
-//                     titleColor="text-gray-700"
-//                  >
-//                     <LaborCostDashboardDisplay 
-//                         timesheets={timesheets || []}
-//                         onEditRecord={handleEdit}
-//                         onDeleteRecord={handleDelete}
-//                     />
-//                  </DashboardCard>
-//             </div>
-//         </div>
-//     );
-// };
-
-
-
-return (
-    // 🚨 ÚNICO DIV PRINCIPAL: Fondo ligero, grilla fluida (1 col -> 2 cols -> 3 cols)
-    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen 
-        grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> 
-        
-        {/* 1. RESUMEN GLOBAL (Ocupa todo el ancho siempre, alta prioridad) */}
-        <div className="col-span-1 md:col-span-2 lg:col-span-3 mb-0"> 
-            <SummaryCard timesheets={timesheets} /> 
-        </div>
-
-        {/* --- SECCIÓN PRINCIPAL: MAPA Y DECISIONES CRÍTICAS --- */}
-
-        {/* 2. MAPA: Máxima Prioridad Visual (Ocupa 1/2 en MD, 2/3 en LG) */}
-        <div className="col-span-1 md:col-span-1 lg:col-span-2">
-            <DashboardCard 
-                title="Visión General de Invernaderos" 
-                icon={<FaMapMarkerAlt />} 
-                borderColor="border-gray-500"
-                titleColor="text-gray-700" 
-                // Altura responsiva CLAVE para que el mapa sea el foco
-                className="h-[400px] sm:h-[500px] lg:h-[65vh] overflow-hidden" 
-            >
-                {/* Asegúrate de que GreenhouseMap tiene h-full w-full internamente */}
-                <GreenhouseMap 
-                    greenhouses={greenhouses} 
-                    onGreenhouseSelect={handleMapSelect} 
-                    selectedGreenhouseId={selectedGreenhouseId} 
-                />
-            </DashboardCard>
-        </div>
-
-        {/* 3. ASESORAMIENTO CRÍTICO (Reposicionado para compartir fila con el Mapa) */}
-        <div className="col-span-1 md:col-span-1 lg:col-span-1">
-            <DashboardCard 
-                title="Asesoramiento Crítico de Pulverización" 
-                icon={<FaBell />} 
-                borderColor="border-green-600" 
-                titleColor="text-green-800"
-                // CLAVE RESPONSIVA: Altura completa (h-full) para estirarse al lado del mapa en desktop
-                className="h-full max-h-fit overflow-y-auto" 
-            >
-                <div className="p-1"> 
-                    {/* SprayAdvisory tiene que gestionar su propia responsividad dual (Tabla vs. Tarjetas) */}
-                    <SprayAdvisory/>
-                </div>
-            </DashboardCard>
-        </div>
-
-        {/* --- SECCIÓN SECUNDARIA: PRONÓSTICO Y ANÁLISIS --- */}
-
-        {/* 4. PRONÓSTICO EXTENDIDO (Ocupa 2/3 en LG) */}
-        <div className="col-span-1 md:col-span-1 lg:col-span-2">
-            <DashboardCard 
-                title="Pronóstico Extendido (5 Días)" 
-                icon={<FaCloudSun />} 
-                borderColor="border-blue-500" 
-                titleColor="text-blue-700"
-            >
-                {/* CLAVE ANTI-DESBORDE: Contenedor para manejar el scroll horizontal de la tabla de 5 días */}
-                <div className="p-2 overflow-x-auto">
-                    <WeatherForecast apiKey={OPENWEATHER_API_KEY} city={DEFAULT_CITY} days={5} /> 
-                </div>
-            </DashboardCard>
-        </div>
-
-        {/* 5. GRÁFICA / KPI (Añadido para balancear la fila 3, ocupa 1/3 en LG) */}
-        {/* Tu código anterior estaba comentado, lo agregamos como un contenedor funcional */}
-        <div className="col-span-1 md:col-span-1 lg:col-span-1"> 
-            <DashboardCard 
-                title="Producción vs. Meta" 
-                icon={<FaChartLine />} 
-                borderColor="border-orange-500"
-                titleColor="text-orange-700"
-                // Altura completa para ajustarse al Pronóstico Extendido
-                className="h-full" 
-            >
-                <div className="h-full flex items-center justify-center text-gray-400">
-                    [Área para Gráfica de Series de Tiempo]
-                </div>
-            </DashboardCard>
-        </div>
-
-
-        {/* 6. DETALLE DE MANO DE OBRA (Ocupa todo el ancho al final, baja prioridad de lectura) */}
-        <div className="col-span-1 md:col-span-2 lg:col-span-3"> 
-            <DashboardCard
-                title={`Detalle de Registros de Mano de Obra (${timesheets ? timesheets.length : 0})`}
-                icon={<FaListAlt />}
-                borderColor="border-gray-300" 
-                titleColor="text-gray-700"
-                // Altura limitada para que la tabla no sea infinita
-                className="h-auto max-h-[500px] overflow-y-auto" 
-            >
-                {/* CLAVE ANTI-DESBORDE: Contenedor para manejar el scroll horizontal de la tabla de costos */}
-                <div className="overflow-x-auto">
-                    <LaborCostDashboardDisplay 
-                        timesheets={timesheets || []}
-                        onEditRecord={handleEdit}
-                        onDeleteRecord={handleDelete}
-                    />
-                </div>
-            </DashboardCard>
-        </div>
-        
-    </div>
-    // Fin del único DIV principal
-);
- }
-
-
-
-
-
-
-
-
-
-
-// return (
-//         // 🚨 ÚNICO DIV PRINCIPAL que actúa como el contenedor de la grilla
-//         <div className="p-4 sm:p-6 bg-gray-100 min-h-screen grid grid-cols-1 md:grid-cols-2 gap-6"> 
-            
-
+            {/* ============================================== */}
+            {/* PANEL A (Izquierda/Principal) - Mayor Altura y Foco */}
+            {/* ============================================== */}
+            <div className="col-span-1 grid grid-cols-1 gap-6">
                 
-               
-//             {/* 1. RESUMEN GLOBAL (Ocupa todo el ancho) */}
-//             <div className="md:col-span-2 mb-0"> 
-//                 <SummaryCard timesheets={timesheets} /> 
-//             </div>
-
-//             {/* 2. MAPA: Máxima Prioridad Visual (Ocupa 1 de 2 columnas) */}
-//             <DashboardCard 
-//                 title="Visión General de Invernaderos" 
-//                 icon={<FaMapMarkerAlt />} 
-//                 borderColor="border-gray-500"
-//                 titleColor="text-gray-700" 
-//                 // Altura definida para ser el foco
-//                 className="h-[450px] sm:h-[550px] lg:h-[600px] overflow-hidden" 
-//             >
-//                 {/* Se elimina SprayAdvisory de aquí para moverlo a la derecha */}
-//                 <GreenhouseMap 
-//                     greenhouses={greenhouses} 
-//                     onGreenhouseSelect={handleMapSelect} 
-//                     selectedGreenhouseId={selectedGreenhouseId} 
-//                 />
-//             </DashboardCard>
-
-//             {/* 4. PRONÓSTICO EXTENDIDO (Ocupa todo el ancho, necesita espacio horizontal) */}
-//             <div className="md:col-span-2">
-//                 <DashboardCard 
-//                     title="Pronóstico Extendido (5 Días)" 
-//                     icon={<FaCloudSun />} 
-//                     borderColor="border-blue-500" 
-//                     titleColor="text-blue-700"
-//                 >
-//                     {/* Se añade overflow-x-auto para que la tabla interna se pueda desplazar */}
-//                     <div className="p-2 overflow-x-auto">
-//                         <WeatherForecast apiKey={OPENWEATHER_API_KEY} city={DEFAULT_CITY} days={5} /> 
-//                     </div>
-//                 </DashboardCard>
-//             </div>
-
-
-//  <div className="md:col-span-2">
-// <DashboardCard 
-//                     title="Asesoramiento Crítico de Pulverización" 
-//                     icon={<FaBell />} 
-//                     borderColor="border-green-600" 
-//                     titleColor="text-green-800"
-//                     // Altura controlada, usa max-h si el contenido puede ser variable
-//                     className="h-auto max-h-56 overflow-y-auto" 
-//                 >
-//                     <div className="p-1"> 
-//                         <SprayAdvisory/>
-//                     </div>
-//                 </DashboardCard>
-//                 </div>
-//             {/* 5. GRÁFICA / KPI (Ocupa todo el ancho) */}
-//             {/* <div className="md:col-span-2"> 
-//                 <DashboardCard 
-//                     title="Producción vs. Meta" 
-//                     icon={<FaChartLine />} 
-//                     borderColor="border-orange-500"
-//                     titleColor="text-orange-700"
-//                     className="h-[300px]" 
-//                 >
-//                     <div className="h-full flex items-center justify-center border border-dashed rounded-lg bg-gray-50 text-gray-400">
-//                         [Área para Gráfica de Series de Tiempo]
-//                     </div>
-//                 </DashboardCard>
-//             </div> */}
-
-//             {/* 6. DETALLE DE MANO DE OBRA (Ocupa todo el ancho, última prioridad de lectura) */}
-//             <div className="md:col-span-2"> 
-//                 <DashboardCard
-//                     title={`Detalle de Registros de Mano de Obra (${timesheets ? timesheets.length : 0})`}
-//                     icon={<FaListAlt />}
-//                     borderColor="border-gray-300" 
-//                     titleColor="text-gray-700"
-//                 >
-//                     {/* Se añade overflow-x-auto para evitar desbordamiento horizontal en la tabla */}
-//                     <div className="overflow-x-auto">
-//                         <LaborCostDashboardDisplay 
-//                             timesheets={timesheets || []}
-//                             onEditRecord={handleEdit}
-//                             onDeleteRecord={handleDelete}
-//                         />
-//                     </div>
-//                 </DashboardCard>
-//             </div>
+                {/* 2. MAPA: Componente principal con altura dominante */}
+                <DashboardCard 
+                    title="Visión General de Invernaderos" 
+                    icon={<FaMapMarkerAlt className="text-red-500"/>} 
+                    borderColor="border-red-500"
+                    titleColor="text-gray-700" 
+                    className="h-[400px] lg:h-[600px] overflow-hidden" 
+                >
+                    <GreenhouseMap 
+                        greenhouses={greenhouses} 
+                        onGreenhouseSelect={handleMapSelect} 
+                        selectedGreenhouseId={selectedGreenhouseId} 
+                    />
+                </DashboardCard>
+                
+                {/* 3. PRONÓSTICO EXTENDIDO (Debajo del Mapa) - CORREGIDO */}
+                <DashboardCard 
+                    title="Pronóstico Extendido (5 Días)" 
+                    icon={<FaCloudSun className="text-blue-500"/>} 
+                    borderColor="border-blue-500" 
+                    titleColor="text-blue-700"
+                    className="h-auto" // Se ajusta al contenido
+                >
+                    <div className="p-2 overflow-x-auto">
+                        {/* 💡 CORRECCIÓN: Uso de las variables constantes sin comillas */}
+                        <WeatherForecast 
+                            apiKey={OPENWEATHER_API_KEY} 
+                            city={DEFAULT_CITY} 
+                            days={5} 
+                        /> 
+                    </div>
+                </DashboardCard>
+                
+            </div>
             
-//         </div>
-//         // Fin del único DIV principal
-//     );
-// };
+            {/* ============================================== */}
+            {/* PANEL B (Derecha/Secundario) - Altura Balanceada */}
+            {/* ============================================== */}
+            <div className="col-span-1 grid grid-cols-1 gap-6">
+                
+                {/* 4. ASESORAMIENTO CRÍTICO (Arriba) */}
+                <DashboardCard 
+                    title="Asesoramiento Crítico de Pulverización" 
+                    icon={<FaBell className="text-yellow-600"/>} 
+                    borderColor="border-yellow-600" 
+                    titleColor="text-green-800"
+                    className="h-auto max-h-[400px] overflow-y-auto" 
+                >
+                    <div className="p-1"> 
+                        <SprayAdvisory/>
+                    </div>
+                </DashboardCard>
 
-
-
-
-// return (
-//         // Contenedor principal: usa un fondo suave
-//         <div className="p-4 sm:p-6 bg-gray-100 min-h-screen">
+                {/* 5. GRÁFICA / KPI (Medio) */}
+                <DashboardCard 
+                    title="Producción vs. Meta" 
+                    icon={<FaChartLine className="text-orange-600"/>} 
+                    borderColor="border-orange-500"
+                    titleColor="text-orange-700"
+                    className="h-[250px]" // Altura fija para visualización de gráfica
+                >
+                    <div className="h-full flex items-center justify-center text-gray-400">
+                        [Área para Gráfica de Series de Tiempo]
+                    </div>
+                </DashboardCard>
+                
+                {/* 6. RESUMEN DE CULTIVO (Abajo) */}
+                <DashboardCard 
+                    title="Información Rápida" 
+                    icon={<FaSeedling className="text-purple-500"/>} 
+                    borderColor="border-purple-500"
+                    titleColor="text-purple-700"
+                    className="h-auto" 
+                >
+                    <div className="p-2 space-y-2">
+                         <div className="text-sm text-gray-700 font-medium">Cultivo Activo: <span className="font-bold text-gray-900">{currentCropName}</span></div>
+                         <div className="text-sm text-gray-700 font-medium">Producción Total: <span className="font-bold text-green-700">{totalProduction.toFixed(2)} kg</span></div>
+                         <div className="text-xs text-gray-500 pt-2 border-t mt-2">Última actualización: {new Date().toLocaleDateString()}</div>
+                    </div>
+                </DashboardCard>
+            </div>
             
-//             {/* 1. Tarjeta de Resumen de Mano de Obra (Full Width) */}
-//             <div className="mb-6">
-//                 <SummaryCard timesheets={timesheets} />
-//             </div>
-
-//             {/* 2. DASHBOARD PRINCIPAL - GRID de 4 COLUMNAS (Responsive) */}
-//             <div className="grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-4 gap-6">
-
-//                 {/* COLUMNA 1: CLIMA Y HERRAMIENTAS LATERALES (lg:col-span-1) */}
-//                 {/* Esta columna mantiene componentes de información rápida */}
-//                 <div className="lg:col-span-1 space-y-6">
-                    
-//                     {/* Tarjeta de Pronóstico 1 (Foco: Clima Hoy) */}
-//                     <div className="bg-white p-5 rounded-xl shadow-lg border border-blue-100 flex flex-col h-full min-h-[300px]">
-//                         <h3 className="text-xl font-bold text-blue-700 border-b pb-2 mb-3 flex items-center">
-//                             <span className="text-2xl mr-2">☀️</span> Pronóstico Inmediato
-//                         </h3>
-//                         {/* <=== Componente WeatherForecast en Pronóstico 1 */}
-//                         {/* Se eliminó la altura fija h-[350px] para evitar desbordes */}
-//                         <div className="flex-grow flex items-center justify-center text-center">
-//                             <WeatherForecast apiKey={OPENWEATHER_API_KEY} city={DEFAULT_CITY} />
-//                         </div>
-//                     </div>
-                    
-//                     {/* Tarjeta de Pronóstico 2 (Foco: 5 Días) */}
-//                     <div className="bg-white p-5 rounded-xl shadow-lg border border-green-100 flex flex-col h-full min-h-[300px]">
-//                         <h3 className="text-xl font-bold text-green-700 border-b pb-2 mb-3 flex items-center">
-//                             <span className="text-2xl mr-2">🗓️</span> Pronóstico Extendido
-//                         </h3>
-//                         {/* <=== Componente WeatherForecast en Pronóstico 2 */}
-//                         <div className="flex-grow flex items-center justify-center text-center">
-//                             <WeatherForecast apiKey={OPENWEATHER_API_KEY} city={DEFAULT_CITY} days={5} /> 
-//                         </div>
-//                     </div>
-
-//                     {/* Tarjeta de Actividades Recientes */}
-//                     <div className="bg-white p-5 rounded-xl shadow-lg border border-red-100 flex flex-col h-full min-h-[250px]">
-//                         <h3 className="text-xl font-bold text-red-700 border-b pb-2 mb-3 flex items-center">
-//                             <span className="text-2xl mr-2">📋</span> Actividades Recientes
-//                         </h3>
-//                         <div className="flex-grow flex items-center justify-center text-center">
-//                              <p className="text-gray-500 italic p-4 w-full">
-//                                 Este espacio mostrará las últimas operaciones registradas.
-//                             </p>
-//                         </div>
-//                     </div>
-//                 </div>
-
-//                 {/* COLUMNA 2: MAPA Y DATOS DE PRODUCCIÓN (lg:col-span-3) */}
-//                 {/* Esta columna tiene mayor prioridad visual */}
-//                 <div className="lg:col-span-3 space-y-6">
-                    
-//                     {/* 2.1. MAPA (Principal) */}
-//                     <div className="bg-white p-4 rounded-xl shadow-2xl h-[550px] flex flex-col relative overflow-hidden border border-gray-200"> 
-//                          <h3 className="text-xl font-bold text-gray-800 border-b pb-2 mb-3 flex items-center">
-//                             <span className="text-2xl mr-2">🗺️</span> Visión General de Invernaderos
-//                         </h3>
-//                         <div className="flex-grow min-h-0 z-10">
-//                             {/* Ajustamos el contenedor interno para ocupar todo el espacio restante */}
-//                             <GreenhouseMap 
-//                                 greenhouses={greenhouses} 
-//                                 onGreenhouseSelect={handleMapSelect} 
-//                                 selectedGreenhouseId={selectedGreenhouseId} 
-//                             />
-//                         </div>
-//                     </div>
-                    
-//                     {/* 2.2. SUB-GRID para Resumen y Gráfica */}
-//                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        
-//                         {/* Tarjeta de Resumen de Invernadero (GreenhouseSummaryCard) */}
-//                         <GreenhouseSummaryCard 
-//                             config={config} totalProduction={totalProduction} currentCrop={currentCropName} 
-//                             selectedGreenhouseId={selectedGreenhouseId} updateGreenhouseConfig={updateGreenhouseConfig} 
-//                             greenhouses={greenhouses} onSelectGreenhouse={handleCardSelect}
-//                         />
-
-//                         {/* Tarjeta de Gráfica de Producción */}
-//                         <div className="bg-white p-6 rounded-xl shadow-lg flex flex-col items-center justify-center border border-gray-200 min-h-[200px]">
-//                             <h3 className="text-xl font-bold text-gray-800 mb-4">📈 Producción vs. Meta</h3>
-//                             <div className="flex-grow flex items-center justify-center w-full">
-//                                 <p className="text-gray-500 italic p-4 border border-dashed rounded-lg w-full text-center">
-//                                     Área para el componente de Gráfica (ej. Chart.js, Recharts).
-//                                 </p>
-//                             </div>
-//                         </div>
-//                     </div>
-//                 </div>
-//             </div>
-//         </div>
-//     );
-// };
-
-    // return (
-    //     <div className="p-4 sm:p-6 bg-gray-50">
-    //         {/* 1. Tarjeta de Resumen de Mano de Obra */}
-    //         <div className="mb-8"><SummaryCard timesheets={timesheets} /></div>
-
-    //         {/* 2. GRID SECUNDARIO - Mapa, Producción, Gestión */}
-    //         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    //             <div className="lg:col-span-2 space-y-6">
-    //                 {/* 2.1. MAPA */}
-    //                 <div className="bg-white p-4 rounded-xl shadow-lg h-[400px] flex flex-col z-10 relative"> 
-    //                     <div className="flex-grow">
-    //                         {/*  */}
-    //                         <GreenhouseMap 
-    //                             greenhouses={greenhouses} 
-    //                             onGreenhouseSelect={handleMapSelect} 
-    //                             selectedGreenhouseId={selectedGreenhouseId} 
-    //                         />
-    //                     </div>
-    //                 </div>
-    //                 {/* 2.2. SUB-GRID para Resumen y Gráfica */}
-    //                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-    //                     <GreenhouseSummaryCard 
-    //                         config={config} totalProduction={totalProduction} currentCrop={currentCropName} 
-    //                         selectedGreenhouseId={selectedGreenhouseId} updateGreenhouseConfig={updateGreenhouseConfig} 
-    //                         greenhouses={greenhouses} onSelectGreenhouse={handleCardSelect}
-    //                     />
-    //                     <div className="bg-white p-6 rounded-xl shadow-lg flex items-center justify-center">
-    //                         <p className="text-gray-500 italic">Gráfica de Producción vs. Meta</p>
-    //                     </div>
-    //                 </div>
-    //             </div>
-
-    //             {/* Columna 3 (Pronóstico y Actividades) */}
-    //             <div className="space-y-6">
-    //                 <div className="bg-white p-6 rounded-xl shadow-lg h-[350px]">
-    //                     <h3 className="text-lg font-semibold text-gray-700 mb-2">☀️ Pronóstico 1</h3>
-    //                     {/* <=== SOLICITADO: Componente WeatherForecast en Pronóstico 1 */}
-    //                     <WeatherForecast apiKey={OPENWEATHER_API_KEY} city={DEFAULT_CITY} />
-    //                 </div>
-    //                 <div className="bg-white p-6 rounded-xl shadow-lg h-[350px]">
-    //                     <h3 className="text-lg font-semibold text-gray-700 mb-2">☀️ Pronóstico 2</h3>
-    //                     {/* <=== SOLICITADO: Componente WeatherForecast en Pronóstico 2 */}
-    //                     <WeatherForecast apiKey={OPENWEATHER_API_KEY} city={DEFAULT_CITY} days={5} /> 
-    //                 </div>
-    //                 <div className="bg-white p-6 rounded-xl shadow-lg h-[350px]">
-    //                     <h3 className="text-lg font-semibold text-gray-700 mb-2">📋 Actividades Recientes</h3>
-    //                     <p className="text-gray-500 italic">Aquí van las actividades recientes</p>
-    //                 </div>
-    //             </div>
-    //         </div>
-    //     </div>
-    // );
+            {/* 7. DETALLE DE MANO DE OBRA (Ocupa todo el ancho al final - Fila 3) */}
+            <div className="col-span-1 md:col-span-2"> 
+                <DashboardCard
+                    title={`Histórico de Registros de Mano de Obra (${timesheets ? timesheets.length : 0})`}
+                    icon={<FaListAlt className="text-gray-500"/>}
+                    borderColor="border-gray-300" 
+                    titleColor="text-gray-700"
+                    className="h-auto max-h-[400px] overflow-y-auto" 
+                >
+                    <div className="overflow-x-auto p-1">
+                        <LaborCostDashboardDisplay 
+                            timesheets={timesheets || []}
+                            onEditRecord={handleEdit}
+                            onDeleteRecord={handleDelete}
+                        />
+                    </div>
+                </DashboardCard>
+            </div>
+            
+        </div>
+    );
+};
 
 
 
@@ -6214,40 +6020,89 @@ const HomeContent = (props) => {
     };
 
     // --- Barra de Navegación de Vistas (Se mantiene igual) ---
+
     const ViewTabs = () => (
-        <div className="flex justify-start mb-6 border-b border-gray-300">
+    // Contenedor principal: Quitamos el 'flex' de aquí y dejamos solo el borde inferior
+    <div className="mb-6 border-b border-gray-300"> 
+        {/* Nuevo Contenedor de Pestañas: 
+            - 'flex' mantiene los botones en línea.
+            - 'overflow-x-auto' permite el scroll horizontal si es necesario.
+            - 'whitespace-nowrap' asegura que los elementos NO se envuelvan.
+        */}
+        <div className="flex overflow-x-auto whitespace-nowrap"> 
             <button
                 onClick={() => { setActiveView('home'); setNotification(null); }}
-                className={`py-2 px-4 flex items-center space-x-2 text-sm font-medium border-b-2 transition-colors duration-200 ${ activeView === 'home' ? "border-blue-600 text-blue-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
+                // Eliminé 'text-sm' de los botones para que el tamaño base sea sensible, pero puedes mantenerlo si quieres botones pequeños.
+                className={`py-2 px-4 flex items-center space-x-2 font-medium border-b-2 transition-colors duration-200 flex-shrink-0
+                    ${ activeView === 'home' ? "border-blue-600 text-blue-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
             >
                 <FaHome className="text-lg"/> <span>Dashboard</span>
             </button>
             <button
                 onClick={() => { setActiveView('costs'); setNotification(null); }}
-                className={`py-2 px-4 flex items-center space-x-2 text-sm font-medium border-b-2 transition-colors duration-200 ${ activeView === 'costs' ? "border-blue-600 text-blue-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
+                className={`py-2 px-4 flex items-center space-x-2 font-medium border-b-2 transition-colors duration-200 flex-shrink-0
+                    ${ activeView === 'costs' ? "border-blue-600 text-blue-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
             >
                 <FaEuroSign className="text-lg"/> <span>Costes</span>
             </button>
             <button
                 onClick={() => { setActiveView('employee_management'); setNotification(null); }}
-                className={`py-2 px-4 flex items-center space-x-2 text-sm font-medium border-b-2 transition-colors duration-200 ${ activeView === 'employee_management' ? "border-purple-600 text-purple-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
+                className={`py-2 px-4 flex items-center space-x-2 font-medium border-b-2 transition-colors duration-200 flex-shrink-0
+                    ${ activeView === 'employee_management' ? "border-purple-600 text-purple-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
             >
                 <FaUserFriends className="text-lg"/> <span>Personal</span>
             </button>
             <button
                 onClick={() => { setActiveView('management'); setNotification(null); }}
-                className={`py-2 px-4 flex items-center space-x-2 text-sm font-medium border-b-2 transition-colors duration-200 ${ activeView === 'management' ? "border-purple-600 text-purple-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
+                className={`py-2 px-4 flex items-center space-x-2 font-medium border-b-2 transition-colors duration-200 flex-shrink-0
+                    ${ activeView === 'management' ? "border-purple-600 text-purple-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
             >
                 <span role="img" aria-label="settings">⚙️</span> <span>Gestión</span>
             </button>
             <button
                 onClick={() => { setActiveView('labor'); setNotification(null); }}
-                className={`py-2 px-4 flex items-center space-x-2 text-sm font-medium border-b-2 transition-colors duration-200 ${ activeView === 'labor' ? "border-red-600 text-red-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
+                className={`py-2 px-4 flex items-center space-x-2 font-medium border-b-2 transition-colors duration-200 flex-shrink-0
+                    ${ activeView === 'labor' ? "border-red-600 text-red-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
             >
                 <span role="img" aria-label="man">👨‍🌾</span> <span>Mano de Obra</span>
             </button>
         </div>
-    );
+    </div>
+);
+    // const ViewTabs = () => (
+    //     <div className="flex justify-start mb-6 border-b border-gray-300">
+    //         <button
+    //             onClick={() => { setActiveView('home'); setNotification(null); }}
+    //             className={`py-2 px-4 flex items-center space-x-2 text-sm font-medium border-b-2 transition-colors duration-200 ${ activeView === 'home' ? "border-blue-600 text-blue-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
+    //         >
+    //             <FaHome className="text-lg"/> <span>Dashboard</span>
+    //         </button>
+    //         <button
+    //             onClick={() => { setActiveView('costs'); setNotification(null); }}
+    //             className={`py-2 px-4 flex items-center space-x-2 text-sm font-medium border-b-2 transition-colors duration-200 ${ activeView === 'costs' ? "border-blue-600 text-blue-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
+    //         >
+    //             <FaEuroSign className="text-lg"/> <span>Costes</span>
+    //         </button>
+    //         <button
+    //             onClick={() => { setActiveView('employee_management'); setNotification(null); }}
+    //             className={`py-2 px-4 flex items-center space-x-2 text-sm font-medium border-b-2 transition-colors duration-200 ${ activeView === 'employee_management' ? "border-purple-600 text-purple-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
+    //         >
+    //             <FaUserFriends className="text-lg"/> <span>Personal</span>
+    //         </button>
+    //         <button
+    //             onClick={() => { setActiveView('management'); setNotification(null); }}
+    //             className={`py-2 px-4 flex items-center space-x-2 text-sm font-medium border-b-2 transition-colors duration-200 ${ activeView === 'management' ? "border-purple-600 text-purple-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
+    //         >
+    //             <span role="img" aria-label="settings">⚙️</span> <span>Gestión</span>
+    //         </button>
+    //         <button
+    //             onClick={() => { setActiveView('labor'); setNotification(null); }}
+    //             className={`py-2 px-4 flex items-center space-x-2 text-sm font-medium border-b-2 transition-colors duration-200 ${ activeView === 'labor' ? "border-red-600 text-red-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
+    //         >
+    //             <span role="img" aria-label="man">👨‍🌾</span> <span>Mano de Obra</span>
+    //         </button>
+    //     </div>
+    // );
 
 
     // --- Estado de Carga y Restricciones de Acceso ---

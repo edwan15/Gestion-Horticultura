@@ -107,31 +107,51 @@ const UserManagement = () => {
   const [selectedRole, setSelectedRole] = useState("");
 
   // 1. Fetch Users
-  useEffect(() => {
-    const fetchUsers = async () => {
-      if (!SERVER_URL) {
-        console.log("SERVER_URL no definida. Saltando llamada a getUsers.");
+useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true);
+      
+      // 🛑 PASO 1: Obtener el token del localStorage
+      const token = localStorage.getItem('user_token'); 
+      
+      if (!SERVER_URL) {
+        console.log("SERVER_URL no definida. Saltando llamada a getUsers.");
+        setLoading(false);
+        return;
+      }
+      // Añadimos chequeo para el token por si no está logueado
+      if (!token) {
+        toast.error("Error: Token de sesión no encontrado.");
         setLoading(false);
         return;
       }
-      try {
-        // Asegúrate de que esta ruta sea correcta para tu backend
-        const response = await axios.get(`${SERVER_URL}/api/admin/users`);
-        setUsers(response.data);
-      } catch (error) {
-        const message =
-          (error.response &&
-            error.response.data &&
-            error.response.data.message) ||
-          error.message ||
-          error.toString();
-        toast.error(`Error al cargar usuarios: ${message}`);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUsers();
-  }, []);
+      
+      try {
+        // 🛑 PASO 2: Enviar el token en el header 'Authorization'
+        const response = await axios.get(
+          `${SERVER_URL}/api/admin/users`, 
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}` 
+                }
+            }
+        );
+        setUsers(response.data);
+      } catch (error) {
+        // ... (manejo de errores)
+        const message =
+          (error.response &&
+            error.response.data &&
+            error.response.data.message) ||
+          error.message ||
+          error.toString();
+        toast.error(`Error al cargar usuarios: ${message}.`);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   // 2. Update User Role
   const handleRoleUpdate = async (userId) => {

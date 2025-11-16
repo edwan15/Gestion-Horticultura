@@ -1,33 +1,3 @@
-// // src/firebaseConfig.js
-
-// import { initializeApp } from "firebase/app";
-// import { getAuth } from "firebase/auth";
-// import { getFirestore } from "firebase/firestore";
-
-// // Tu configuración de Firebase
-// export const firebaseConfig = {
-//   apiKey: "AIzaSyBA8jQcPrJ9FV1_kNt5FreioM8jgOTAcEA",
-//   authDomain: "calend-e5f32.firebaseapp.com",
-//   projectId: "calend-e5f32",
-//   storageBucket: "calend-e5f32.firebasestorage.app",
-//   messagingSenderId: "960965784873",
-//   appId: "1:960965784873:web:f79aa27e2c1bcbe0b4b338"
-// };
-
-// export const YOUR_BACKEND_UPLOAD_URL = "http://localhost:4500/api/upload/image";
-// // Inicializar Firebase
-// const app = initializeApp(firebaseConfig);
-
-// // Exportar servicios que usarás
-// export const auth = getAuth(app);
-// export const db = getFirestore(app);
-
-
-
-
-// // Opcional: para usar en un componente si lo necesitas
-// export default app;
-
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";

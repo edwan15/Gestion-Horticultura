@@ -1141,32 +1141,319 @@ const DetailModal = ({ isOpen, onClose, data }) => {
 // === 2. COMPONENTE SUMMARY CARD PRINCIPAL
 // =======================================================================
 
+// const SummaryCard = ({ timesheets = [] }) => {
+//     const [activeCategory, setActiveCategory] = useState('Trabajadores');
+//     const [dateRange, setDateRange] = useState({ start: '', end: '' });
+    
+//     // --- NUEVOS ESTADOS PARA EL MODAL ---
+//     const [isModalOpen, setIsModalOpen] = useState(false);
+//     const [modalData, setModalData] = useState(null);
+
+//     // Función para abrir el modal al hacer clic en un detalle
+//     const openModal = useCallback((title, type, records) => {
+//         setModalData({ title, type, records });
+//         setIsModalOpen(true);
+//     }, []);
+
+//     // Función para cerrar el modal
+//     const closeModal = () => {
+//         setIsModalOpen(false);
+//         setModalData(null);
+//     };
+
+//     // --- Lógica Principal del SummaryCard (MODIFICADA) ---
+//     const { 
+//         totalHours, totalCost, summaryMap, filteredTimesheets 
+//     } = useMemo(() => {
+        
+//         // 1. FILTRADO DE TIMESHEETS
+//         const filtered = timesheets.filter(record => {
+//             if (!record || !record.date) return false; 
+//             const recordDate = record.date; 
+//             const isAfterStart = !dateRange.start || recordDate >= dateRange.start;
+//             const isBeforeEnd = !dateRange.end || recordDate <= dateRange.end;
+//             return isAfterStart && isBeforeEnd;
+//         });
+
+//         // 2. LÓGICA DE AGREGACIÓN
+//         let totalHours = 0;
+//         let totalCost = 0;
+        
+//         const summaryMap = {
+//             'Trabajadores': {},
+//             'Cultivos': {},
+//             'Operación': {},
+//             'Maquinaria': {},
+//         };
+
+//         filtered.forEach(record => {
+//             const hours = record.totalHours || 0;
+//             const rate = record.ratePerHour || 0;
+//             totalHours += hours;
+//             totalCost += hours * rate;
+
+//             const { workerName, localName, operationName, machineryId } = record;
+            
+//             // Trabajadores (Detalles: Cultivos)
+//             if (workerName) {
+//                 if (!summaryMap['Trabajadores'][workerName]) {
+//                     summaryMap['Trabajadores'][workerName] = { totalHours: 0, details: new Set(), records: [] };
+//                 }
+//                 summaryMap['Trabajadores'][workerName].totalHours += hours;
+//                 if (localName) summaryMap['Trabajadores'][workerName].details.add(localName);
+//             }
+
+//             // Cultivos (Detalles: Operaciones y Registros para el Modal)
+//             if (localName) {
+//                 if (!summaryMap['Cultivos'][localName]) {
+//                     summaryMap['Cultivos'][localName] = { totalHours: 0, details: new Set(), records: [] }; // records para modal
+//                 }
+//                 summaryMap['Cultivos'][localName].totalHours += hours;
+//                 if (operationName) summaryMap['Cultivos'][localName].details.add(operationName);
+//                 summaryMap['Cultivos'][localName].records.push(record); // Almacenar registro completo
+//             }
+
+//             // Operación (Detalles: Cultivos y Registros para el Modal)
+//             if (operationName) {
+//                 if (!summaryMap['Operación'][operationName]) {
+//                     summaryMap['Operación'][operationName] = { totalHours: 0, details: new Set(), records: [] }; // records para modal
+//                 }
+//                 summaryMap['Operación'][operationName].totalHours += hours;
+//                 if (localName) summaryMap['Operación'][operationName].details.add(localName); // Podríamos añadir el worker aquí si es plano
+//                 summaryMap['Operación'][operationName].records.push(record); // Almacenar registro completo
+//             }
+            
+//             // Maquinaria (Detalles: Operaciones/Cultivos)
+//             if (machineryId && machineryId.trim() !== '') {
+//                 if (!summaryMap['Maquinaria'][machineryId]) {
+//                     summaryMap['Maquinaria'][machineryId] = { totalHours: 0, details: new Set(), records: [] };
+//                 }
+//                 summaryMap['Maquinaria'][machineryId].totalHours += hours;
+//                 if (operationName) summaryMap['Maquinaria'][machineryId].details.add(operationName);
+//             }
+//         });
+
+//         // 3. FINALIZAR: Convertir Sets a Arrays
+//         Object.keys(summaryMap).forEach(category => {
+//             Object.keys(summaryMap[category]).forEach(key => {
+//                 const item = summaryMap[category][key];
+//                 item.details = Array.from(item.details);
+//             });
+//         });
+
+//         return {
+//             totalHours, 
+//             totalCost, 
+//             summaryMap,
+//             filteredTimesheets: filtered, // Exportar los filtrados para el modal
+//         };
+//     }, [timesheets, dateRange]);
+
+
+//     // Extracción de datos para el renderizado
+//     const currentCategoryDetails = summaryMap[activeCategory] || {};
+//     const detailKeys = Object.keys(currentCategoryDetails);
+
+//     // Definición de contadores usando el conteo real
+//     const counters = [
+//         { title: "Trabajadores", icon: FaUserFriends, color: "text-green-600", bg: "bg-green-50" },
+//         { title: "Cultivos", icon: FaSeedling, color: "text-amber-600", bg: "bg-amber-50" },
+//         { title: "Operación", icon: FaListAlt, color: "text-blue-600", bg: "bg-blue-50" },
+//         { title: "Maquinaria", icon: FaTools, color: "text-indigo-600", bg: "bg-indigo-50" },
+//     ].map(item => ({
+//         ...item,
+//         count: Object.keys(summaryMap[item.title] || {}).length
+//     }));
+
+//     // Determina si el elemento de la lista debe ser clickeable para abrir el modal
+//     const isClickable = activeCategory === 'Cultivos' || activeCategory === 'Operación';
+
+//     return (
+//         <div className="bg-white p-6 rounded-2xl shadow-xl border border-gray-100">
+            
+//             {/* ... [Resto del Encabezado y Filtro de Fechas, SIN CAMBIOS] ... */}
+//             <div className="mb-6 border-b-2 border-gray-100 pb-4">
+//                 <div className="flex justify-between items-center mb-4">
+//                     <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+//                         <FaClock className="text-green-500 mr-3 text-3xl"/> Resumen de Actividades
+//                     </h2>
+//                     <span className="text-sm text-gray-500 font-medium">Datos filtrados</span>
+//                 </div>
+
+//                 <div className="flex flex-col sm:flex-row gap-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+//                     <div className="flex items-center">
+//                         <FaCalendarAlt className='text-blue-600 mr-3 text-xl'/>
+//                         <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">Filtrar por Fecha:</span>
+//                     </div>
+
+//                     <div className="flex flex-1 gap-2">
+//                         <input
+//                             type="date"
+//                             value={dateRange.start}
+//                             onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+//                             className="w-1/2 p-2 border border-gray-300 rounded-lg text-sm"
+//                             placeholder="Desde"
+//                         />
+//                         <input
+//                             type="date"
+//                             value={dateRange.end}
+//                             onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+//                             className="w-1/2 p-2 border border-gray-300 rounded-lg text-sm"
+//                             placeholder="Hasta"
+//                         />
+//                     </div>
+//                     <button
+//                         onClick={() => setDateRange({ start: '', end: '' })}
+//                         className="p-2 text-sm text-white bg-red-500 rounded-lg hover:bg-red-600 transition duration-150 sm:w-auto"
+//                     >
+//                         Reset
+//                     </button>
+//                 </div>
+//             </div>
+
+//             {/* 2. Grid de Contadores Interactivos */}
+//             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+//                 {counters.map((item) => (
+//                     <div 
+//                         key={item.title} 
+//                         className={`
+//                             group flex flex-col items-center justify-center p-4 rounded-xl cursor-pointer 
+//                             transition-all duration-300 ease-in-out transform hover:scale-105 
+//                             ${activeCategory === item.title 
+//                                 ? `bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-400 shadow-md`
+//                                 : `bg-gray-50 border border-gray-200 hover:bg-gray-100`}
+//                         `}
+//                         onClick={() => setActiveCategory(item.title)}
+//                     >
+//                         <h3 className={`text-sm font-semibold mb-2 transition-colors duration-300 
+//                                     ${activeCategory === item.title ? item.color : 'text-gray-600 group-hover:text-gray-800'}`}>
+//                             {item.title}
+//                         </h3>
+//                         <div className="flex justify-center items-center">
+//                             <item.icon className={`text-2xl mr-2 transition-colors duration-300 
+//                                                 ${activeCategory === item.title ? item.color : 'text-gray-400 group-hover:text-gray-600'}`} /> 
+//                             <p className={`text-4xl font-extrabold transition-colors duration-300 
+//                                         ${activeCategory === item.title ? 'text-gray-900' : 'text-gray-700 group-hover:text-gray-900'}`}>
+//                                 {item.count}
+//                             </p>
+//                         </div>
+//                     </div>
+//                 ))}
+//             </div>
+
+//             {/* 3. Área de Detalles Relacionales (Ahora con lógica de clic para modal) */}
+//             <div className="pt-6 border-t-2 border-gray-100">
+//                 {detailKeys.length > 0 ? (
+//                     <>
+//                         <motion.div 
+//                             key={activeCategory + dateRange.start + dateRange.end}
+//                             initial={{ opacity: 0, y: 20 }}
+//                             animate={{ opacity: 1, y: 0 }}
+//                             transition={{ duration: 0.3 }}
+//                             className="mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200 shadow-sm"
+//                         >
+//                             <h4 className="text-lg font-bold text-blue-800 mb-3">
+//                                 <span className="mr-2">🔗</span> Detalles de {activeCategory}:
+//                             </h4>
+                            
+//                             <ul className="space-y-4 text-gray-700">
+//                                 {detailKeys.map((key) => {
+//                                     const item = currentCategoryDetails[key];
+//                                     const itemClass = isClickable 
+//                                         ? "p-3 bg-white rounded-md shadow-sm border border-gray-100 hover:border-blue-500 hover:shadow-md transition duration-150 cursor-pointer"
+//                                         : "p-3 bg-white rounded-md shadow-sm border border-gray-100 transition duration-150";
+
+//                                     return (
+//                                         <li 
+//                                             key={key} 
+//                                             className={itemClass}
+//                                             onClick={isClickable ? () => openModal(key, activeCategory, item.records) : undefined}
+//                                         >
+//                                             <div className="flex justify-between items-center mb-1">
+//                                                 <span className="text-base font-semibold text-gray-800 flex items-center">
+//                                                     <FaChevronRight className="text-blue-500 mr-2 text-sm"/> {key} 
+//                                                 </span>
+//                                                 <span className="text-sm font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+//                                                     {item.totalHours.toFixed(2)}h
+//                                                 </span>
+//                                             </div>
+
+//                                             {/* Detalles Relacionados (Pista de lo que contiene) */}
+//                                             {item.details.length > 0 && (
+//                                                 <div className="ml-5 mt-1 text-sm text-gray-600">
+//                                                     <span className="font-medium mr-2">
+//                                                         {activeCategory === 'Trabajadores' ? 'Cultivos Trabajados:' : 'Relacionado con:'}
+//                                                     </span>
+//                                                     {item.details.slice(0, 3).join(' | ')}
+//                                                     {item.details.length > 3 && ` | y ${item.details.length - 3} más...`}
+//                                                 </div>
+//                                             )}
+//                                         </li>
+//                                     );
+//                                 })}
+//                             </ul>
+                            
+//                         </motion.div>
+
+//                         {/* Totales Generales (Filtrados) */}
+//                         <div className="flex flex-col sm:flex-row justify-around items-center space-y-4 sm:space-y-0 sm:space-x-8 mt-6 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg shadow-inner">
+//                             <div className="flex flex-col items-center">
+//                                 <span className="text-sm text-gray-600 font-medium">Horas Totales (Filtradas)</span>
+//                                 <span className="text-3xl font-extrabold text-green-700 mt-1">{totalHours.toFixed(2)}h</span>
+//                             </div>
+//                             <div className="flex flex-col items-center">
+//                                 <span className="text-sm text-gray-600 font-medium">Coste Total Estimado (Filtrado)</span>
+//                                 <span className="text-3xl font-extrabold text-red-700 mt-1 flex items-center">
+//                                     <FaEuroSign className='text-2xl mr-1'/> {totalCost.toFixed(2)}
+//                                 </span>
+//                             </div>
+//                         </div>
+//                     </>
+//                 ) : (
+//                     <div className="mb-6 flex flex-col items-center justify-center p-8 bg-yellow-50 rounded-lg border border-yellow-200 shadow-inner">
+//                         <p className="text-xl text-yellow-700 font-bold mb-3">
+//                             ⚠️ No hay registros de trabajo para el rango de fechas seleccionado.
+//                         </p>
+//                         <p className="text-gray-600 text-sm">Pruebe a cambiar el rango de fechas para ver el resumen.</p>
+//                     </div>
+//                 )}
+//             </div>
+
+//             {/* 4. Implementación del Modal */}
+//             <DetailModal 
+//                 isOpen={isModalOpen} 
+//                 onClose={closeModal} 
+//                 data={modalData}
+//             />
+//         </div>
+//     );
+// };
+
+// export default SummaryCard;
+
+
 const SummaryCard = ({ timesheets = [] }) => {
     const [activeCategory, setActiveCategory] = useState('Trabajadores');
     const [dateRange, setDateRange] = useState({ start: '', end: '' });
-    
-    // --- NUEVOS ESTADOS PARA EL MODAL ---
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalData, setModalData] = useState(null);
 
-    // Función para abrir el modal al hacer clic en un detalle
     const openModal = useCallback((title, type, records) => {
         setModalData({ title, type, records });
         setIsModalOpen(true);
     }, []);
 
-    // Función para cerrar el modal
     const closeModal = () => {
         setIsModalOpen(false);
         setModalData(null);
     };
 
-    // --- Lógica Principal del SummaryCard (MODIFICADA) ---
+    // --- Lógica Principal del SummaryCard (SIN CAMBIOS) ---
     const { 
         totalHours, totalCost, summaryMap, filteredTimesheets 
     } = useMemo(() => {
         
-        // 1. FILTRADO DE TIMESHEETS
+        // 1. FILTRADO DE TIMESHEETS (MISMO CÓDIGO)
         const filtered = timesheets.filter(record => {
             if (!record || !record.date) return false; 
             const recordDate = record.date; 
@@ -1175,7 +1462,7 @@ const SummaryCard = ({ timesheets = [] }) => {
             return isAfterStart && isBeforeEnd;
         });
 
-        // 2. LÓGICA DE AGREGACIÓN
+        // 2. LÓGICA DE AGREGACIÓN (MISMO CÓDIGO)
         let totalHours = 0;
         let totalCost = 0;
         
@@ -1194,7 +1481,7 @@ const SummaryCard = ({ timesheets = [] }) => {
 
             const { workerName, localName, operationName, machineryId } = record;
             
-            // Trabajadores (Detalles: Cultivos)
+            // Trabajadores
             if (workerName) {
                 if (!summaryMap['Trabajadores'][workerName]) {
                     summaryMap['Trabajadores'][workerName] = { totalHours: 0, details: new Set(), records: [] };
@@ -1203,27 +1490,27 @@ const SummaryCard = ({ timesheets = [] }) => {
                 if (localName) summaryMap['Trabajadores'][workerName].details.add(localName);
             }
 
-            // Cultivos (Detalles: Operaciones y Registros para el Modal)
+            // Cultivos
             if (localName) {
                 if (!summaryMap['Cultivos'][localName]) {
-                    summaryMap['Cultivos'][localName] = { totalHours: 0, details: new Set(), records: [] }; // records para modal
+                    summaryMap['Cultivos'][localName] = { totalHours: 0, details: new Set(), records: [] };
                 }
                 summaryMap['Cultivos'][localName].totalHours += hours;
                 if (operationName) summaryMap['Cultivos'][localName].details.add(operationName);
-                summaryMap['Cultivos'][localName].records.push(record); // Almacenar registro completo
+                summaryMap['Cultivos'][localName].records.push(record);
             }
 
-            // Operación (Detalles: Cultivos y Registros para el Modal)
+            // Operación
             if (operationName) {
                 if (!summaryMap['Operación'][operationName]) {
-                    summaryMap['Operación'][operationName] = { totalHours: 0, details: new Set(), records: [] }; // records para modal
+                    summaryMap['Operación'][operationName] = { totalHours: 0, details: new Set(), records: [] };
                 }
                 summaryMap['Operación'][operationName].totalHours += hours;
-                if (localName) summaryMap['Operación'][operationName].details.add(localName); // Podríamos añadir el worker aquí si es plano
-                summaryMap['Operación'][operationName].records.push(record); // Almacenar registro completo
+                if (localName) summaryMap['Operación'][operationName].details.add(localName);
+                summaryMap['Operación'][operationName].records.push(record);
             }
             
-            // Maquinaria (Detalles: Operaciones/Cultivos)
+            // Maquinaria
             if (machineryId && machineryId.trim() !== '') {
                 if (!summaryMap['Maquinaria'][machineryId]) {
                     summaryMap['Maquinaria'][machineryId] = { totalHours: 0, details: new Set(), records: [] };
@@ -1233,7 +1520,7 @@ const SummaryCard = ({ timesheets = [] }) => {
             }
         });
 
-        // 3. FINALIZAR: Convertir Sets a Arrays
+        // 3. FINALIZAR: Convertir Sets a Arrays (MISMO CÓDIGO)
         Object.keys(summaryMap).forEach(category => {
             Object.keys(summaryMap[category]).forEach(key => {
                 const item = summaryMap[category][key];
@@ -1245,181 +1532,162 @@ const SummaryCard = ({ timesheets = [] }) => {
             totalHours, 
             totalCost, 
             summaryMap,
-            filteredTimesheets: filtered, // Exportar los filtrados para el modal
+            filteredTimesheets: filtered,
         };
     }, [timesheets, dateRange]);
 
 
-    // Extracción de datos para el renderizado
     const currentCategoryDetails = summaryMap[activeCategory] || {};
     const detailKeys = Object.keys(currentCategoryDetails);
 
-    // Definición de contadores usando el conteo real
     const counters = [
-        { title: "Trabajadores", icon: FaUserFriends, color: "text-green-600", bg: "bg-green-50" },
-        { title: "Cultivos", icon: FaSeedling, color: "text-amber-600", bg: "bg-amber-50" },
-        { title: "Operación", icon: FaListAlt, color: "text-blue-600", bg: "bg-blue-50" },
-        { title: "Maquinaria", icon: FaTools, color: "text-indigo-600", bg: "bg-indigo-50" },
+        { title: "Trabajadores", icon: FaUserFriends, color: "text-green-600", activeBorder: "border-green-500" },
+        { title: "Cultivos", icon: FaSeedling, color: "text-amber-600", activeBorder: "border-amber-500" },
+        { title: "Operación", icon: FaListAlt, color: "text-blue-600", activeBorder: "border-blue-500" },
+        { title: "Maquinaria", icon: FaTools, color: "text-indigo-600", activeBorder: "border-indigo-500" },
     ].map(item => ({
         ...item,
         count: Object.keys(summaryMap[item.title] || {}).length
     }));
 
-    // Determina si el elemento de la lista debe ser clickeable para abrir el modal
     const isClickable = activeCategory === 'Cultivos' || activeCategory === 'Operación';
 
     return (
-        <div className="bg-white p-6 rounded-2xl shadow-xl border border-gray-100">
+        // * REDISEÑO 1: Reducción de Padding para mayor compacidad *
+        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-lg border border-gray-100 max-w-6xl mx-auto">
             
-            {/* ... [Resto del Encabezado y Filtro de Fechas, SIN CAMBIOS] ... */}
-            <div className="mb-6 border-b-2 border-gray-100 pb-4">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-                        <FaClock className="text-green-500 mr-3 text-3xl"/> Resumen de Actividades
-                    </h2>
-                    <span className="text-sm text-gray-500 font-medium">Datos filtrados</span>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="flex items-center">
-                        <FaCalendarAlt className='text-blue-600 mr-3 text-xl'/>
-                        <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">Filtrar por Fecha:</span>
-                    </div>
-
-                    <div className="flex flex-1 gap-2">
-                        <input
-                            type="date"
-                            value={dateRange.start}
-                            onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-                            className="w-1/2 p-2 border border-gray-300 rounded-lg text-sm"
-                            placeholder="Desde"
-                        />
-                        <input
-                            type="date"
-                            value={dateRange.end}
-                            onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-                            className="w-1/2 p-2 border border-gray-300 rounded-lg text-sm"
-                            placeholder="Hasta"
-                        />
-                    </div>
+            {/* 1. Encabezado y Filtro de Fechas (Movido y Simplificado) */}
+            <div className="mb-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+                <h2 className="text-xl font-bold text-gray-800 flex items-center mb-3 md:mb-0">
+                    <FaClock className="text-green-500 mr-2 text-2xl"/> Resumen de Actividades
+                </h2>
+                
+                {/* Filtro de Fechas Compacto */}
+                <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg text-sm border border-gray-200">
+                    <FaCalendarAlt className='text-gray-500'/>
+                    <input
+                        type="date"
+                        value={dateRange.start}
+                        onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                        className="p-1 border-0 rounded-md text-sm bg-transparent focus:ring-0 w-28"
+                    />
+                    -
+                    <input
+                        type="date"
+                        value={dateRange.end}
+                        onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                        className="p-1 border-0 rounded-md text-sm bg-transparent focus:ring-0 w-28"
+                    />
                     <button
                         onClick={() => setDateRange({ start: '', end: '' })}
-                        className="p-2 text-sm text-white bg-red-500 rounded-lg hover:bg-red-600 transition duration-150 sm:w-auto"
+                        className="text-xs text-red-500 hover:text-red-700 transition"
+                        title="Restablecer Fechas"
                     >
                         Reset
                     </button>
                 </div>
             </div>
 
-            {/* 2. Grid de Contadores Interactivos */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+            {/* * REDISEÑO 2: Grid de Contadores Interactivos Minimalistas (Similares a las pestañas) * */}
+            <div className="grid grid-cols-4 border-b border-gray-200 mb-4 text-center">
                 {counters.map((item) => (
                     <div 
                         key={item.title} 
                         className={`
-                            group flex flex-col items-center justify-center p-4 rounded-xl cursor-pointer 
-                            transition-all duration-300 ease-in-out transform hover:scale-105 
+                            p-3 cursor-pointer transition-all duration-300 relative
                             ${activeCategory === item.title 
-                                ? `bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-400 shadow-md`
-                                : `bg-gray-50 border border-gray-200 hover:bg-gray-100`}
+                                ? `font-semibold ${item.color}`
+                                : `text-gray-500 hover:text-gray-700`
+                            }
                         `}
                         onClick={() => setActiveCategory(item.title)}
                     >
-                        <h3 className={`text-sm font-semibold mb-2 transition-colors duration-300 
-                                    ${activeCategory === item.title ? item.color : 'text-gray-600 group-hover:text-gray-800'}`}>
-                            {item.title}
-                        </h3>
-                        <div className="flex justify-center items-center">
-                            <item.icon className={`text-2xl mr-2 transition-colors duration-300 
-                                                ${activeCategory === item.title ? item.color : 'text-gray-400 group-hover:text-gray-600'}`} /> 
-                            <p className={`text-4xl font-extrabold transition-colors duration-300 
-                                        ${activeCategory === item.title ? 'text-gray-900' : 'text-gray-700 group-hover:text-gray-900'}`}>
+                        <div className="flex flex-col items-center justify-center">
+                             <item.icon className="text-xl mb-1"/> 
+                            <span className="text-xs sm:text-sm">{item.title}</span>
+                            <p className="text-xl sm:text-2xl font-extrabold mt-1">
                                 {item.count}
                             </p>
                         </div>
+                        {/* Indicador de pestaña activa (línea inferior) */}
+                        {activeCategory === item.title && (
+                            <div className={`absolute bottom-0 left-0 right-0 h-1 ${item.activeBorder} bg-current rounded-t-sm`}></div>
+                        )}
                     </div>
                 ))}
             </div>
 
-            {/* 3. Área de Detalles Relacionales (Ahora con lógica de clic para modal) */}
-            <div className="pt-6 border-t-2 border-gray-100">
+            {/* * REDISEÑO 3: Totales Generales (Movidos para ser más prominentes) * */}
+             {detailKeys.length > 0 && (
+                <div className="flex justify-around items-center p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm mb-6">
+                    <div className="flex flex-col items-center p-2 border-r border-gray-300 flex-1">
+                        <span className="text-sm text-gray-600 font-medium">Horas Totales</span>
+                        <span className="text-2xl font-extrabold text-green-700 mt-1">{totalHours.toFixed(2)}h</span>
+                    </div>
+                    <div className="flex flex-col items-center p-2 flex-1">
+                        <span className="text-sm text-gray-600 font-medium">Coste Estimado</span>
+                        <span className="text-2xl font-extrabold text-red-700 mt-1 flex items-center">
+                            <FaEuroSign className='text-xl mr-1'/> {totalCost.toFixed(2)}
+                        </span>
+                    </div>
+                </div>
+            )}
+            
+            {/* * REDISEÑO 4: Área de Detalles Relacionales (Más limpia) * */}
+            <div className="pt-2">
                 {detailKeys.length > 0 ? (
-                    <>
-                        <motion.div 
-                            key={activeCategory + dateRange.start + dateRange.end}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200 shadow-sm"
-                        >
-                            <h4 className="text-lg font-bold text-blue-800 mb-3">
-                                <span className="mr-2">🔗</span> Detalles de {activeCategory}:
-                            </h4>
-                            
-                            <ul className="space-y-4 text-gray-700">
-                                {detailKeys.map((key) => {
-                                    const item = currentCategoryDetails[key];
-                                    const itemClass = isClickable 
-                                        ? "p-3 bg-white rounded-md shadow-sm border border-gray-100 hover:border-blue-500 hover:shadow-md transition duration-150 cursor-pointer"
-                                        : "p-3 bg-white rounded-md shadow-sm border border-gray-100 transition duration-150";
+                    // Aquí puedes volver a usar motion.div si está disponible
+                    <div className="p-4 bg-white rounded-lg border border-gray-100">
+                        <h4 className="text-md font-bold text-gray-700 mb-4">
+                            Listado de {activeCategory} ({detailKeys.length})
+                        </h4>
+                        
+                        <ul className="space-y-3 max-h-80 overflow-y-auto pr-2">
+                            {detailKeys.map((key) => {
+                                const item = currentCategoryDetails[key];
+                                const itemClass = isClickable 
+                                    ? "p-3 bg-white rounded-md border border-gray-200 hover:bg-blue-50 hover:border-blue-300 transition duration-150 cursor-pointer"
+                                    : "p-3 bg-white rounded-md border border-gray-200 transition duration-150";
 
-                                    return (
-                                        <li 
-                                            key={key} 
-                                            className={itemClass}
-                                            onClick={isClickable ? () => openModal(key, activeCategory, item.records) : undefined}
-                                        >
-                                            <div className="flex justify-between items-center mb-1">
-                                                <span className="text-base font-semibold text-gray-800 flex items-center">
-                                                    <FaChevronRight className="text-blue-500 mr-2 text-sm"/> {key} 
-                                                </span>
-                                                <span className="text-sm font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                                return (
+                                    <li 
+                                        key={key} 
+                                        className={itemClass}
+                                        onClick={isClickable ? () => openModal(key, activeCategory, item.records) : undefined}
+                                    >
+                                        <div className="flex justify-between items-start">
+                                            <span className="text-base font-semibold text-gray-800 leading-tight pr-4">
+                                                {key} 
+                                                <div className="mt-0.5 text-xs text-gray-500 font-normal">
+                                                     {item.details.slice(0, 2).join(' | ')}
+                                                     {item.details.length > 2 && ` | +${item.details.length - 2}`}
+                                                </div>
+                                            </span>
+                                            <div className="text-right flex-shrink-0">
+                                                <span className="text-sm font-bold text-green-700 whitespace-nowrap">
                                                     {item.totalHours.toFixed(2)}h
                                                 </span>
+                                                {isClickable && (
+                                                    <FaChevronRight className="text-gray-400 ml-2 text-sm inline-block"/>
+                                                )}
                                             </div>
-
-                                            {/* Detalles Relacionados (Pista de lo que contiene) */}
-                                            {item.details.length > 0 && (
-                                                <div className="ml-5 mt-1 text-sm text-gray-600">
-                                                    <span className="font-medium mr-2">
-                                                        {activeCategory === 'Trabajadores' ? 'Cultivos Trabajados:' : 'Relacionado con:'}
-                                                    </span>
-                                                    {item.details.slice(0, 3).join(' | ')}
-                                                    {item.details.length > 3 && ` | y ${item.details.length - 3} más...`}
-                                                </div>
-                                            )}
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                            
-                        </motion.div>
-
-                        {/* Totales Generales (Filtrados) */}
-                        <div className="flex flex-col sm:flex-row justify-around items-center space-y-4 sm:space-y-0 sm:space-x-8 mt-6 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg shadow-inner">
-                            <div className="flex flex-col items-center">
-                                <span className="text-sm text-gray-600 font-medium">Horas Totales (Filtradas)</span>
-                                <span className="text-3xl font-extrabold text-green-700 mt-1">{totalHours.toFixed(2)}h</span>
-                            </div>
-                            <div className="flex flex-col items-center">
-                                <span className="text-sm text-gray-600 font-medium">Coste Total Estimado (Filtrado)</span>
-                                <span className="text-3xl font-extrabold text-red-700 mt-1 flex items-center">
-                                    <FaEuroSign className='text-2xl mr-1'/> {totalCost.toFixed(2)}
-                                </span>
-                            </div>
-                        </div>
-                    </>
+                                        </div>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                        
+                    </div>
                 ) : (
-                    <div className="mb-6 flex flex-col items-center justify-center p-8 bg-yellow-50 rounded-lg border border-yellow-200 shadow-inner">
-                        <p className="text-xl text-yellow-700 font-bold mb-3">
-                            ⚠️ No hay registros de trabajo para el rango de fechas seleccionado.
+                    <div className="mb-6 flex flex-col items-center justify-center p-8 bg-gray-50 rounded-lg border border-gray-200 shadow-inner">
+                        <p className="text-xl text-gray-700 font-bold mb-3">
+                            ⚠️ No se encontraron registros de {activeCategory}.
                         </p>
-                        <p className="text-gray-600 text-sm">Pruebe a cambiar el rango de fechas para ver el resumen.</p>
+                        <p className="text-gray-500 text-sm">Pruebe a seleccionar otra categoría o cambiar el rango de fechas.</p>
                     </div>
                 )}
             </div>
 
-            {/* 4. Implementación del Modal */}
             <DetailModal 
                 isOpen={isModalOpen} 
                 onClose={closeModal} 
