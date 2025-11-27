@@ -76,7 +76,7 @@ const HoraTrabajador = () => {
             opacity-100
           "
         >
-          Estamos realizando un **mantenimiento programado** para implementar mejoras significativas. Agradecemos tu paciencia y comprensión.
+          Estamos realizando un mantenimiento programado para implementar mejoras significativas. Agradecemos tu paciencia y comprensión.
         </p>
         
         {/* Información de tiempo o contacto (adaptable) */}
@@ -91,7 +91,7 @@ const HoraTrabajador = () => {
           "
         >
           <p className="text-indigo-800 font-semibold text-base sm:text-lg">
-            Tiempo estimado de finalización: **En menos de 4 horas**.
+            Tiempo estimado de finalización: En menos de 4 horas.
           </p>
         </div>
         

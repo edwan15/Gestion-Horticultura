@@ -66,7 +66,7 @@ const DateRangeSummary = ({ dailyData }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div className="space-y-1">
                     <label htmlFor="start-date" className="flex items-center text-sm font-medium text-gray-700">
-                        <FaCalendarAlt className="mr-1 text-gray-500" /> Fecha de **Inicio**
+                        <FaCalendarAlt className="mr-1 text-gray-500" /> Fecha de Inicio
                     </label>
                     <input
                         type="date"
@@ -79,7 +79,7 @@ const DateRangeSummary = ({ dailyData }) => {
                 </div>
                 <div className="space-y-1">
                     <label htmlFor="end-date" className="flex items-center text-sm font-medium text-gray-700">
-                        <FaCalendarAlt className="mr-1 text-gray-500" /> Fecha **Final**
+                        <FaCalendarAlt className="mr-1 text-gray-500" /> Fecha Final
                     </label>
                     <input
                         type="date"
@@ -108,7 +108,7 @@ const DateRangeSummary = ({ dailyData }) => {
                         </span>
                     </div>
                     <p className="text-xs italic text-gray-500 mt-2">
-                        Se encontraron **{summary.days} días** con registros en el rango seleccionado.
+                        Se encontraron {summary.days} días con registros en el rango seleccionado.
                     </p>
                 </div>
             ) : (

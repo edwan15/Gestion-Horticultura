@@ -579,11 +579,168 @@
 
 
 
+// import React,{useState,useEffect} from "react";
+// import {useDispatch,useSelector} from "react-redux";
+// import {motion} from "framer-motion";
+// import {BiDollar,BiCategory,BiErrorCircle} from "react-icons/bi";
+// import {FaBoxes} from "react-icons/fa";
+// import {
+//   selectTotalStoreValue,
+//   selectOutStock,
+//   selectCategory,
+//   CALC_STORE_VALUE,
+//   CALC_STORE_OUTOFSTOCK,
+//   CALC_CATEGOTY,
+// } from "../../../features/product/ProductSlice";
+// import Card from "../../Caja.js/Card";
+
+// const cardVariants = {
+//   hidden: {opacity: 0,scale: 0.9},
+//   visible: {opacity: 1,scale: 1},
+// };
+
+// const AnimatedDetailCard = ({
+//   icon,
+//   title,
+//   count,
+//   detailTitle,
+//   detailContent,
+//   delay,
+// }) => {
+//   const [isHovered,setIsHovered] = useState(false);
+
+//   return (
+//     <motion.div
+//       className="relative"
+//       onMouseEnter={() => setIsHovered(true)}
+//       onMouseLeave={() => setIsHovered(false)}
+//       variants={cardVariants}
+//       initial="hidden"
+//       animate="visible"
+//       transition={{
+//         duration: 0.6,
+//         delay: delay,
+//         type: "spring",
+//         stiffness: 150,
+//       }}
+//     >
+//       <Card
+//         icon={icon}
+//         title={title}
+//         count={count}
+//         className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-indigo-500 transition duration-300 hover:shadow-2xl cursor-pointer"
+//       />
+//       {isHovered && (
+//         <div
+//           className="absolute z-10 p-4 mt-2 w-60 bg-gray-800 text-white rounded-xl shadow-2xl border-2 border-indigo-400
+//                      sm:w-80 md:w-96
+//                      top-full left-1/2 transform -translate-x-1/2 transition-opacity duration-300"
+//         >
+//           <h4 className="text-lg font-bold text-indigo-300 mb-2 border-b border-indigo-600 pb-1">
+//             {detailTitle}
+//           </h4>
+//           <p className="text-sm text-gray-200">{detailContent}</p>
+//           <div className="absolute w-3 h-3 bg-gray-800 border-t-2 border-l-2 border-indigo-400 transform rotate-45 -top-1 left-1/2 -translate-x-1/2"></div>
+//         </div>
+//       )}
+//     </motion.div>
+//   );
+// };
+
+// const totalUniqueProducts = <FaBoxes />;
+// const totalProductValue = <BiDollar />;
+// const outOfStockIcon = <BiErrorCircle />;
+// const totalCategories = <BiCategory />;
+
+// export const formatNumbers = (x) => {
+//   if (typeof x !== "number") return x;
+//   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+// };
+
+// const ProductSumer = ({products}) => {
+//   const dispatch = useDispatch();
+//   const totalStore = useSelector(selectTotalStoreValue);
+//   const stockProduct = useSelector(selectOutStock);
+//   const category = useSelector(selectCategory);
+
+//   useEffect(() => {
+//     dispatch(CALC_STORE_VALUE(products));
+//     dispatch(CALC_STORE_OUTOFSTOCK(products));
+//     dispatch(CALC_CATEGOTY(products));
+//   }, [dispatch,products]);
+
+//   const getCategoryNames = () => {
+//     if (!category || category.length === 0)
+//       return "Ninguna categoría registrada.";
+//     const names = category.slice(0, 3).join(", ");
+//     return category.length > 3
+//       ? `${names} y ${category.length - 3} más.`
+//       : names + ".";
+//   };
+
+//   return (
+//     <div className="p-4 rounded-xl">
+//       <h2 className="text-2xl font-extrabold text-gray-800 mb-6 border-b pb-2">
+//         📦 Resumen del Inventario
+//       </h2>
+//       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+//         <AnimatedDetailCard
+//           icon={totalUniqueProducts}
+//           title="Productos Únicos"
+//           count={products.length}
+//           detailTitle="Diversidad del Inventario"
+//           detailContent={`Tienes un total de ${products.length} productos diferentes registrados en tu sistema. Cada uno representa un SKU único.`}
+//           delay={0}
+//         />
+//         <AnimatedDetailCard
+//           icon={totalProductValue}
+//           title={"Valor Monetario"}
+//           count={`$${formatNumbers(totalStore)}`}
+//           detailTitle="Valor Estimado de Compra"
+//           detailContent={`El valor total de compra de todo tu stock es de $${formatNumbers(
+//             totalStore
+//           )}. Este valor es clave para la contabilidad.`}
+//           delay={0.1}
+//         />
+//         <AnimatedDetailCard
+//           icon={outOfStockIcon}
+//           title={"¡Stock Crítico!"}
+//           count={stockProduct}
+//           detailTitle="Alerta de Productos Agotados"
+//           detailContent={
+//             stockProduct > 0
+//               ? `¡Atención! ${stockProduct} productos están agotados (stock 0 o menos). Prioriza la reposición.`
+//               : `Status: Óptimo. Ningún producto está actualmente agotado.`
+//           }
+//           delay={0.2}
+//         />
+//         <AnimatedDetailCard
+//           icon={totalCategories}
+//           title={"Total de Categorías"}
+//           count={category.length}
+//           detailTitle="Organización del Inventario"
+//           detailContent={`El inventario se clasifica en ${
+//             category.length
+//           } grupos. Principales categorías: ${getCategoryNames()}`}
+//           delay={0.3}
+//         />
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default ProductSumer;
+
+
+
 import React,{useState,useEffect} from "react";
 import {useDispatch,useSelector} from "react-redux";
 import {motion} from "framer-motion";
 import {BiDollar,BiCategory,BiErrorCircle} from "react-icons/bi";
 import {FaBoxes} from "react-icons/fa";
+// 📌 Nuevos iconos para categorías específicas
+import { FaSprayCan, FaSeedling, FaFlask } from 'react-icons/fa6'; 
+
 import {
   selectTotalStoreValue,
   selectOutStock,
@@ -591,60 +748,66 @@ import {
   CALC_STORE_VALUE,
   CALC_STORE_OUTOFSTOCK,
   CALC_CATEGOTY,
+  // 📌 Nuevas importaciones de Redux Slice
+  CALC_SPECIFIC_CATEGORY_COUNTS,
+  selectSpecificCategoryCounts,
 } from "../../../features/product/ProductSlice";
 import Card from "../../Caja.js/Card";
 
 const cardVariants = {
-  hidden: {opacity: 0,scale: 0.9},
-  visible: {opacity: 1,scale: 1},
+  hidden: {opacity: 0,scale: 0.9},
+  visible: {opacity: 1,scale: 1},
 };
 
 const AnimatedDetailCard = ({
-  icon,
-  title,
-  count,
-  detailTitle,
-  detailContent,
-  delay,
+  icon,
+  title,
+  count,
+  detailTitle,
+  detailContent,
+  delay,
+  onClick, // Añadido para interactividad futura
 }) => {
-  const [isHovered,setIsHovered] = useState(false);
+  const [isHovered,setIsHovered] = useState(false);
 
-  return (
-    <motion.div
-      className="relative"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      variants={cardVariants}
-      initial="hidden"
-      animate="visible"
-      transition={{
-        duration: 0.6,
-        delay: delay,
-        type: "spring",
-        stiffness: 150,
-      }}
-    >
-      <Card
-        icon={icon}
-        title={title}
-        count={count}
-        className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-indigo-500 transition duration-300 hover:shadow-2xl cursor-pointer"
-      />
-      {isHovered && (
-        <div
-          className="absolute z-10 p-4 mt-2 w-60 bg-gray-800 text-white rounded-xl shadow-2xl border-2 border-indigo-400
-                     sm:w-80 md:w-96
-                     top-full left-1/2 transform -translate-x-1/2 transition-opacity duration-300"
-        >
-          <h4 className="text-lg font-bold text-indigo-300 mb-2 border-b border-indigo-600 pb-1">
-            {detailTitle}
-          </h4>
-          <p className="text-sm text-gray-200">{detailContent}</p>
-          <div className="absolute w-3 h-3 bg-gray-800 border-t-2 border-l-2 border-indigo-400 transform rotate-45 -top-1 left-1/2 -translate-x-1/2"></div>
-        </div>
-      )}
-    </motion.div>
-  );
+  return (
+    <motion.div
+      className="relative"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      variants={cardVariants}
+      initial="hidden"
+      animate="visible"
+      transition={{
+        duration: 0.6,
+        delay: delay,
+        type: "spring",
+        stiffness: 150,
+      }}
+      // Permite hacer clic en la tarjeta
+      onClick={onClick}
+    >
+      <Card
+        icon={icon}
+        title={title}
+        count={count}
+        className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-indigo-500 transition duration-300 hover:shadow-2xl cursor-pointer"
+      />
+      {isHovered && (
+        <div
+          className="absolute z-10 p-4 mt-2 w-60 bg-gray-800 text-white rounded-xl shadow-2xl border-2 border-indigo-400
+                     sm:w-80 md:w-96
+                     top-full left-1/2 transform -translate-x-1/2 transition-opacity duration-300"
+        >
+          <h4 className="text-lg font-bold text-indigo-300 mb-2 border-b border-indigo-600 pb-1">
+            {detailTitle}
+          </h4>
+          <p className="text-sm text-gray-200">{detailContent}</p>
+          <div className="absolute w-3 h-3 bg-gray-800 border-t-2 border-l-2 border-indigo-400 transform rotate-45 -top-1 left-1/2 -translate-x-1/2"></div>
+        </div>
+      )}
+    </motion.div>
+  );
 };
 
 const totalUniqueProducts = <FaBoxes />;
@@ -653,80 +816,132 @@ const outOfStockIcon = <BiErrorCircle />;
 const totalCategories = <BiCategory />;
 
 export const formatNumbers = (x) => {
-  if (typeof x !== "number") return x;
-  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  if (typeof x !== "number") return x;
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
 const ProductSumer = ({products}) => {
-  const dispatch = useDispatch();
-  const totalStore = useSelector(selectTotalStoreValue);
-  const stockProduct = useSelector(selectOutStock);
-  const category = useSelector(selectCategory);
+  const dispatch = useDispatch();
+  const totalStore = useSelector(selectTotalStoreValue);
+  const stockProduct = useSelector(selectOutStock);
+  const category = useSelector(selectCategory);
+  // 📌 Obtener el nuevo estado de conteo específico
+  const specificCounts = useSelector(selectSpecificCategoryCounts); 
 
-  useEffect(() => {
-    dispatch(CALC_STORE_VALUE(products));
-    dispatch(CALC_STORE_OUTOFSTOCK(products));
-    dispatch(CALC_CATEGOTY(products));
-  }, [dispatch,products]);
+  useEffect(() => {
+    dispatch(CALC_STORE_VALUE(products));
+    dispatch(CALC_STORE_OUTOFSTOCK(products));
+    dispatch(CALC_CATEGOTY(products));
+    // 📌 Despachar la nueva acción de cálculo
+    dispatch(CALC_SPECIFIC_CATEGORY_COUNTS(products)); 
+  }, [dispatch,products]);
 
-  const getCategoryNames = () => {
-    if (!category || category.length === 0)
-      return "Ninguna categoría registrada.";
-    const names = category.slice(0, 3).join(", ");
-    return category.length > 3
-      ? `${names} y ${category.length - 3} más.`
-      : names + ".";
-  };
+  const getCategoryNames = () => {
+    if (!category || category.length === 0)
+      return "Ninguna categoría registrada.";
+    const names = category.slice(0, 3).join(", ");
+    return category.length > 3
+      ? `${names} y ${category.length - 3} más.`
+      : names + ".";
+  };
 
-  return (
-    <div className="p-4 rounded-xl">
-      <h2 className="text-2xl font-extrabold text-gray-800 mb-6 border-b pb-2">
-        📦 Resumen del Inventario
-      </h2>
+  return (
+    <div className="p-4 rounded-xl">
+      <h2 className="text-2xl font-extrabold text-gray-800 mb-6 border-b pb-2">
+        📦 Resumen General del Inventario
+      </h2>
+      
+      {/* --- FILA 1: Tarjetas de Resumen General --- */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        <AnimatedDetailCard
+          icon={totalUniqueProducts}
+          title="Productos Únicos"
+          count={products.length}
+          detailTitle="Diversidad del Inventario"
+          detailContent={`Tienes un total de ${products.length} productos diferentes registrados en tu sistema. Cada uno representa un SKU único.`}
+          delay={0}
+        />
+        <AnimatedDetailCard
+          icon={totalProductValue}
+          title={"Stock Total"}
+          // Nota: El slice calcula el total de unidades (entradas - salidas)
+          count={`${formatNumbers(totalStore)} Unds.`} 
+          detailTitle="Conteo Total de Unidades"
+          detailContent={`El total de unidades de stock es de ${formatNumbers(
+            totalStore
+          )} unidades. Este valor es clave para la contabilidad.`}
+          delay={0.1}
+        />
+        <AnimatedDetailCard
+          icon={outOfStockIcon}
+          title={"¡Stock Crítico!"}
+          count={stockProduct}
+          detailTitle="Alerta de Productos Agotados"
+          detailContent={
+            stockProduct > 0
+              ? `¡Atención! ${stockProduct} productos están agotados (stock 0 o menos). Prioriza la reposición.`
+              : `Status: Óptimo. Ningún producto está actualmente agotado.`
+          }
+          delay={0.2}
+        />
+        <AnimatedDetailCard
+          icon={totalCategories}
+          title={"Total de Categorías"}
+          count={category.length}
+          detailTitle="Organización del Inventario"
+          detailContent={`El inventario se clasifica en ${
+            category.length
+          } grupos. Principales categorías: ${getCategoryNames()}`}
+          delay={0.3}
+        />
+      </div>
+      
+      {/* --- SEPARADOR Y TÍTULO PARA CATEGORÍAS ESPECÍFICAS --- */}
+      <h3 className="text-xl font-extrabold text-gray-800 mt-8 mb-6 border-b pb-2">
+        Análisis por Categorías de Insumos 🌱
+      </h3>
+
+      {/* --- FILA 2: Tarjetas de Categorías Específicas --- */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        
         <AnimatedDetailCard
-          icon={totalUniqueProducts}
-          title="Productos Únicos"
-          count={products.length}
-          detailTitle="Diversidad del Inventario"
-          detailContent={`Tienes un total de ${products.length} productos diferentes registrados en tu sistema. Cada uno representa un SKU único.`}
-          delay={0}
+          icon={<FaSprayCan className="text-green-600"/>}
+          title="Fitosanitarios"
+          count={specificCounts.Fitosanitarios}
+          detailTitle="Total de Fitosanitarios"
+          detailContent={`Tienes ${specificCounts.Fitosanitarios} tipos de productos Fitosanitarios en tu stock.`}
+          delay={0.4}
         />
+        
         <AnimatedDetailCard
-          icon={totalProductValue}
-          title={"Valor Monetario"}
-          count={`$${formatNumbers(totalStore)}`}
-          detailTitle="Valor Estimado de Compra"
-          detailContent={`El valor total de compra de todo tu stock es de $${formatNumbers(
-            totalStore
-          )}. Este valor es clave para la contabilidad.`}
-          delay={0.1}
+          icon={<FaSeedling className="text-yellow-600"/>}
+          title="Fertilizantes"
+          count={specificCounts.Fertilizantes}
+          detailTitle="Total de Fertilizantes"
+          detailContent={`Tienes ${specificCounts.Fertilizantes} tipos de Fertilizantes en tu stock.`}
+          delay={0.5}
         />
+
         <AnimatedDetailCard
-          icon={outOfStockIcon}
-          title={"¡Stock Crítico!"}
-          count={stockProduct}
-          detailTitle="Alerta de Productos Agotados"
-          detailContent={
-            stockProduct > 0
-              ? `¡Atención! ${stockProduct} productos están agotados (stock 0 o menos). Prioriza la reposición.`
-              : `Status: Óptimo. Ningún producto está actualmente agotado.`
-          }
-          delay={0.2}
+          icon={<FaFlask className="text-blue-600"/>}
+          title="Trampas / Monitoreo"
+          count={specificCounts.Trampas}
+          detailTitle="Total de Trampas y Monitoreo"
+          detailContent={`Tienes ${specificCounts.Trampas} tipos de productos registrados para Monitoreo o Trampas.`}
+          delay={0.6}
         />
+        
         <AnimatedDetailCard
           icon={totalCategories}
-          title={"Total de Categorías"}
-          count={category.length}
-          detailTitle="Organización del Inventario"
-          detailContent={`El inventario se clasifica en ${
-            category.length
-          } grupos. Principales categorías: ${getCategoryNames()}`}
-          delay={0.3}
+          title="Otras Categorías"
+          count={specificCounts.Otros}
+          detailTitle="Productos Restantes"
+          detailContent={`Existen ${specificCounts.Otros} tipos de productos en otras categorías no clasificadas como Fitosanitarios, Fertilizantes o Trampas.`}
+          delay={0.7}
         />
       </div>
-    </div>
-  );
+    </div>
+  );
 };
 
 export default ProductSumer;

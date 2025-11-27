@@ -1000,18 +1000,256 @@
 // };
 
 
+// import { db } from "../../firebaseConfig";
+// // Nota: Ya no necesitamos importar 'storage', 'ref', 'uploadBytes', 'getDownloadURL' de Firebase Storage
+// import {
+//     collection,
+//     addDoc,
+//     getDocs,
+//     doc,
+//     deleteDoc,
+//     getDoc,
+//     updateDoc,
+//     query,
+//     where
+// } from "firebase/firestore";
+// import { toast } from "react-toastify";
+
+// // Referencia a la colección principal de productos
+// const productsCollectionRef = collection(db, "products");
+
+// // Campo que guarda el ID del propietario en Firestore
+// const USER_ID_FIELD = "userId"; 
+
+// // 🚨 CONFIGURACIÓN DE CLOUDINARY (USANDO TUS VALORES) 🚨
+// const CLOUD_NAME = "ddoeotuge";
+// const UPLOAD_PRESET = "presentacion12"; // Tu Upload Preset Unsigned
+// const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
+
+// // ======================================================================
+// // 🚀 FUNCIÓN AUXILIAR PARA SUBIR LA IMAGEN A CLOUDINARY
+// // Utiliza la misma lógica de 'fetch' que ya tenías en tu componente.
+// // Recibe un objeto File (la imagen) y devuelve la URL de subida.
+// // ======================================================================
+// const uploadImageToCloudinary = async (file) => {
+//     if (!file || !(file instanceof File)) {
+//         throw new Error("El archivo de imagen no es válido para subir a Cloudinary.");
+//     }
+
+//     const data = new FormData();
+//     data.append('file', file);
+//     data.append('upload_preset', UPLOAD_PRESET);
+    
+//     try {
+//         console.log("Iniciando subida de imagen a Cloudinary...");
+        
+//         const response = await fetch(CLOUDINARY_URL, {
+//             method: 'POST',
+//             body: data
+//         });
+
+//         if (!response.ok) {
+//             const errorText = await response.text();
+//             throw new Error(`Cloudinary API error: ${response.status} - ${errorText}`);
+//         }
+
+//         const fileData = await response.json(); 
+        
+//         console.log("Subida a Cloudinary exitosa. URL:", fileData.secure_url);
+//         return fileData.secure_url; 
+        
+//     } catch (error) {
+//         console.error("Error al subir la imagen a Cloudinary:", error);
+//         // Propagamos un error más amigable para el usuario
+//         throw new Error("Fallo la subida de la imagen a Cloudinary.");
+//     }
+// };
+
+
+// // ======================================================================
+// // 1. CREATE PRODUCT (MODIFICADO para Cloudinary)
+// // ======================================================================
+// // Recibe productData (asumiendo que el Thunk ya hizo la conversión a objeto plano)
+// const createProduct = async (productData) => {
+//     try {
+//         let imageURL = productData.image || "";
+
+//         // 🚨 Subir la imagen si existe un objeto File 🚨
+//         if (imageURL instanceof File) {
+//             imageURL = await uploadImageToCloudinary(imageURL);
+//         } else {
+//              imageURL = imageURL.toString(); 
+//         }
+
+//         if (!productData[USER_ID_FIELD]) {
+//             throw new Error("El ID de usuario es nulo. No se pudo guardar el producto.");
+//         }
+        
+//         // Formateo de datos numéricos
+//         const entradas = Number(productData.entradas) || 0;
+//         const salidas = Number(productData.salidas) || 0;
+
+//         const productToSave = {
+//             ...productData, 
+//             entradas,
+//             salidas,
+//             image: imageURL, // Reemplazamos el File por la URL de Cloudinary
+//             [USER_ID_FIELD]: productData[USER_ID_FIELD], 
+//             createdAt: new Date().toISOString(),
+//         };
+
+//         // Limpieza de seguridad
+//         if (productToSave.image instanceof File) {
+//              delete productToSave.image; 
+//         }
+
+//         const docRef = await addDoc(productsCollectionRef, productToSave);
+
+//         toast.success("Producto creado exitosamente.");
+//         return {
+//             id: docRef.id,
+//             ...productToSave
+//         };
+
+//     } catch (error) {
+//         console.error("Error creating product in Firestore:", error);
+//         toast.error("Error al crear el producto: " + error.message); 
+//         throw new Error(error.message || "Error al intentar crear el producto en la base de datos.");
+//     }
+// };
+
+// // ======================================================================
+// // 5. UPDATE PRODUCT (MODIFICADO para Cloudinary)
+// // ======================================================================
+// const updateProduct = async (id, productData) => {
+    
+//     let updateObject = { ...productData };
+    
+//     try {
+//         const docRef = doc(db, "products", id);
+        
+//         // ----------------------------------------------------
+//         // 🚨 MANEJO DE LA IMAGEN CON CLOUDINARY 🚨
+//         // ----------------------------------------------------
+        
+//         // Verificar si 'image' es un objeto File (es decir, una nueva imagen)
+//         if (updateObject.image && updateObject.image instanceof File) {
+            
+//             // Subir la nueva imagen a Cloudinary
+//             const downloadURL = await uploadImageToCloudinary(updateObject.image);
+            
+//             // Reemplazar el objeto File con la URL de descarga
+//             updateObject.image = downloadURL; 
+
+//         } else {
+//              // Si no es un File, se asegura que sea un string.
+//              updateObject.image = updateObject.image ? updateObject.image.toString() : "";
+//         }
+        
+//         // Formateo de datos numéricos
+//         updateObject.entradas = Number(updateObject.entradas) || 0;
+//         updateObject.salidas = Number(updateObject.salidas) || 0;
+
+//         // Limpieza final
+//         if (updateObject.image instanceof File) {
+//             delete updateObject.image; 
+//         }
+
+//         // ----------------------------------------------------
+//         // 3. ACTUALIZACIÓN DE FIRESTORE
+//         // ----------------------------------------------------
+//         await updateDoc(docRef, updateObject); 
+
+//         const updatedDoc = await getDoc(docRef);
+//         return { id: updatedDoc.id, ...updatedDoc.data() };
+
+//     } catch (error) {
+//         console.error("Error updating product:", error);
+//         toast.error("Error al actualizar el producto: " + error.message);
+//         throw new Error("Error al actualizar el producto.");
+//     }
+// };
+
+
+// // ======================================================================
+// // 2, 3, 4. GET ALL, DELETE, GET SINGLE PRODUCTS (Sin cambios)
+// // ======================================================================
+// const getProducts = async ({ userId, mode }) => {
+//     let q;
+//     if (mode === "all") {
+//         q = productsCollectionRef;
+//     } else if (mode === "own" && userId && typeof userId === 'string' && userId !== 'null') {
+//         q = query(productsCollectionRef, where(USER_ID_FIELD, "==", userId)); 
+//     } else if (mode === "own") {
+//         throw new Error("Parámetros de consulta de productos insuficientes.");
+//     } else {
+//         q = productsCollectionRef; 
+//     }
+
+//     try {
+//         const querySnapshot = await getDocs(q);
+//         const productsList = querySnapshot.docs.map(doc => ({
+//             id: doc.id,
+//             ...doc.data()
+//         }));
+//         return productsList;
+//     } catch (error) {
+//         console.error("Error fetching products from Firestore:", error);
+//         throw new Error("Error al obtener productos de la base de datos.");
+//     }
+// };
+
+// const deleteProduct = async (id) => {
+//     try {
+//         const docRef = doc(db, "products", id);
+//         await deleteDoc(docRef);
+//         return id;
+//     } catch (error) {
+//         console.error("Error deleting product:", error);
+//         throw new Error("Error al eliminar el producto.");
+//     }
+// };
+
+// const getProduct = async (id) => {
+//     try {
+//         const docRef = doc(db, "products", id);
+//         const docSnap = await getDoc(docRef);
+
+//         if (docSnap.exists()) {
+//             return { id: docSnap.id, ...docSnap.data() };
+//         } else {
+//             throw new Error("Producto no encontrado.");
+//         }
+//     } catch (error) {
+//         console.error("Error fetching single product:", error);
+//         throw new Error("Error al obtener el producto.");
+//     }
+// };
+// // ======================================================================
+
+
+// export const productService = {
+//     createProduct,
+//     deleteProduct,
+//     getProduct,
+//     updateProduct,
+//     getProducts
+// };
+
+
+
+
 import { db } from "../../firebaseConfig";
-// Nota: Ya no necesitamos importar 'storage', 'ref', 'uploadBytes', 'getDownloadURL' de Firebase Storage
 import {
-    collection,
-    addDoc,
-    getDocs,
-    doc,
-    deleteDoc,
-    getDoc,
-    updateDoc,
-    query,
-    where
+    collection,
+    addDoc,
+    getDocs,
+    doc,
+    deleteDoc,
+    getDoc,
+    updateDoc,
+    query,
+    where
 } from "firebase/firestore";
 import { toast } from "react-toastify";
 
@@ -1023,215 +1261,224 @@ const USER_ID_FIELD = "userId";
 
 // 🚨 CONFIGURACIÓN DE CLOUDINARY (USANDO TUS VALORES) 🚨
 const CLOUD_NAME = "ddoeotuge";
-const UPLOAD_PRESET = "presentacion12"; // Tu Upload Preset Unsigned
+const UPLOAD_PRESET = "presentacion12"; 
 const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
 
 // ======================================================================
 // 🚀 FUNCIÓN AUXILIAR PARA SUBIR LA IMAGEN A CLOUDINARY
-// Utiliza la misma lógica de 'fetch' que ya tenías en tu componente.
-// Recibe un objeto File (la imagen) y devuelve la URL de subida.
 // ======================================================================
 const uploadImageToCloudinary = async (file) => {
-    if (!file || !(file instanceof File)) {
-        throw new Error("El archivo de imagen no es válido para subir a Cloudinary.");
-    }
+    if (!file || !(file instanceof File)) {
+        throw new Error("El archivo de imagen no es válido para subir a Cloudinary.");
+    }
 
-    const data = new FormData();
-    data.append('file', file);
-    data.append('upload_preset', UPLOAD_PRESET);
-    
-    try {
-        console.log("Iniciando subida de imagen a Cloudinary...");
-        
-        const response = await fetch(CLOUDINARY_URL, {
-            method: 'POST',
-            body: data
-        });
+    const data = new FormData();
+    data.append('file', file);
+    data.append('upload_preset', UPLOAD_PRESET);
+    
+    try {
+        console.log("Iniciando subida de imagen a Cloudinary...");
+        
+        const response = await fetch(CLOUDINARY_URL, {
+            method: 'POST',
+            body: data
+        });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Cloudinary API error: ${response.status} - ${errorText}`);
-        }
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Cloudinary API error: ${response.status} - ${errorText}`);
+        }
 
-        const fileData = await response.json(); 
-        
-        console.log("Subida a Cloudinary exitosa. URL:", fileData.secure_url);
-        return fileData.secure_url; 
-        
-    } catch (error) {
-        console.error("Error al subir la imagen a Cloudinary:", error);
-        // Propagamos un error más amigable para el usuario
-        throw new Error("Fallo la subida de la imagen a Cloudinary.");
-    }
+        const fileData = await response.json(); 
+        
+        console.log("Subida a Cloudinary exitosa. URL:", fileData.secure_url);
+        return fileData.secure_url; 
+        
+    } catch (error) {
+        console.error("Error al subir la imagen a Cloudinary:", error);
+        throw new Error("Fallo la subida de la imagen a Cloudinary.");
+    }
 };
 
 
 // ======================================================================
-// 1. CREATE PRODUCT (MODIFICADO para Cloudinary)
+// 1. CREATE PRODUCT
 // ======================================================================
-// Recibe productData (asumiendo que el Thunk ya hizo la conversión a objeto plano)
 const createProduct = async (productData) => {
-    try {
-        let imageURL = productData.image || "";
+    try {
+        let imageURL = productData.image || "";
 
-        // 🚨 Subir la imagen si existe un objeto File 🚨
-        if (imageURL instanceof File) {
-            imageURL = await uploadImageToCloudinary(imageURL);
-        } else {
-             imageURL = imageURL.toString(); 
-        }
+        // Subir la imagen si existe un objeto File
+        if (imageURL instanceof File) {
+            imageURL = await uploadImageToCloudinary(imageURL);
+        } else {
+            imageURL = imageURL.toString(); 
+        }
 
-        if (!productData[USER_ID_FIELD]) {
-            throw new Error("El ID de usuario es nulo. No se pudo guardar el producto.");
-        }
-        
-        // Formateo de datos numéricos
-        const entradas = Number(productData.entradas) || 0;
-        const salidas = Number(productData.salidas) || 0;
+        if (!productData[USER_ID_FIELD]) {
+            throw new Error("El ID de usuario es nulo. No se pudo guardar el producto.");
+        }
+        
+        // Formateo de datos numéricos
+        const entradas = Number(productData.entradas) || 0;
+        const salidas = Number(productData.salidas) || 0;
 
-        const productToSave = {
-            ...productData, 
-            entradas,
-            salidas,
-            image: imageURL, // Reemplazamos el File por la URL de Cloudinary
-            [USER_ID_FIELD]: productData[USER_ID_FIELD], 
-            createdAt: new Date().toISOString(),
-        };
+        const productToSave = {
+            ...productData, 
+            entradas,
+            salidas,
+            image: imageURL, 
+            [USER_ID_FIELD]: productData[USER_ID_FIELD], 
+            createdAt: new Date().toISOString(),
+        };
 
-        // Limpieza de seguridad
-        if (productToSave.image instanceof File) {
-             delete productToSave.image; 
-        }
+        // Limpieza de seguridad
+        if (productToSave.image instanceof File) {
+            delete productToSave.image; 
+        }
 
-        const docRef = await addDoc(productsCollectionRef, productToSave);
+        const docRef = await addDoc(productsCollectionRef, productToSave);
 
-        toast.success("Producto creado exitosamente.");
-        return {
-            id: docRef.id,
-            ...productToSave
-        };
+        toast.success("Producto creado exitosamente.");
+        return {
+            id: docRef.id,
+            ...productToSave
+        };
 
-    } catch (error) {
-        console.error("Error creating product in Firestore:", error);
-        toast.error("Error al crear el producto: " + error.message); 
-        throw new Error(error.message || "Error al intentar crear el producto en la base de datos.");
-    }
+    } catch (error) {
+        console.error("Error creating product in Firestore:", error);
+        toast.error("Error al crear el producto: " + error.message); 
+        throw new Error(error.message || "Error al intentar crear el producto en la base de datos.");
+    }
 };
 
 // ======================================================================
-// 5. UPDATE PRODUCT (MODIFICADO para Cloudinary)
+// 5. UPDATE PRODUCT
 // ======================================================================
 const updateProduct = async (id, productData) => {
-    
-    let updateObject = { ...productData };
-    
-    try {
-        const docRef = doc(db, "products", id);
-        
-        // ----------------------------------------------------
-        // 🚨 MANEJO DE LA IMAGEN CON CLOUDINARY 🚨
-        // ----------------------------------------------------
-        
-        // Verificar si 'image' es un objeto File (es decir, una nueva imagen)
-        if (updateObject.image && updateObject.image instanceof File) {
-            
-            // Subir la nueva imagen a Cloudinary
-            const downloadURL = await uploadImageToCloudinary(updateObject.image);
-            
-            // Reemplazar el objeto File con la URL de descarga
-            updateObject.image = downloadURL; 
+    
+    let updateObject = { ...productData };
+    
+    try {
+        const docRef = doc(db, "products", id);
+        
+        // ----------------------------------------------------
+        // MANEJO DE LA IMAGEN CON CLOUDINARY 
+        // ----------------------------------------------------
+        
+        // Verificar si 'image' es un objeto File (es decir, una nueva imagen)
+        if (updateObject.image && updateObject.image instanceof File) {
+            
+            const downloadURL = await uploadImageToCloudinary(updateObject.image);
+            
+            updateObject.image = downloadURL; 
 
-        } else {
-             // Si no es un File, se asegura que sea un string.
-             updateObject.image = updateObject.image ? updateObject.image.toString() : "";
-        }
-        
-        // Formateo de datos numéricos
-        updateObject.entradas = Number(updateObject.entradas) || 0;
-        updateObject.salidas = Number(updateObject.salidas) || 0;
+        } else {
+             updateObject.image = updateObject.image ? updateObject.image.toString() : "";
+        }
+        
+        // Formateo de datos numéricos
+        updateObject.entradas = Number(updateObject.entradas) || 0;
+        updateObject.salidas = Number(updateObject.salidas) || 0;
 
-        // Limpieza final
-        if (updateObject.image instanceof File) {
-            delete updateObject.image; 
-        }
+        // Limpieza final
+        if (updateObject.image instanceof File) {
+            delete updateObject.image; 
+        }
 
-        // ----------------------------------------------------
-        // 3. ACTUALIZACIÓN DE FIRESTORE
-        // ----------------------------------------------------
-        await updateDoc(docRef, updateObject); 
+        // ACTUALIZACIÓN DE FIRESTORE
+        await updateDoc(docRef, updateObject); 
 
-        const updatedDoc = await getDoc(docRef);
-        return { id: updatedDoc.id, ...updatedDoc.data() };
+        const updatedDoc = await getDoc(docRef);
+        return { id: updatedDoc.id, ...updatedDoc.data() };
 
-    } catch (error) {
-        console.error("Error updating product:", error);
-        toast.error("Error al actualizar el producto: " + error.message);
-        throw new Error("Error al actualizar el producto.");
-    }
+    } catch (error) {
+        console.error("Error updating product:", error);
+        toast.error("Error al actualizar el producto: " + error.message);
+        throw new Error("Error al actualizar el producto.");
+    }
 };
 
 
 // ======================================================================
-// 2, 3, 4. GET ALL, DELETE, GET SINGLE PRODUCTS (Sin cambios)
+// 2. GET PRODUCTS (CORREGIDO para 'Parámetros de consulta insuficientes')
 // ======================================================================
 const getProducts = async ({ userId, mode }) => {
-    let q;
-    if (mode === "all") {
-        q = productsCollectionRef;
-    } else if (mode === "own" && userId && typeof userId === 'string' && userId !== 'null') {
-        q = query(productsCollectionRef, where(USER_ID_FIELD, "==", userId)); 
-    } else if (mode === "own") {
-        throw new Error("Parámetros de consulta de productos insuficientes.");
-    } else {
-        q = productsCollectionRef; 
-    }
+    let q;
+    
+    // Verificamos si el userId es válido para filtrar
+    const isValidUserId = userId && typeof userId === 'string' && userId !== 'null';
 
-    try {
-        const querySnapshot = await getDocs(q);
-        const productsList = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-        return productsList;
-    } catch (error) {
-        console.error("Error fetching products from Firestore:", error);
-        throw new Error("Error al obtener productos de la base de datos.");
-    }
+    if (mode === "all") {
+        // MODO ADMIN: Trae todos los productos
+        q = productsCollectionRef;
+        
+    } else if (mode === "own" && isValidUserId) {
+        // MODO USUARIO: Filtra por el ID de usuario
+        q = query(productsCollectionRef, where(USER_ID_FIELD, "==", userId)); 
+        
+    } else if (mode === "own" && !isValidUserId) {
+        // 🛑 CORRECCIÓN: Evitar error si el userId no ha cargado 🛑
+        console.warn("Modo 'own' solicitado, pero el ID de usuario no es válido. Devolviendo lista vacía.");
+        return []; // Devolvemos una lista vacía para evitar la consulta fallida o el error
+        
+    } else {
+        // MODO POR DEFECTO: Si 'mode' no está definido o es desconocido, traemos todos.
+        q = productsCollectionRef; 
+    }
+
+    try {
+        const querySnapshot = await getDocs(q);
+        const productsList = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        return productsList;
+    } catch (error) {
+        console.error("Error fetching products from Firestore:", error);
+        throw new Error("Error al obtener productos de la base de datos.");
+    }
 };
 
+// ======================================================================
+// 3. DELETE PRODUCT
+// ======================================================================
 const deleteProduct = async (id) => {
-    try {
-        const docRef = doc(db, "products", id);
-        await deleteDoc(docRef);
-        return id;
-    } catch (error) {
-        console.error("Error deleting product:", error);
-        throw new Error("Error al eliminar el producto.");
-    }
+    try {
+        const docRef = doc(db, "products", id);
+        await deleteDoc(docRef);
+        return id;
+    } catch (error) {
+        console.error("Error deleting product:", error);
+        throw new Error("Error al eliminar el producto.");
+    }
 };
 
+// ======================================================================
+// 4. GET SINGLE PRODUCT
+// ======================================================================
 const getProduct = async (id) => {
-    try {
-        const docRef = doc(db, "products", id);
-        const docSnap = await getDoc(docRef);
+    try {
+        const docRef = doc(db, "products", id);
+        const docSnap = await getDoc(docRef);
 
-        if (docSnap.exists()) {
-            return { id: docSnap.id, ...docSnap.data() };
-        } else {
-            throw new Error("Producto no encontrado.");
-        }
-    } catch (error) {
-        console.error("Error fetching single product:", error);
-        throw new Error("Error al obtener el producto.");
-    }
+        if (docSnap.exists()) {
+            return { id: docSnap.id, ...docSnap.data() };
+        } else {
+            throw new Error("Producto no encontrado.");
+        }
+    } catch (error) {
+        console.error("Error fetching single product:", error);
+        throw new Error("Error al obtener el producto.");
+    }
 };
 // ======================================================================
 
 
 export const productService = {
-    createProduct,
-    deleteProduct,
-    getProduct,
-    updateProduct,
-    getProducts
+    createProduct,
+    deleteProduct,
+    getProduct,
+    updateProduct,
+    getProducts
 };

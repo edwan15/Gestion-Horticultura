@@ -138,7 +138,7 @@ const Contact = () => {
                 </svg>
 
                 <div className=" font-bold tracking-wide text-gray-600 dark:text-gray-300 font-mono text-md">
-                  Desarrolador Jr Full Stack
+                  Desarrolador Full Stack
                 </div>
               </div>
               <div className="w-full text-center">

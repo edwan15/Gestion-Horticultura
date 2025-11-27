@@ -121,7 +121,7 @@ import { WiHumidity } from "react-icons/wi";
 // Nuevas importaciones de iconos
 import { GiFarmTractor } from "react-icons/gi"; 
 import { IoIosListBox } from "react-icons/io"; 
-import { FaUsersCog, FaChessKing, FaExchangeAlt } from "react-icons/fa"; // FaChessKing y FaExchangeAlt son nuevas
+import { FaUsersCog, FaChessKing, FaExchangeAlt, FaCommentDollar } from "react-icons/fa"; // FaChessKing y FaExchangeAlt son nuevas
 import { BsDropletFill } from "react-icons/bs"; 
 
 
@@ -157,6 +157,11 @@ const Menu = [
         icon: <SiAdafruit />, 
         path: "/tarea",
       },
+       {
+        title: "Carga de Trailer",
+        icon: <MdLocalShipping />,
+        path: "/produccion",
+      },
     ],
   },
   
@@ -177,11 +182,7 @@ const Menu = [
         icon: <AiFillFileAdd />,
         path: "/add-product",
       },
-      {
-        title: "Carga de Trailer",
-        icon: <MdLocalShipping />,
-        path: "/produccion",
-      },
+     
     ],
   },
   
@@ -196,6 +197,11 @@ const Menu = [
         title: "H. Trabajadores",
         icon: <MdPeopleOutline />,
         path: "/analizer",
+      },
+      {
+        title: "Analisis De Trabajadores",
+        icon: <FaCommentDollar />,
+        path: "/analizer-work",
       },
       {
         title: "Mi Perfil",
@@ -225,7 +231,7 @@ const Menu = [
       {
         title: "Log de Auditoría",
         icon: <FaExchangeAlt />, // Ícono para movimientos/cambios
-        path: "/auditoria-log", // Nueva ruta de ejemplo
+        path: "/user-master", // Nueva ruta de ejemplo
       },
       // 🛑 Añade aquí cualquier otra función de superusuario
       // EJEMPLO: { title: "Configuración Global", icon: <IoIosListBox />, path: "/config-global" }, 

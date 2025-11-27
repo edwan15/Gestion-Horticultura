@@ -207,7 +207,7 @@ const WeatherForecast = ({ city = "Balsicas,es", apiKey }) => {
     // =======================================================================
     return (
         // 🚀 RESPONSIVIDAD CLAVE: w-full h-full para llenar cualquier contenedor de grid.
-        <div className="w-full **h-full** min-h-[500px] p-0 rounded-2xl shadow-3xl overflow-hidden bg-white/50 backdrop-blur-lg">
+        <div className="w-full h-full min-h-[500px] p-0 rounded-2xl shadow-3xl overflow-hidden bg-white/50 backdrop-blur-lg">
             
             {/* 1. SECCIÓN PRINCIPAL (CLIMA ACTUAL) - Fondo con Gradiente Dinámico */}
             <div className={`p-8 sm:p-10 text-white bg-gradient-to-br ${grad} shadow-xl flex flex-col items-center justify-center`}>
@@ -237,10 +237,10 @@ const WeatherForecast = ({ city = "Balsicas,es", apiKey }) => {
                 {/* Temperaturas Min/Max del Día Actual */}
                 <div className="flex space-x-6 mt-6">
                     <p className="flex items-center text-lg font-medium">
-                        <FaArrowUp className="mr-2 text-red-300" /> Máx: **{maxTemp}°C**
+                        <FaArrowUp className="mr-2 text-red-300" /> Máx: {maxTemp}°C
                     </p>
                     <p className="flex items-center text-lg font-medium">
-                        <FaArrowDown className="mr-2 text-blue-200" /> Mín: **{minTemp}°C**
+                        <FaArrowDown className="mr-2 text-blue-200" /> Mín: {minTemp}°C
                     </p>
                 </div>
             </div>

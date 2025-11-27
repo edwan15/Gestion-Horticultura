@@ -1779,8 +1779,428 @@
 
 
 
+// import React,{useEffect,useRef,useState}from"react";
+// import {useNavigate,Link}from"react-router-dom";
+// // Importaciones de Íconos
+// import {AiFillGithub}from"react-icons/ai";
+// import {SlDirections}from"react-icons/sl";
+// import {BiSearchAlt2,BiSupport,BiPackage}from"react-icons/bi";
+// import {motion,AnimatePresence}from"framer-motion";
+// import {BsMenuButtonWideFill}from"react-icons/bs";
+// import {MdAdd,MdOutlineInventory}from"react-icons/md";
+// import {CgProfile}from"react-icons/cg";
+// import {FaChessKing,FaExchangeAlt,FaSeedling,FaFlask,FaRegListAlt}from"react-icons/fa";
+
+// // Componentes y Datos
+// import Menu from"../../data/Sidebar"; 
+// import SideBarItem from"./SideBarItem";
+// import Agro from"../../asset/LOGOS.svg"; 
+
+// const desktopSidebarVariants={
+//     open:{width:"18rem",transition:{duration:0.5}},
+//     closed:{width:"6rem",transition:{duration:0.5}},
+// };
+
+// const SideBar=({children})=>{
+//     const [isOpen,setIsOpen]=useState(true);
+//     const [isMenu,setIsMenu]=useState(false); 
+//     const navigate=useNavigate();
+//     const menuRef=useRef(null);
+
+//     // Lógica de cierre automático y clic fuera
+//     useEffect(()=>{
+//         let timerId;
+//         if(isMenu){
+//             timerId=setTimeout(()=>{
+//                 setIsMenu(false);
+//             },7000);
+
+//             const clickOutsideHandler=(event)=>{
+//                 const menuButton=document.querySelector(".menu-toggle-button");
+//                 if(menuButton&&menuButton.contains(event.target))return;
+
+//                 if(menuRef.current&&!menuRef.current.contains(event.target)){
+//                     setIsMenu(false);
+//                 }
+//             };
+
+//             document.addEventListener('mousedown',clickOutsideHandler);
+//             document.addEventListener('touchstart',clickOutsideHandler);
+
+//             return()=>{
+//                 clearTimeout(timerId);
+//                 document.removeEventListener('mousedown',clickOutsideHandler);
+//                 document.removeEventListener('touchstart',clickOutsideHandler);
+//             };
+//         }
+//         return()=>{
+//             if(timerId){
+//                 clearTimeout(timerId);
+//             }
+//         };
+//     },[isMenu]);
+
+//     const goHome=()=>{
+//         navigate("/");
+//     };
+
+//     const HEADER_HEIGHT_MOBILE='5rem'; // h-20 = 5rem
+
+//     return(
+//         <div className="flex min-h-screen bg-gray-50">
+
+//             {/* MENÚ DE ESCRITORIO (sm:block) */}
+//             <motion.div
+//                 variants={desktopSidebarVariants}
+//                 animate={isOpen?"open":"closed"}
+//                 initial={false}
+//                 className="hidden sm:block bg-blue-900 p-5 pt-8 min-h-screen relative shadow-2xl z-30"
+//             >
+//                 {/* ... (Contenido del Header de Escritorio) ... */}
+//                 <div className="inline-flex gap-5 justify-center items-center">
+//                     <motion.p
+//                         className="text-4xl font-bold mt-1 text-green-400 cursor-pointer"
+//                         onClick={goHome}
+//                         whileHover={{scale:1.1,rotate:5}}
+//                     >
+//                         <FaSeedling/>
+//                     </motion.p>
+//                     <motion.h1
+//                         initial={{opacity:0,x:-10}}
+//                         animate={{opacity:isOpen?1:0,x:isOpen?0:-10}}
+//                         transition={{duration:0.3}}
+//                         className="origin-left text-2xl font-bold text-white"
+//                     >
+//                         HORTICULTURA
+//                     </motion.h1>
+//                 </div>
+
+//                 <motion.div
+//                     onClick={()=>setIsOpen(!isOpen)}
+//                     whileHover={{scale:1.1,rotate:180}}
+//                     className=" text-4xl rounded-full bg-green-500 p-2 cursor-pointer absolute -right-4 top-20 text-white border-4 border-blue-900 z-10"
+//                 >
+//                     <SlDirections
+//                         className={`transition-transform duration-500 ${!isOpen?"rotate-180":""}`}
+//                     />
+//                 </motion.div>
+
+//                 <motion.div
+//                     initial={{opacity:0}}
+//                     animate={{opacity:isOpen?1:0}}
+//                     transition={{duration:0.3}}
+//                     className="flex items-center bg-blue-800 rounded-md mt-6 px-4 py-2"
+//                 >
+//                     <BiSearchAlt2 className="text-lg text-green-400 cursor-pointer"/>
+//                     <input
+//                         type="search"
+//                         placeholder=" Buscar..."
+//                         className="w-full focus:outline-none bg-transparent text-white ml-2 placeholder-green-400"
+//                     />
+//                 </motion.div>
+
+//                 <div className="mt-8 space-y-2">
+//                     {/* Renderiza el SideBarItem para Escritorio */}
+//                     {Menu.map((product,index)=>{
+//                         return <SideBarItem key={index}product={product}isOpen={isOpen}/>;
+//                     })}
+//                 </div>
+//             </motion.div>
+
+//             {/* =======================================================
+//                 MENÚ MÓVIL (sm:hidden)
+//                 ======================================================= */}
+//             <div className="w-full flex-1 flex flex-col">
+//                 {/* A- CONTENEDOR MÓVIL (Header/Barra) */}
+//                 <div className="flex bg-blue-900 sm:hidden justify-between items-center px-4 h-20 relative z-10 shadow-md">
+//                     <div className="flex items-center">
+//                         <img src={Agro}alt="agro"className="w-[140px]"/>
+//                     </div>
+                    
+//                     {/* BOTÓN HAMBURGUESA CIRCULAR */}
+//                     <div className="flex p-3 justify-center items-center rounded-full bg-green-500 menu-toggle-button">
+//                         <BsMenuButtonWideFill
+//                             onClick={()=>setIsMenu(!isMenu)}
+//                             className="text-white text-xl"
+//                         />
+//                     </div>
+//                 </div>
+
+//                 {/* B- MENÚ DESPLEGABLE CON ANIMACIÓN Y EFECTOS */}
+//                 <AnimatePresence>
+//                     {isMenu&&(
+//                         <motion.div
+//                             ref={menuRef}
+//                             initial={{opacity:0,x:'100%'}}
+//                             animate={{opacity:1,x:0}}
+//                             exit={{opacity:0,x:'100%'}}
+//                             transition={{type:"spring",stiffness:300,damping:30}}
+//                             // 🛑 CAMBIO CLAVE: Fondo semi-transparente (bg-blue-900/90) y sombra más fuerte
+//                             className={`w-64 bg-blue-900/90 shadow-2xl border-t-4 border-green-500 flex-col absolute top-[${HEADER_HEIGHT_MOBILE}] right-0 z-50 overflow-y-auto max-h-[calc(100vh-5rem)] sm:hidden rounded-bl-lg backdrop-blur-sm`}
+//                         >
+//                             {/* Renderiza el SideBarItem para móvil, pasando la función de cierre */}
+//                             <div className="p-2 space-y-1">
+//                                 {Menu.map((product,index)=>{
+//                                     return (
+//                                         <SideBarItem 
+//                                             key={index}
+//                                             product={product}
+//                                             isOpen={true} // Siempre visible en móvil
+//                                             closeMobileMenu={() => setIsMenu(false)} // Función de cierre
+//                                         />
+//                                     );
+//                                 })}
+//                             </div>
+
+//                             {/* ENLACES EXTRA (Mantiene buen contraste) */}
+//                             <motion.p
+//                                 className="px-4 py-3 flex items-center gap-3 text-sm cursor-pointer bg-blue-800 text-green-400 font-semibold transition-colors duration-150 border-t border-gray-700"
+//                                 whileHover={{backgroundColor:'#1e40af'}}
+//                                 whileTap={{scale:0.98}}
+//                                 onClick={() => { navigate("/expedicion-nueva"); setIsMenu(false); }}
+//                             >
+//                                 <BiPackage className="text-lg"/>
+//                                 Nueva Expedición
+//                             </motion.p>
+//                         </motion.div>
+//                     )}
+//                 </AnimatePresence>
+
+//                 <div className="flex-1 w-full">{children}</div>
+//             </div>
+//         </div>
+//     );
+// };
+
+// export default SideBar;
+
+
+
+
+
+
+// import React,{useEffect,useRef,useState}from"react";
+// import {useNavigate,Link}from"react-router-dom";
+
+// // ⚠️ IMPORTACIONES DE CONTEXTO Y COMPONENTE ADMIN
+// import { useAppContext } from '../SuperUser/AppContext'; // Asegúrate de la ruta correcta
+// import AdminImpersonationSelector from '../SuperUser/AdminImpersonationSelector'; // Asegúrate de la ruta correcta
+
+// // Importaciones de Íconos
+// import {AiFillGithub}from"react-icons/ai";
+// import {SlDirections}from"react-icons/sl";
+// import {BiSearchAlt2,BiSupport,BiPackage}from"react-icons/bi";
+// import {motion,AnimatePresence}from"framer-motion";
+// import {BsMenuButtonWideFill}from"react-icons/bs";
+// import {MdAdd,MdOutlineInventory}from"react-icons/md";
+// import {CgProfile}from"react-icons/cg";
+// import {FaChessKing,FaExchangeAlt,FaSeedling,FaFlask,FaRegListAlt}from"react-icons/fa";
+
+// // Componentes y Datos
+// import Menu from"../../data/Sidebar"; 
+// import SideBarItem from"./SideBarItem";
+// import Agro from"../../asset/LOGOS.svg"; 
+
+// const desktopSidebarVariants={
+//     open:{width:"18rem",transition:{duration:0.5}},
+//     closed:{width:"6rem",transition:{duration:0.5}},
+// };
+
+// const SideBar=({children})=>{
+//     const { isAdmin } = useAppContext(); // 👈 OBTENER EL ROL DEL CONTEXTO
+//     const [isOpen,setIsOpen]=useState(true);
+//     const [isMenu,setIsMenu]=useState(false); 
+//     const navigate=useNavigate();
+//     const menuRef=useRef(null);
+
+//     // Lógica de cierre automático y clic fuera
+//     useEffect(()=>{
+//         let timerId;
+//         if(isMenu){
+//             timerId=setTimeout(()=>{
+//                 setIsMenu(false);
+//             },7000);
+
+//             const clickOutsideHandler=(event)=>{
+//                 const menuButton=document.querySelector(".menu-toggle-button");
+//                 if(menuButton&&menuButton.contains(event.target))return;
+
+//                 if(menuRef.current&&!menuRef.current.contains(event.target)){
+//                     setIsMenu(false);
+//                 }
+//             };
+
+//             document.addEventListener('mousedown',clickOutsideHandler);
+//             document.addEventListener('touchstart',clickOutsideHandler);
+
+//             return()=>{
+//                 clearTimeout(timerId);
+//                 document.removeEventListener('mousedown',clickOutsideHandler);
+//                 document.removeEventListener('touchstart',clickOutsideHandler);
+//             };
+//         }
+//         return()=>{
+//             if(timerId){
+//                 clearTimeout(timerId);
+//             }
+//         };
+//     },[isMenu]);
+
+//     const goHome=()=>{
+//         navigate("/");
+//     };
+
+//     const HEADER_HEIGHT_MOBILE='5rem';
+
+//     return(
+//         <div className="flex min-h-screen bg-gray-50">
+
+//             {/* MENÚ DE ESCRITORIO (sm:block) */}
+//             <motion.div
+//                 variants={desktopSidebarVariants}
+//                 animate={isOpen?"open":"closed"}
+//                 initial={false}
+//                 className="hidden sm:block bg-blue-900 p-5 pt-8 min-h-screen relative shadow-2xl z-30"
+//             >
+//                 {/* Logo y Título */}
+//                 <div className="inline-flex gap-5 justify-center items-center">
+//                     <motion.p
+//                         className="text-4xl font-bold mt-1 text-green-400 cursor-pointer"
+//                         onClick={goHome}
+//                         whileHover={{scale:1.1,rotate:5}}
+//                     >
+//                         <FaSeedling/>
+//                     </motion.p>
+//                     <motion.h1
+//                         initial={{opacity:0,x:-10}}
+//                         animate={{opacity:isOpen?1:0,x:isOpen?0:-10}}
+//                         transition={{duration:0.3}}
+//                         className="origin-left text-2xl font-bold text-white"
+//                     >
+//                         HORTICULTURA
+//                     </motion.h1>
+//                 </div>
+
+//                 {/* Botón de expansión */}
+//                 <motion.div
+//                     onClick={()=>setIsOpen(!isOpen)}
+//                     whileHover={{scale:1.1,rotate:180}}
+//                     className=" text-4xl rounded-full bg-green-500 p-2 cursor-pointer absolute -right-4 top-20 text-white border-4 border-blue-900 z-10"
+//                 >
+//                     <SlDirections
+//                         className={`transition-transform duration-500 ${!isOpen?"rotate-180":""}`}
+//                     />
+//                 </motion.div>
+
+//                 {/* Barra de Búsqueda */}
+//                 <motion.div
+//                     initial={{opacity:0}}
+//                     animate={{opacity:isOpen?1:0}}
+//                     transition={{duration:0.3}}
+//                     className="flex items-center bg-blue-800 rounded-md mt-6 px-4 py-2"
+//                 >
+//                     <BiSearchAlt2 className="text-lg text-green-400 cursor-pointer"/>
+//                     <input
+//                         type="search"
+//                         placeholder=" Buscar..."
+//                         className="w-full focus:outline-none bg-transparent text-white ml-2 placeholder-green-400"
+//                     />
+//                 </motion.div>
+
+//                 {/* 👑 SELECTOR DE SUPER USUARIO (ESCRITORIO) 👑 */}
+//                 {isOpen && isAdmin && (
+//                     <AdminImpersonationSelector /> 
+//                 )}
+
+//                 <div className="mt-8 space-y-2">
+//                     {/* Renderiza el SideBarItem para Escritorio */}
+//                     {Menu.map((product,index)=>{
+//                         return <SideBarItem key={index}product={product}isOpen={isOpen}/>;
+//                     })}
+//                 </div>
+//             </motion.div>
+
+//             {/* =======================================================
+//                 MENÚ MÓVIL (sm:hidden)
+//                 ======================================================= */}
+//             <div className="w-full flex-1 flex flex-col">
+//                 {/* A- CONTENEDOR MÓVIL (Header/Barra) */}
+//                 <div className="flex bg-blue-900 sm:hidden justify-between items-center px-4 h-20 relative z-10 shadow-md">
+//                     <div className="flex items-center">
+//                         <img src={Agro}alt="agro"className="w-[140px]"/>
+//                     </div>
+                    
+//                     {/* BOTÓN HAMBURGUESA CIRCULAR */}
+//                     <div className="flex p-3 justify-center items-center rounded-full bg-green-500 menu-toggle-button">
+//                         <BsMenuButtonWideFill
+//                             onClick={()=>setIsMenu(!isMenu)}
+//                             className="text-white text-xl"
+//                         />
+//                     </div>
+//                 </div>
+
+//                 {/* B- MENÚ DESPLEGABLE CON ANIMACIÓN Y EFECTOS */}
+//                 <AnimatePresence>
+//                     {isMenu&&(
+//                         <motion.div
+//                             ref={menuRef}
+//                             initial={{opacity:0,x:'100%'}}
+//                             animate={{opacity:1,x:0}}
+//                             exit={{opacity:0,x:'100%'}}
+//                             transition={{type:"spring",stiffness:300,damping:30}}
+//                             className={`w-64 bg-blue-900/90 shadow-2xl border-t-4 border-green-500 flex-col absolute top-[${HEADER_HEIGHT_MOBILE}] right-0 z-50 overflow-y-auto max-h-[calc(100vh-5rem)] sm:hidden rounded-bl-lg backdrop-blur-sm`}
+//                         >
+//                             {/* 👑 SELECTOR DE SUPER USUARIO (MÓVIL) 👑 */}
+//                             {isAdmin && (
+//                                 <AdminImpersonationSelector />
+//                             )}
+                            
+//                             {/* Renderiza el SideBarItem para móvil */}
+//                             <div className="p-2 space-y-1">
+//                                 {Menu.map((product,index)=>{
+//                                     return (
+//                                         <SideBarItem 
+//                                             key={index}
+//                                             product={product}
+//                                             isOpen={true}
+//                                             closeMobileMenu={() => setIsMenu(false)}
+//                                         />
+//                                     );
+//                                 })}
+//                             </div>
+
+//                             {/* ENLACES EXTRA */}
+//                             <motion.p
+//                                 className="px-4 py-3 flex items-center gap-3 text-sm cursor-pointer bg-blue-800 text-green-400 font-semibold transition-colors duration-150 border-t border-gray-700"
+//                                 whileHover={{backgroundColor:'#1e40af'}}
+//                                 whileTap={{scale:0.98}}
+//                                 onClick={() => { navigate("/expedicion-nueva"); setIsMenu(false); }}
+//                             >
+//                                 <BiPackage className="text-lg"/>
+//                                 Nueva Expedición
+//                             </motion.p>
+//                         </motion.div>
+//                     )}
+//                 </AnimatePresence>
+
+//                 <div className="flex-1 w-full">{children}</div>
+//             </div>
+//         </div>
+//     );
+// };
+
+// export default SideBar;
+
+
+
+
 import React,{useEffect,useRef,useState}from"react";
 import {useNavigate,Link}from"react-router-dom";
+
+// ⚠️ IMPORTACIONES DE CONTEXTO Y COMPONENTE ADMIN
+import { useAppContext } from '../SuperUser/AppContext'; // Asegúrate de la ruta correcta
+import AdminImpersonationSelector from '../SuperUser/AdminImpersonationSelector'; // Asegúrate de la ruta correcta
+
 // Importaciones de Íconos
 import {AiFillGithub}from"react-icons/ai";
 import {SlDirections}from"react-icons/sl";
@@ -1802,6 +2222,7 @@ const desktopSidebarVariants={
 };
 
 const SideBar=({children})=>{
+    const { isAdmin } = useAppContext(); // 👈 OBTENER EL ROL DEL CONTEXTO
     const [isOpen,setIsOpen]=useState(true);
     const [isMenu,setIsMenu]=useState(false); 
     const navigate=useNavigate();
@@ -1844,7 +2265,7 @@ const SideBar=({children})=>{
         navigate("/");
     };
 
-    const HEADER_HEIGHT_MOBILE='5rem'; // h-20 = 5rem
+    const HEADER_HEIGHT_MOBILE='5rem';
 
     return(
         <div className="flex min-h-screen bg-gray-50">
@@ -1856,7 +2277,7 @@ const SideBar=({children})=>{
                 initial={false}
                 className="hidden sm:block bg-blue-900 p-5 pt-8 min-h-screen relative shadow-2xl z-30"
             >
-                {/* ... (Contenido del Header de Escritorio) ... */}
+                {/* Logo y Título */}
                 <div className="inline-flex gap-5 justify-center items-center">
                     <motion.p
                         className="text-4xl font-bold mt-1 text-green-400 cursor-pointer"
@@ -1875,6 +2296,7 @@ const SideBar=({children})=>{
                     </motion.h1>
                 </div>
 
+                {/* Botón de expansión */}
                 <motion.div
                     onClick={()=>setIsOpen(!isOpen)}
                     whileHover={{scale:1.1,rotate:180}}
@@ -1885,6 +2307,7 @@ const SideBar=({children})=>{
                     />
                 </motion.div>
 
+                {/* Barra de Búsqueda */}
                 <motion.div
                     initial={{opacity:0}}
                     animate={{opacity:isOpen?1:0}}
@@ -1899,8 +2322,15 @@ const SideBar=({children})=>{
                     />
                 </motion.div>
 
+                {/* 👑 SELECTOR DE SUPER USUARIO (ESCRITORIO) 👑 */}
+                {/* ESTE SÓLO SE MUESTRA SI isOpen es true Y el usuario es Admin */}
+                {isOpen && isAdmin && (
+                    <AdminImpersonationSelector /> 
+                )}
+
                 <div className="mt-8 space-y-2">
                     {/* Renderiza el SideBarItem para Escritorio */}
+                    {/* Todos los menús (product) se renderizan aquí */}
                     {Menu.map((product,index)=>{
                         return <SideBarItem key={index}product={product}isOpen={isOpen}/>;
                     })}
@@ -1935,24 +2365,29 @@ const SideBar=({children})=>{
                             animate={{opacity:1,x:0}}
                             exit={{opacity:0,x:'100%'}}
                             transition={{type:"spring",stiffness:300,damping:30}}
-                            // 🛑 CAMBIO CLAVE: Fondo semi-transparente (bg-blue-900/90) y sombra más fuerte
                             className={`w-64 bg-blue-900/90 shadow-2xl border-t-4 border-green-500 flex-col absolute top-[${HEADER_HEIGHT_MOBILE}] right-0 z-50 overflow-y-auto max-h-[calc(100vh-5rem)] sm:hidden rounded-bl-lg backdrop-blur-sm`}
                         >
-                            {/* Renderiza el SideBarItem para móvil, pasando la función de cierre */}
+                            {/* 👑 SELECTOR DE SUPER USUARIO (MÓVIL) 👑 */}
+                            {/* ESTE SÓLO SE MUESTRA SI el usuario es Admin */}
+                            {isAdmin && (
+                                <AdminImpersonationSelector />
+                            )}
+                            
+                            {/* Renderiza el SideBarItem para móvil */}
                             <div className="p-2 space-y-1">
                                 {Menu.map((product,index)=>{
                                     return (
                                         <SideBarItem 
                                             key={index}
                                             product={product}
-                                            isOpen={true} // Siempre visible en móvil
-                                            closeMobileMenu={() => setIsMenu(false)} // Función de cierre
+                                            isOpen={true}
+                                            closeMobileMenu={() => setIsMenu(false)}
                                         />
                                     );
                                 })}
                             </div>
 
-                            {/* ENLACES EXTRA (Mantiene buen contraste) */}
+                            {/* ENLACES EXTRA */}
                             <motion.p
                                 className="px-4 py-3 flex items-center gap-3 text-sm cursor-pointer bg-blue-800 text-green-400 font-semibold transition-colors duration-150 border-t border-gray-700"
                                 whileHover={{backgroundColor:'#1e40af'}}
@@ -1973,14 +2408,6 @@ const SideBar=({children})=>{
 };
 
 export default SideBar;
-
-
-
-
-
-
-
-
 
 
 
