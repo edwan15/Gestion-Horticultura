@@ -310,6 +310,7 @@ import { FaPlusCircle, FaMinusCircle, FaSave, FaChevronDown, FaCheck } from "rea
 const PRODUCT_NAMES = [
 "ACIDO FOSFORICO 70%",
 "ACCUDO",
+"SWITCH",
 "PROPLANT",
 "ORGANOVIC-F",
 "MIXSAP-PLUS",

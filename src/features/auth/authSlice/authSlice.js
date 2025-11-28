@@ -247,23 +247,155 @@
 
 // --- src/features/auth/authSlice/authSlice.js (CÓDIGO COMPLETO) ---
 
+// import { createSlice } from "@reduxjs/toolkit";
+
+// // 🛑 Importante: Recuperamos el estado de suplantación desde localStorage
+// const storedImpersonationState = localStorage.getItem("impersonation_state");
+// const initialImpersonation = storedImpersonationState ? JSON.parse(storedImpersonationState) : {};
+
+// const initialState = {
+//     isLoggedIn: false, // App.jsx debe ponerlo en true/false basado en la sesión de Firebase
+//     name: "",
+//     // Usamos esta estructura consistente para almacenar los detalles del usuario:
+//     user: {
+//         uid: null, // ID de Firebase Auth (CLAVE para el backend)
+//         name: "",
+//         email: "",
+//         role: "invitado",
+//     }, 
+//     role: "invitado", // El rol activo (por defecto 'invitado')
+    
+//     // Lógica de suplantación (impersonation)
+//     isImpersonating: initialImpersonation.isImpersonating || false,
+//     targetUserId: initialImpersonation.targetUserId || null,
+//     adminToken: initialImpersonation.adminToken || null, 
+// };
+
+// const authSlice = createSlice({
+//     name: "auth",
+//     initialState,
+//     reducers: {
+//         // Establece si el usuario está logueado o no
+//         SET_LOGIN(state, action) {
+//             state.isLoggedIn = action.payload;
+            
+//             if (!action.payload) {
+//                 // Limpiar persistencia y estado al cerrar sesión
+//                 localStorage.removeItem("impersonation_state"); 
+                
+//                 state.role = "invitado";
+//                 state.name = "";
+//                 state.user = { uid: null, name: "", email: "", role: "invitado" };
+//                 state.isImpersonating = false;
+//                 state.targetUserId = null;
+//                 state.adminToken = null;
+//             }
+//         },
+//         // Establece el nombre del usuario
+//         SET_NAME(state, action) {
+//             state.name = action.payload;
+//             if (state.user) {
+//                 state.user.name = action.payload; 
+//             }
+//         },
+//         // Establece todos los datos del usuario después del login/refresh
+//         SET_USER(state, action) {
+//             const userData = action.payload;
+
+//             if (!userData || typeof userData !== 'object' || !userData.uid) {
+//                 return; 
+//             }
+            
+//             state.user = userData;
+//             state.name = userData.name || "";
+
+//             // 🛑 CRÍTICO: Asignación y normalización del Rol 
+//             // Si el rol no existe en Firestore, por defecto es 'usuario'.
+//             const rawRole = userData.role ?? "usuario"; 
+//             state.role = rawRole.toLowerCase().trim();
+            
+//             // Aseguramos que el rol dentro del objeto user también esté normalizado
+//             state.user.role = state.role; 
+//         },
+        
+//         // Maneja la suplantación de identidad (Admin -> User)
+//         SET_IMPERSONATION(state, action) {
+//             const { targetUserId, adminToken, activate } = action.payload;
+            
+//             if (activate) {
+//                 state.isImpersonating = true;
+//                 state.adminToken = adminToken; 
+//                 state.targetUserId = targetUserId;
+                
+//                 localStorage.setItem("impersonation_state", JSON.stringify({
+//                     isImpersonating: true,
+//                     targetUserId,
+//                     adminToken
+//                 }));
+//             } else {
+//                 state.isImpersonating = false;
+//                 state.targetUserId = null;
+//                 state.adminToken = null; 
+//                 localStorage.removeItem("impersonation_state");
+//             }
+//         }
+//     },
+// });
+
+// export const { SET_LOGIN, SET_NAME, SET_USER, SET_IMPERSONATION } = authSlice.actions;
+
+// export default authSlice.reducer;
+
+// // ----------------------------------------------------
+// // SELECTORES CLAVE
+// // ----------------------------------------------------
+
+// export const selectIsLoggedIn = (state) => state.auth.isLoggedIn;
+// export const selectName = (state) => state.auth.name;
+// export const selectRole = (state) => state.auth.role; 
+// export const selectUser = (state) => state.auth.user; 
+// export const selectIsImpersonating = (state) => state.auth.isImpersonating;
+// export const selectTargetUserId = (state) => state.auth.targetUserId;
+// export const selectAdminToken = (state) => state.auth.adminToken;
+
+// /**
+//  * Devuelve el ID del usuario activo o el ID del usuario impersonado (Target).
+//  * CLAVE: Utiliza 'uid' que es el ID de Firebase.
+//  */
+// export const selectUserId = (state) => {
+//     // 1. Si estamos suplantando, devolvemos el ID del usuario objetivo
+//     if (state.auth.isImpersonating) {
+//         return state.auth.targetUserId;
+//     }
+//     // 2. Si no, devolvemos el ID de la sesión activa de Firebase
+//     return state.auth.user?.uid || null; 
+// };
+
+
 import { createSlice } from "@reduxjs/toolkit";
 
-// 🛑 Importante: Recuperamos el estado de suplantación desde localStorage
+// 🛑 PASO 1: Cargamos los datos de sesión persistentes
 const storedImpersonationState = localStorage.getItem("impersonation_state");
 const initialImpersonation = storedImpersonationState ? JSON.parse(storedImpersonationState) : {};
 
+// 🔑 CLAVE: Cargamos el token JWT/ID Token de Firebase guardado por Login.js
+const userToken = localStorage.getItem('userToken'); 
+
 const initialState = {
-    isLoggedIn: false, // App.jsx debe ponerlo en true/false basado en la sesión de Firebase
+    // Determinamos el estado de login basándonos en si existe el token
+    isLoggedIn: !!userToken, 
     name: "",
-    // Usamos esta estructura consistente para almacenar los detalles del usuario:
+    
+    // 🛑 PROPIEDAD CRÍTICA: Almacena el token JWT
+    token: userToken || null, 
+    
     user: {
-        uid: null, // ID de Firebase Auth (CLAVE para el backend)
+        uid: null, 
         name: "",
         email: "",
         role: "invitado",
     }, 
-    role: "invitado", // El rol activo (por defecto 'invitado')
+    role: "invitado", 
     
     // Lógica de suplantación (impersonation)
     isImpersonating: initialImpersonation.isImpersonating || false,
@@ -275,30 +407,37 @@ const authSlice = createSlice({
     name: "auth",
     initialState,
     reducers: {
-        // Establece si el usuario está logueado o no
+        // 🛑 NUEVO REDUCER: Guarda el token en el estado
+        SET_TOKEN(state, action) {
+            state.token = action.payload;
+        },
+        
         SET_LOGIN(state, action) {
             state.isLoggedIn = action.payload;
             
             if (!action.payload) {
-                // Limpiar persistencia y estado al cerrar sesión
+                // Limpieza de persistencia
                 localStorage.removeItem("impersonation_state"); 
+                localStorage.removeItem("userToken"); // 🔑 Limpiar el token al cerrar sesión
                 
+                // Limpieza de estado
                 state.role = "invitado";
                 state.name = "";
                 state.user = { uid: null, name: "", email: "", role: "invitado" };
                 state.isImpersonating = false;
                 state.targetUserId = null;
                 state.adminToken = null;
+                state.token = null; // Limpiar el estado del token
             }
         },
-        // Establece el nombre del usuario
+        
         SET_NAME(state, action) {
             state.name = action.payload;
             if (state.user) {
                 state.user.name = action.payload; 
             }
         },
-        // Establece todos los datos del usuario después del login/refresh
+        
         SET_USER(state, action) {
             const userData = action.payload;
 
@@ -308,17 +447,12 @@ const authSlice = createSlice({
             
             state.user = userData;
             state.name = userData.name || "";
-
-            // 🛑 CRÍTICO: Asignación y normalización del Rol 
-            // Si el rol no existe en Firestore, por defecto es 'usuario'.
+            
             const rawRole = userData.role ?? "usuario"; 
             state.role = rawRole.toLowerCase().trim();
-            
-            // Aseguramos que el rol dentro del objeto user también esté normalizado
             state.user.role = state.role; 
         },
         
-        // Maneja la suplantación de identidad (Admin -> User)
         SET_IMPERSONATION(state, action) {
             const { targetUserId, adminToken, activate } = action.payload;
             
@@ -342,7 +476,8 @@ const authSlice = createSlice({
     },
 });
 
-export const { SET_LOGIN, SET_NAME, SET_USER, SET_IMPERSONATION } = authSlice.actions;
+// 🔑 Exportar el nuevo reducer SET_TOKEN
+export const { SET_LOGIN, SET_NAME, SET_USER, SET_IMPERSONATION, SET_TOKEN } = authSlice.actions; 
 
 export default authSlice.reducer;
 
@@ -350,17 +485,15 @@ export default authSlice.reducer;
 // SELECTORES CLAVE
 // ----------------------------------------------------
 
+// SELECTOR CRÍTICO: El logSlice lo lee desde aquí (thunkAPI.getState().auth.token)
+export const selectToken = (state) => state.auth.token; 
 export const selectIsLoggedIn = (state) => state.auth.isLoggedIn;
 export const selectName = (state) => state.auth.name;
 export const selectRole = (state) => state.auth.role; 
 export const selectUser = (state) => state.auth.user; 
-export const selectIsImpersonating = (state) => state.auth.isImpersonating;
-export const selectTargetUserId = (state) => state.auth.targetUserId;
-export const selectAdminToken = (state) => state.auth.adminToken;
 
 /**
  * Devuelve el ID del usuario activo o el ID del usuario impersonado (Target).
- * CLAVE: Utiliza 'uid' que es el ID de Firebase.
  */
 export const selectUserId = (state) => {
     // 1. Si estamos suplantando, devolvemos el ID del usuario objetivo

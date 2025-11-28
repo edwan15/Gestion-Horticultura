@@ -467,7 +467,7 @@ const UserProductList = () => {
             ) : (
                 <>
                     {/* 🚨 AQUÍ SE PASAN LAS NUEVAS PROPS DE CATEGORÍA */}
-                    {products.length > 0 && (
+                    {/* {products.length > 0 && (
                         <ProductSumer 
                             products={products} 
                             // 1. Pasa la función para recibir el clic
@@ -475,7 +475,7 @@ const UserProductList = () => {
                             // 2. Pasa la categoría activa para que se resalte
                             selectedCategory={activeCategory} 
                         />
-                    )}
+                    )} */}
                     
                     {/* 🚨 AQUÍ SE PASA LA CATEGORÍA PARA QUE LA LISTA FILTRE */}
                     <ProductList 

@@ -625,8 +625,8 @@
 //     }
 // };
 
-
 import { toast } from "react-toastify";
+import axios from "axios"; 
 // Importar funciones de Firebase Auth y Firestore
 import { 
     createUserWithEmailAndPassword, 
@@ -638,8 +638,14 @@ import {
 import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 
 // Importar auth y db desde firebaseConfig
-// 🛑 Asegúrate de que esta ruta sea correcta para tu proyecto 🛑
 import { auth, db } from "../firebaseConfig"; 
+
+// ----------------------------------------------------
+// CONFIGURACIÓN AXIOS PARA EL BACKEND EXPRESS
+// ----------------------------------------------------
+// 🛑 CORRECCIÓN CLAVE: Usamos el puerto 4500
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:4500";
+
 
 // ----------------------------------------------------
 // UTILIDAD
@@ -651,7 +657,7 @@ export const validateEmail = (email) => {
 };
 
 // ----------------------------------------------------
-// 1. LOGIN
+// 1. LOGIN (Usa Firebase Auth y Firestore)
 // ----------------------------------------------------
 export const loginUser = async (userData) => {
     const { email, password } = userData;
@@ -660,7 +666,7 @@ export const loginUser = async (userData) => {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // 2. Opcional: Cargar datos del perfil desde Firestore para el rol
+        // 2. Cargar datos del perfil desde Firestore
         const userDocRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userDocRef);
         
@@ -668,12 +674,11 @@ export const loginUser = async (userData) => {
         return { 
             email: user.email, 
             uid: user.uid, 
-            role: userDoc.data()?.role || "usuario" // Incluir el rol de Firestore
+            role: userDoc.data()?.role || "usuario"
         };
 
     } catch (error) {
-        // Manejo de errores específicos de Firebase Auth
-        let message = "An error occurred during login.";
+        let message = "Ocurrió un error durante el inicio de sesión.";
         if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
             message = "Email o contraseña incorrectos.";
         } else if (error.code === 'auth/invalid-email') {
@@ -687,7 +692,7 @@ export const loginUser = async (userData) => {
 };
 
 // ----------------------------------------------------
-// 2. REGISTER
+// 2. REGISTER (Usa Firebase Auth y Firestore)
 // ----------------------------------------------------
 export const registerUser = async (userData) => {
     const { name, email, password } = userData;
@@ -707,11 +712,10 @@ export const registerUser = async (userData) => {
             name: name,
             email: email,
             role: "usuario", // Asignar un rol por defecto
-            // Guardamos la fecha como una cadena ISO (string) para consistencia con Redux
             createdAt: new Date().toISOString(), 
         });
         
-        toast.success("Registration Successful");
+        toast.success("Registro exitoso");
         
         return {
             email: user.email,
@@ -721,7 +725,7 @@ export const registerUser = async (userData) => {
         };
 
     } catch (error) {
-        let message = "An error occurred during registration.";
+        let message = "Ocurrió un error durante el registro.";
         if (error.code === 'auth/email-already-in-use') {
             message = "El correo ya está en uso por otra cuenta.";
         } else if (error.code === 'auth/weak-password') {
@@ -736,7 +740,7 @@ export const registerUser = async (userData) => {
 };
 
 // ----------------------------------------------------
-// 3. LOGOUT
+// 3. LOGOUT (Usa Firebase Auth)
 // ----------------------------------------------------
 export const logoutUser = async () => {
     try {
@@ -747,7 +751,7 @@ export const logoutUser = async () => {
 };
 
 // ----------------------------------------------------
-// 4. RECUPERAR CONTRASEÑA
+// 4. RECUPERAR CONTRASEÑA (Usa Firebase Auth)
 // ----------------------------------------------------
 export const resetPassword = async (email) => {
     try {
@@ -766,41 +770,39 @@ export const resetPassword = async (email) => {
 };
 
 // ----------------------------------------------------
-// 5. ACTUALIZAR PERFIL
+// 5. ACTUALIZAR PERFIL (Usa Firebase Auth y Firestore)
 // ----------------------------------------------------
 export const updateUser = async (uid, userData) => {
     const { name, phone, bio } = userData; 
     try {
-        // 1. Actualizar datos en Auth (solo el nombre/displayName)
         const user = auth.currentUser;
         if (user && name) {
             await updateProfile(user, { displayName: name });
         }
         
-        // 2. Actualizar datos en Firestore
         const userDocRef = doc(db, "users", uid);
         await updateDoc(userDocRef, {
             name: name,
             phone: phone || '', 
             bio: bio || '',
-            // Guardamos la fecha de actualización como string para serialización
             updatedAt: new Date().toISOString(), 
         });
 
         toast.success("Perfil actualizado exitosamente");
         
-        // Devolver los datos actualizados de Firestore
         const updatedDoc = await getDoc(userDocRef);
         
-        // Aseguramos la serialización al devolver
-        const updatedData = updatedDoc.data();
-        if (updatedData.createdAt && typeof updatedData.createdAt.toDate === 'function') {
-            updatedData.createdAt = updatedData.createdAt.toDate().toISOString();
-        }
-        if (updatedData.updatedAt && typeof updatedData.updatedAt.toDate === 'function') {
-            updatedData.updatedAt = updatedData.updatedAt.toDate().toISOString();
-        }
+        const convertTimestamp = (data) => {
+            if (data && typeof data.toDate === 'function') {
+                return data.toDate().toISOString();
+            }
+            return data;
+        };
         
+        const updatedData = updatedDoc.data();
+        updatedData.createdAt = convertTimestamp(updatedData.createdAt);
+        updatedData.updatedAt = convertTimestamp(updatedData.updatedAt);
+
         return updatedData;
 
     } catch (error) {
@@ -811,14 +813,9 @@ export const updateUser = async (uid, userData) => {
 }
 
 // ----------------------------------------------------
-// 6. OBTENER PERFIL (CON CORRECCIÓN DE SERIALIZACIÓN) 🚀
+// 6. OBTENER PERFIL (Usa Firebase Auth y Firestore)
 // ----------------------------------------------------
-/**
- * Obtiene el documento completo del usuario desde Firestore, 
- * convirtiendo los campos Timestamp a cadenas ISO antes de devolverlos.
- */
 export const getProfile = async () => {
-    // 1. Obtener el usuario actualmente autenticado
     const user = auth.currentUser;
 
     if (!user) {
@@ -826,21 +823,22 @@ export const getProfile = async () => {
     }
 
     try {
-        // 2. Referencia al documento de Firestore usando el UID
         const userDocRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userDocRef);
+        
+        const convertTimestamp = (data) => {
+            if (data && typeof data.toDate === 'function') {
+                return data.toDate().toISOString();
+            }
+            return data;
+        };
 
         if (userDoc.exists()) {
             const userData = userDoc.data();
             
-            // 🛑 CORRECCIÓN: Convertimos los objetos Timestamp a cadenas ISO (string) 🛑
-            // Esto resuelve el error de "non-serializable value was detected" en Redux.
-            if (userData.createdAt && typeof userData.createdAt.toDate === 'function') {
-                userData.createdAt = userData.createdAt.toDate().toISOString();
-            }
-            if (userData.updatedAt && typeof userData.updatedAt.toDate === 'function') {
-                userData.updatedAt = userData.updatedAt.toDate().toISOString();
-            }
+            // Convertimos Timestamp a ISO string para Redux
+            userData.createdAt = convertTimestamp(userData.createdAt);
+            userData.updatedAt = convertTimestamp(userData.updatedAt);
             
             return userData;
         } else {
@@ -850,7 +848,7 @@ export const getProfile = async () => {
                 email: user.email,
                 name: user.displayName || user.email.split('@')[0],
                 role: "usuario",
-                createdAt: new Date().toISOString(), // Usamos string aquí
+                createdAt: new Date().toISOString(), 
             };
         }
     } catch (error) {
@@ -858,3 +856,68 @@ export const getProfile = async () => {
         throw new Error("Fallo al obtener el perfil.");
     }
 };
+
+// ----------------------------------------------------
+// 7. SERVICIOS DE BACKEND (Usando Axios y Token) 🚀
+// ----------------------------------------------------
+
+/**
+ * Función general para hacer peticiones al backend Express/Node.
+ * Incluye automáticamente el token de autenticación de Firebase en la cabecera.
+ */
+export const fetchFromBackend = async (method, path, data = null) => {
+    const token = localStorage.getItem('userToken');
+
+    if (!token) {
+        throw new Error("Acceso denegado: No hay token de autenticación disponible.");
+    }
+    
+    const config = {
+        headers: {
+            'Authorization': `Bearer ${token}`, 
+            'Content-Type': 'application/json',
+        }
+    };
+
+    const url = `${BACKEND_URL}${path}`; // Utiliza la URL con el puerto 4500
+
+    try {
+        let response;
+        
+        switch (method.toLowerCase()) {
+            case 'get':
+                response = await axios.get(url, config);
+                break;
+            case 'post':
+                response = await axios.post(url, data, config);
+                break;
+            // Añade más métodos (put, delete) si es necesario
+            default:
+                throw new Error(`Método HTTP no soportado: ${method}`);
+        }
+
+        return response.data;
+    } catch (error) {
+        const errorMessage = error.response?.data?.message || error.message;
+        console.error("Fallo en la petición al Backend:", errorMessage);
+        
+        throw new Error(`Fallo en el servidor: ${errorMessage}`);
+    }
+};
+
+// ----------------------------------------------------
+// EJEMPLOS DE USO PARA LOS SLICES DE REDUX
+// ----------------------------------------------------
+/**
+ * Llama a tu backend para obtener la lista de logs (GET http://localhost:4500/api/logs)
+ */
+export const getLogs = async () => {
+    return fetchFromBackend('GET', '/api/logs'); 
+}
+
+/**
+ * Llama a tu backend para obtener la lista de inventario (GET http://localhost:4500/api/inventario)
+ */
+export const getInventario = async () => {
+    return fetchFromBackend('GET', '/api/inventario'); 
+}
