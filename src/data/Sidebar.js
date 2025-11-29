@@ -4,10 +4,11 @@ import { MdManageAccounts, MdOutlineSupportAgent, MdPeopleOutline, MdLocalShippi
 import { SiAdafruit } from "react-icons/si";
 import { WiHumidity } from "react-icons/wi";
 
+
 // Nuevas importaciones de iconos
 import { GiFarmTractor } from "react-icons/gi"; 
 import { IoIosListBox } from "react-icons/io"; 
-import { FaUsersCog, FaChessKing, FaExchangeAlt, FaCommentDollar } from "react-icons/fa"; // FaChessKing y FaExchangeAlt son nuevas
+import { FaUsersCog, FaChessKing, FaExchangeAlt, FaFileContract,FaCommentDollar } from "react-icons/fa"; // FaChessKing y FaExchangeAlt son nuevas
 import { BsDropletFill } from "react-icons/bs"; 
 
 
@@ -71,8 +72,8 @@ const Menu = [
      
       {
         title: "Orden Fumigacion",
-        icon: <AiFillFileAdd />,
-        path: "/add-product",
+        icon: <FaFileContract />,
+        path: "/order-product",
       },
      
     ],
