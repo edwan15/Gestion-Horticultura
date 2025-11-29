@@ -15,7 +15,7 @@ const SideBarItem = ({ isOpen, product }) => {
     
     // 2. Clases para un elemento inactivo
     const inactiveText = "text-gray-300"; // Gris muy claro, visible sobre azul-900
-    const hoverBg = "hover:bg-blue-800"; // Fondo azul oscuro un poco más claro para hover
+    const hoverBg = "hover:bg-green-800"; // Fondo verde oscuro un poco más claro para hover
     
     // 3. Color de acento para Íconos y Flechas (siempre visible)
     const iconAccent = "text-green-400";
