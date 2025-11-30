@@ -46,9 +46,23 @@ const getAppId = () => {
   return "default-calendar-app-id";
 };
 
+
+
+const sanitizeDateKey = (date) => {
+    // Implementación de la función (ej: reemplaza '-' por '_')
+    if (typeof date !== 'string') return date;
+    return date.replace(/-/g, '_');
+};
+
 const appId = getAppId();
 
 const GREENHOUSE_STORAGE_KEY = `${appId}_selected_greenhouse_id`;
+
+const preset_name = "presentacion12"; 
+const cloud_name = "ddoeotuge"; 
+const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`;
+
+
 
 const REPORT_CONFIG = {
   COMPANY_NAME: "REPORTE DE INVENTARIO DIARIO",
@@ -271,23 +285,89 @@ const exportAllToCsv = (dailyData) => {
   );
 };
 
-const uploadImages = async (imagesToUpload, uploadUrl) => {
-  const uploadedUrls = [];
-  for (const item of imagesToUpload) {
-    try {
-      console.log(`Subiendo imagen ${item.id} a: ${uploadUrl}`);
 
-      uploadedUrls.push({ id: item.id, url: item.imageUrl });
-      // FIN SIMULACIÓN
-    } catch (error) {
-      console.error(`Error al subir la imagen ${item.id}:`, error);
-      toast.error(`Error al subir la imagen ${item.id}.`);
-      uploadedUrls.push({ id: item.id, url: item.imageUrl }); // Mantener el Base64 si falla
+
+
+
+
+
+const uploadImages = async (imagesToUpload) => {
+    const uploadedUrls = [];
+
+    for (const item of imagesToUpload) {
+        try {
+            console.log(`Subiendo imagen ${item.id} directamente a Cloudinary...`);
+            
+            // Convertir la URL Base64 (que está en item.imageUrl) a un objeto File para FormData.
+            // Esto es complicado, pero más fácil si ya la tienes como objeto File/Blob.
+            // Si la imagen proviene de un input 'file', DEBERÍAMOS USAR LOS DATOS ORIGINALES DEL ARCHIVO, NO EL BASE64.
+
+            // Dado que el item.imageUrl ahora es Base64 (porque antes usabas tu backend),
+            // lo más limpio es usar la subida a Cloudinary del Lado del Cliente (como en tu componente Cloudinary)
+            
+            // 🛑 PASO CRÍTICO: Convertir Base64 a Blob/File
+            // La función item.imageUrl contiene el Base64 (ej: 'data:image/png;base64,iVBORw0KGg...')
+            const base64Data = item.imageUrl.split(',')[1];
+            const mimeType = item.imageUrl.split(';')[0].split(':')[1];
+            const blob = await fetch(item.imageUrl).then(res => res.blob());
+            
+            const data = new FormData();
+            data.append('file', blob); // Agregar el archivo (Blob)
+            data.append('upload_preset', preset_name);
+            // También puedes agregar un public_id único para rastrear la imagen si lo deseas
+            // data.append('public_id', item.id); 
+
+            
+            const response = await fetch(CLOUDINARY_UPLOAD_URL, {
+                method: 'POST',
+                body: data // FormData gestiona el Content-Type automáticamente
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Cloudinary error: ${response.statusText}`);
+            }
+
+            const file = await response.json(); 
+            const newUrl = file.secure_url; 
+            
+            uploadedUrls.push({ id: item.id, url: newUrl });
+            toast.success(`Imagen ${item.id} subida a Cloudinary.`);
+            
+        } catch (error) {
+            console.error(`Error al subir la imagen ${item.id} a Cloudinary:`, error);
+            toast.error(`Error al subir la imagen ${item.id}.`);
+            // Si falla, mantenemos la URL Base64 antigua temporalmente, aunque no debe ser guardada en Firestore.
+            uploadedUrls.push({ id: item.id, url: item.imageUrl }); 
+        }
     }
-  }
 
-  return uploadedUrls;
+    return uploadedUrls;
 };
+
+
+
+
+// const uploadImages = async (imagesToUpload, uploadUrl) => {
+//   const uploadedUrls = [];
+//   for (const item of imagesToUpload) {
+//     try {
+//       console.log(`Subiendo imagen ${item.id} a: ${uploadUrl}`);
+
+//       uploadedUrls.push({ id: item.id, url: item.imageUrl });
+//       // FIN SIMULACIÓN
+//     } catch (error) {
+//       console.error(`Error al subir la imagen ${item.id}:`, error);
+//       toast.error(`Error al subir la imagen ${item.id}.`);
+//       uploadedUrls.push({ id: item.id, url: item.imageUrl }); // Mantener el Base64 si falla
+//     }
+//   }
+
+//   return uploadedUrls;
+// };
+
+
+
+
 
 
 const getGreenhousesListRef = (dbInstance, userId) => {
@@ -839,6 +919,39 @@ const App = () => {
         toast.info(message);
     }
   };
+
+
+
+const sanitizeForFirestore = (data) => {
+    if (data === null || typeof data !== 'object') {
+        return data;
+    }
+    
+    // Si es una instancia de Date de JavaScript
+    if (data instanceof Date) {
+        return data.toISOString();
+    }
+    
+    // Si es un objeto Timestamp de Firebase (Comprueba si existe el método toDate)
+    if (typeof data.toDate === 'function') {
+        return data.toDate().toISOString();
+    }
+    
+    // Si es un Array
+    if (Array.isArray(data)) {
+        return data.map(item => sanitizeForFirestore(item));
+    }
+    
+    // Si es un objeto normal, iterar sobre sus claves
+    const cleaned = {};
+    for (const key in data) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+            cleaned[key] = sanitizeForFirestore(data[key]);
+        }
+    }
+    return cleaned;
+};
+
 
   const generatePDF = useCallback(
     async (dateKey) => {
@@ -1459,6 +1572,7 @@ useEffect(() => {
     });
   }, []);
 
+  
   const handleSave = useCallback(
     async (dateKey, items = null, costData = null) => {
       // Cláusulas de guardia

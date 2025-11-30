@@ -1,27 +1,11 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { getProducts } from '../../../../features/product/ProductSlice';
+import { selectUserId, selectRole } from '../../../../features/auth/authSlice/authSlice';
 
 // =========================================================================
-// 🧪 CONFIGURACIÓN DE DATOS (Simulación de Firebase/Stock)
+// 🧪 HELPER FUNCTIONS
 // =========================================================================
-const INVENTARIO_BASE = [
-  { id: 1, nombre: "COTTON ALG...", stock: 3.0, unidad: "L" },       
-  { id: 2, nombre: "ALGIKIM AG...", stock: 100.0, unidad: "Kg" },    
-  { id: 3, nombre: "ACCUDO XTS...", stock: 2.0, unidad: "L" },       
-  { id: 4, nombre: "PROPLANT", stock: 10.0, unidad: "L" },           
-  { id: 5, nombre: "AMINAGRO F...", stock: 40.0, unidad: "L" },       
-  { id: 6, nombre: "VERIMARK", stock: 2.0, unidad: "L" },            
-  { id: 7, nombre: "CRISTALINO...", stock: 500.0, unidad: "Kg" },    
-  { id: 8, nombre: "CRISTALINO... (2)", stock: 500.0, unidad: "Kg" }, 
-  { id: 9, nombre: "ECOGREEN", stock: 1000.0, unidad: "Kg" },        
-  { id: 10, nombre: "KAPASOIL", stock: 5.0, unidad: "L" },           
-];
-
-const PRODUCT_OPTIONS = INVENTARIO_BASE.map(p => ({
-    id: p.id,
-    nombre: `${p.nombre} (${p.unidad})`
-}));
-
-const findProduct = (id) => INVENTARIO_BASE.find(p => p.id === id);
 
 const getDate = (daysOffset = 0) => {
     const date = new Date();
@@ -83,20 +67,19 @@ const createNewPlan = (id, daysOffset = 0) => ({
     date: getDate(daysOffset), 
     caldoTotal: 1000,
     caldoHa: 1000,
-    capacidadCuba: 1000, // Valor inicial
-    metodo: 'PISTOLETE', // Valor inicial
-    cuba: 'CUBA HERBICIDA', // Nuevo campo inicial
+    capacidadCuba: 1000,
+    metodo: 'PISTOLETE',
+    cuba: 'CUBA HERBICIDA',
     cultivo: 'UNIDAD',
-    fincaUbicacion: 'BALSICAS', // Valor inicial
-    parcelas: '1', // Valor inicial (Ahora enlazado a 3,8 ha)
-    superficie: PARCELA_OPTIONS_MAP['1'], // Inicializar con el valor de la parcela 1
-    numCubasAplicar: 1, // 👈 Nuevo campo para el SELECT de Nº CUBAS
+    fincaUbicacion: 'BALSICAS',
+    parcelas: '1',
+    superficie: PARCELA_OPTIONS_MAP['1'],
+    numCubasAplicar: 1,
     ordenes: [
         createNewOrderRow(1),
         createNewOrderRow(2),
         createNewOrderRow(3),
     ],
-    // 4 Filas de datos para la confirmación
     confirmaciones: [
         createNewConfirmationRow(),
         createNewConfirmationRow(),
@@ -107,7 +90,7 @@ const createNewPlan = (id, daysOffset = 0) => ({
 
 
 // =========================================================================
-// 🚨 MODAL DE ALERTA PROFESIONAL (Se mantiene la funcionalidad de stock) 🚨
+// 🚨 MODAL DE ALERTA PROFESIONAL 🚨
 // =========================================================================
 const CriticalStockModal = ({ visible, mensaje, onClose }) => {
     if (!visible) return null;
@@ -144,118 +127,94 @@ const CriticalStockModal = ({ visible, mensaje, onClose }) => {
 
 
 // =========================================================================
-// 📄 COMPONENTE DISEÑO IMPRESO (SÚPER IDÉNTICO) 📄
+// 📄 COMPONENTE DISEÑO IMPRESO 📄
 // =========================================================================
 
-const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onAddRow, onDeleteRow }) => { 
+const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onAddRow, onDeleteRow, productOptions }) => { 
     const ordersArray = Array.isArray(ordenesCalculadas) ? ordenesCalculadas : [];
     
-    // Estilos base para replicar los bordes de la hoja de cálculo
     const cellStyle = "p-1 border border-gray-500 text-[10px] whitespace-nowrap overflow-hidden leading-tight"; 
     const cellHeaderStyle = "p-1 border border-gray-500 bg-gray-200 text-center font-extrabold text-[10px] uppercase leading-tight";
-    // Ajustado para permitir selectores sin bordes nativos
     const cellInputStyle = "w-full p-0 border-none text-[10px] focus:ring-0 bg-transparent";
 
-    // Estilo para la columna de NORMAS (Derecha)
     const rightColStyle = "col-span-2 border-l border-gray-500";
     
-    // Anchos de columna para la tabla principal (14 campos de dato + 1 de control)
     const tableHeaderClasses = [
         "w-[6.5%]", "w-[4%]", "w-[14.5%]", "w-[12%]", "w-[6%]", "w-[3%]", "w-[6%]", "w-[6%]", 
         "w-[6%]", "w-[6%]", "w-[8%]", "w-[8%]", "w-[8%]", "w-[6%]", 
-        "w-[2%]", // 🛑 NUEVA COLUMNA DE ELIMINAR 🛑
+        "w-[2%]",
     ];
     
-    // Altura mayor para las celdas del header
     const tallCellStyle = "p-1 border border-gray-500 text-[10px] leading-tight flex flex-col justify-start h-12"; 
     
-    // Identificadores de clase para ocultar columnas en impresión
-    const stockColumnClass = "stock-col"; // Clase para la columna STOCK (Índice 10)
+    const stockColumnClass = "stock-col";
     const hiddenInPrintClass = "print:hidden";
 
-    // --- Opciones de Select ---
     const CUBA_CAPACITY_OPTIONS = [1000, 2000, 3000];
     const METODO_OPTIONS = ["PISTOLETE", "TRADICIONAL"];
     const CUBA_OPTIONS = ["CUBA HERBICIDA", "CUBA BIOESTIMULATE"];
     const FINCA_OPTIONS = ["BALSICAS", "DOLORES", "PALMERO"];
-    // -------------------------
 
-    // Manejar el cambio en los datos principales del plan, incluyendo la lógica de vinculación
     const handlePlanDataChange = (key, value) => {
         let updates = { [key]: value };
 
-        // 🚨 Lógica de VINCULACIÓN: Si cambia CAPACIDAD CUBA, actualiza CALDO HA y CALDO TOTAL
         if (key === 'capacidadCuba') {
             const numValue = parseFloat(value);
             updates.caldoHa = numValue;
             updates.caldoTotal = numValue;
         }
 
-        // 🚩 Lógica de VINCULACIÓN: Si cambia PARCELAS, actualiza SUPERFICIE
         if (key === 'parcelas' && PARCELA_OPTIONS_MAP[value]) {
             updates.superficie = PARCELA_OPTIONS_MAP[value];
         }
         
-        // 🚩 Lógica de VINCULACIÓN: Asegurar que numCubasAplicar sea un número
         if (key === 'numCubasAplicar') {
              updates[key] = parseInt(value, 10);
         }
 
-        // Aplicar todos los cambios
         Object.keys(updates).forEach(updateKey => {
             onOrderChange(null, updateKey, updates[updateKey]);
         });
     };
 
-    // Manejar el cambio en las filas de confirmación del footer
     const handleConfirmationChange = (index, key, value) => {
         onOrderChange(null, 'actualizarConfirmacion', { index, key, value });
     };
     
-    // Opciones para el select de Nº CUBAS
     const NUM_CUBAS_OPTIONS = Array.from({ length: 10 }, (_, i) => i + 1);
 
 
     return (
         <div className="bg-white border-4 border-black shadow-2xl max-w-6xl mx-auto font-sans text-gray-900 text-xs print:shadow-none print:border-none">
-            {/* Contenedor Principal: 80% Formulario (Izquierda), 20% Normas (Derecha) */}
             <div className="grid grid-cols-10 border-b border-black">
                 
-                {/* -------------------- COLUMNA IZQUIERDA (80% - COL SPAN 8) -------------------- */}
                 <div className="col-span-8 border-r-2 border-gray-500">
                     <div className="grid grid-cols-8">
                         
-                        {/* 1. LOGO/TÍTULO (Filas 1-3) */}
                         <div className="col-span-2 row-span-3 h-[70px] flex items-center justify-center bg-gray-50 border-r border-b border-gray-500 text-center font-bold text-gray-700">
-                            {/* Logo "HORTICULTURA DEL SURESTE" */}
                             <div className="py-1 px-1 text-center font-serif text-lg font-black text-green-700 border-b-2 border-green-700 leading-none">
                                 HORTICULTURA <br/><span className="text-[10px]">DEL SURESTE</span>
                             </div>
                         </div>
                         
-                        {/* Título Principal */}
                         <div className="col-span-6 grid grid-cols-6 border-b border-gray-500">
                             <div className={`${cellStyle} col-span-6 bg-blue-600 text-white font-bold text-center text-sm`}>
                                 ORDEN FITOSANITARIOS
                             </div>
                         </div>
 
-                        {/* Finca/Olores */}
                         <div className="col-span-6 grid grid-cols-6 border-b border-gray-500">
                             <div className={`${cellStyle} col-span-6 bg-blue-100 text-center font-extrabold text-sm`}>
                                 {plan.nombre}
                             </div>
                         </div>
                         
-                        {/* Fila vacía para espacio */}
                         <div className="col-span-6 grid grid-cols-6 border-b border-gray-500">
                             <div className={`${cellStyle} col-span-6 h-[10px] border-b-0`}></div>
                         </div>
 
 
-                        {/* 2. DATOS DE IDENTIFICACIÓN (Filas 4-6) */}
                         <div className="col-span-8 grid grid-cols-8 border-b border-gray-500">
-                            {/* FECHA y CÓDIGO HDS */}
                             <div className={`${tallCellStyle} col-span-2 font-bold justify-center`}>
                                 <label className="flex-shrink-0 mr-1">FECHA:</label>
                                 <input type="date" value={plan.date} onChange={(e) => handlePlanDataChange('date', e.target.value)} className={`${cellInputStyle} mt-0.5`} />
@@ -265,7 +224,6 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
                                 <input type="text" value={plan.codigoHDS} onChange={(e) => handlePlanDataChange('codigoHDS', e.target.value)} className={`${cellInputStyle} mt-0.5`} />
                             </div>
                             
-                            {/* PARCELAS (Alto) - AHORA SELECT Y VINCULADO */}
                             <div className={`${tallCellStyle} col-span-1 `}>
                                 PARCELAS: <br/>
                                 <select 
@@ -277,21 +235,17 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
                                 </select>
                             </div>
                             
-                            {/* SUPERFICIE (Alto) - AHORA SOLO MOSTRADO */}
                             <div className={`${tallCellStyle} col-span-2 `}>
                                 SUPERFICIE: <br/>
-                                {/* 🚩 SOLO TEXTO MOSTRADO (Superficie) 🚩 */}
                                 <span className="font-extrabold text-sm text-gray-700 mt-1.5">{plan.superficie}</span>
                             </div>
                             
-                            {/* CALDO TOTAL (POSICIÓN CORREGIDA) - AHORA VINCULADO */}
                             <div className={`${tallCellStyle} col-span-1 font-bold text-center justify-center bg-gray-50`}>
                                 CALDO TOTAL: <br/>
                                 <span className="font-extrabold text-sm text-blue-700">{plan.caldoTotal.toFixed(0)} lt</span>
                             </div>
                         </div>
 
-                        {/* Fila 5: CULTIVO, UNIDAD, FINCA BALSICAS - AHORA SELECT */}
                         <div className="col-span-8 grid grid-cols-8 border-b border-gray-500">
                             <div className={`${cellStyle} col-span-3 font-bold flex items-center`}>
                                 CULTIVO UNIDAD: 
@@ -309,14 +263,11 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
                             </div>
                         </div>
                         
-                        {/* Fila 6: DETALLES DE APLICACIÓN (Ahora es la Fila 6) */}
                         <div className="col-span-8 grid grid-cols-8 border-t border-gray-500">
-                            {/* CALDO HA - AHORA VINCULADO */}
                             <div className={`${cellStyle} col-span-2 font-bold flex justify-between items-center`}>
                                 CALDO HA: <span className="float-right text-blue-700 font-extrabold">{plan.caldoHa.toFixed(0)} lt</span>
                             </div>
                             
-                            {/* CAPACIDAD CUBA - AHORA SELECT */}
                             <div className={`${cellStyle} col-span-2 font-bold flex items-center`}>
                                 CAPACIDAD CUBA: 
                                 <select 
@@ -330,7 +281,6 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
                                 </select>
                             </div>
 
-                            {/* CUBA - AHORA SELECT */}
                             <div className={`${cellStyle} col-span-2 font-bold flex items-center`}>
                                 CUBA:
                                 <select 
@@ -342,7 +292,6 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
                                 </select>
                             </div>
 
-                            {/* MÉTODO - AHORA SELECT */}
                             <div className={`${cellStyle} col-span-2 font-bold flex items-center`}>
                                 MÉTODO: 
                                 <select 
@@ -355,9 +304,7 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
                             </div>
                         </div>
 
-                        {/* Fila 7: N° CUBAS y DOSIS/CONSUMO */}
                         <div className="col-span-8 grid grid-cols-8 border-t border-gray-500">
-                            {/* 🚀 N° CUBAS (SELECT 1-10) 🚀 */}
                             <div className={`${cellStyle} col-span-1 font-bold flex items-center justify-between`}>
                                 N° CUBAS:
                                 <select 
@@ -378,20 +325,16 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
                     </div>
                 </div>
 
-                {/* -------------------- COLUMNA DERECHA (20% - Normas y Observaciones) -------------------- */}
                 <div className={rightColStyle}>
                     <div className="grid grid-cols-2 h-full">
                         
-                        {/* OBSERVACIONES (CELDAS GRANDES) - Altura Ajustada de h-[100px] a h-[70px] */}
                         <div className={`${cellStyle} col-span-2 text-center bg-yellow-100 font-bold border-b border-gray-500 h-[70px] flex flex-col justify-start`}>
                             OBSERVACIONES:
                             <textarea className={`${cellInputStyle} bg-transparent h-full resize-none text-left font-normal text-xs mt-1`} rows="5" placeholder="Escribe aquí las observaciones..." />
                         </div>
                         
-                        {/* NORMAS */}
                         <div className={`${cellStyle} col-span-2 text-center bg-yellow-100 font-bold border-b border-gray-500`}>NORMAS PARA EL USO EFICAZ Y SEGURO DE FITOSANITARIOS</div>
                         
-                        {/* Lista de normas */}
                         <div className={`${cellStyle} col-span-2 text-[8px] h-full overflow-hidden text-justify`} style={{ lineHeight: '1.2' }}>
                              <ol className="list-decimal pl-3 space-y-0.5">
                                 <li>Sigue las instrucciones del técnico para el uso de plaguicidas.</li>
@@ -414,12 +357,10 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
                 </div>
             </div>
 
-            {/* -------------------- TABLA DE PRODUCTOS (Cuerpo del Recibo) -------------------- */}
             <div className="overflow-x-auto border-b-2 border-black">
                 <table className="min-w-full border-collapse"> 
                     <thead className="bg-gray-100"> 
                         <tr className="text-gray-700">
-                            {/* Encabezados de la Tabla */}
                             <th className={`${cellHeaderStyle} ${tableHeaderClasses[0]}`}>MOTIVO</th>
                             <th className={`${cellHeaderStyle} ${tableHeaderClasses[1]}`}>%</th>
                             <th className={`${cellHeaderStyle} ${tableHeaderClasses[2]}`}>PRODUCTO</th>
@@ -430,39 +371,35 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
                             <th className={`${cellHeaderStyle} ${tableHeaderClasses[7]}`}>HA</th>
                             <th className={`${cellHeaderStyle} ${tableHeaderClasses[8]}`}>CUBA</th>
                             <th className={`${cellHeaderStyle} ${tableHeaderClasses[9]}`}>UNIDAD</th>
-                            <th className={`${cellHeaderStyle} ${tableHeaderClasses[10]} text-green-700 ${stockColumnClass} ${hiddenInPrintClass}`}>STOCK</th> {/* OCULTAR EN IMPRESIÓN */}
+                            <th className={`${cellHeaderStyle} ${tableHeaderClasses[10]} text-green-700 ${stockColumnClass} ${hiddenInPrintClass}`}>STOCK</th>
                             <th className={`${cellHeaderStyle} ${tableHeaderClasses[11]} text-red-700`}>PREVISTO</th> 
                             <th className={`${cellHeaderStyle} ${tableHeaderClasses[12]}`}>REAL</th>
                             <th className={`${cellHeaderStyle} ${tableHeaderClasses[13]}`}>EFICACIA</th>
-                            <th className={`${cellHeaderStyle} ${tableHeaderClasses[14]} text-red-700 ${hiddenInPrintClass}`}>X</th> {/* 🛑 ENCABEZADO ELIMINAR 🛑 */}
+                            <th className={`${cellHeaderStyle} ${tableHeaderClasses[14]} text-red-700 ${hiddenInPrintClass}`}>X</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white"> 
-                         {/* INTEGRACIÓN DIRECTA DE FILAS */}
                         {ordersArray.map((orden) => (
                              <tr key={orden.id} className="hover:bg-gray-50 transition duration-100">
-                                {/* MOTIVO (Columna 1) */}
                                 <td className={cellStyle.replace('text-[10px]', 'text-[9px]')}>
                                     <input type="text" value={orden.motivo} onChange={(e) => onOrderChange(orden.id, 'motivo', e.target.value)} className={cellInputStyle.replace('text-[10px]', 'text-[9px]')} placeholder="Ej. MOJANTE"/>
                                 </td>
                                 
-                                {/* % (Porcentaje) (Columna 2) */}
                                 <td className={`${cellStyle.replace('text-[10px]', 'text-[9px]')} font-bold text-center`}>
                                     <input type="number" value={orden.porcentaje} onChange={(e) => onOrderChange(orden.id, 'porcentaje', e.target.value)} className={`${cellInputStyle.replace('text-[10px]', 'text-[9px]')} text-center`} placeholder="100"/>
                                 </td>
 
-                                {/* PRODUCTO (Columna 3) - Selector */}
                                 <td className={cellStyle.replace('text-[10px]', 'text-[9px]')}>
                                      <select
                                         value={orden.productoId || ''}
                                         onChange={(e) => {
-                                            const value = parseInt(e.target.value);
-                                            onOrderChange(orden.id, 'productoId', isNaN(value) ? null : value);
+                                            const value = e.target.value;
+                                            onOrderChange(orden.id, 'productoId', value);
                                         }}
                                         className={`${cellInputStyle.replace('text-[10px]', 'text-[9px]')} font-medium print-as-text`} 
                                     >
                                         <option value="" disabled>--- Seleccionar Producto ---</option>
-                                        {PRODUCT_OPTIONS.map(p => (
+                                        {productOptions.map(p => (
                                             <option key={p.id} value={p.id}>
                                                 {p.nombre}
                                             </option>
@@ -470,46 +407,38 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
                                     </select>
                                 </td>
 
-                                {/* COMPOSICION (Columna 4) */}
                                 <td className={cellStyle.replace('text-[10px]', 'text-[9px]')}>
                                      <input type="text" value={orden.composicion} onChange={(e) => onOrderChange(orden.id, 'composicion', e.target.value)} className={cellInputStyle.replace('text-[10px]', 'text-[9px]')} placeholder="Ej. 90% MOJANTE"/>
                                 </td>
 
-                                {/* N° REGISTRO (Columna 5) */}
                                 <td className={cellStyle.replace('text-[10px]', 'text-[9px]')}>
                                      <input type="text" value={orden.numRegistro} onChange={(e) => onOrderChange(orden.id, 'numRegistro', e.target.value)} className={cellInputStyle.replace('text-[10px]', 'text-[9px]')} placeholder="Ej. 24.087"/>
                                 </td>
 
-                                {/* PS (Columna 6) - Producto Sustitutivo */}
                                 <td className={cellStyle.replace('text-[10px]', 'text-[9px]')}>
                                      <input type="text" value={orden.ps} onChange={(e) => onOrderChange(orden.id, 'ps', e.target.value)} className={cellInputStyle.replace('text-[10px]', 'text-[9px]')}/>
                                 </td>
                                 
-                                {/* 1.000 lt (Columna 7) - Cantidad a Usar (INPUT CONECTADO AL STOCK) */}
                                 <td className={cellStyle.replace('text-[10px]', 'text-[9px]')}>
                                     <input type="number" step="0.01" value={orden.cantidadUsada} onChange={(e) => onOrderChange(orden.id, 'cantidadUsada', e.target.value)} className={`${cellInputStyle.replace('text-[10px]', 'text-[9px]')} text-right font-extrabold text-red-700`} placeholder="0.00"/>
                                 </td>
 
-                                {/* HA (Columna 8) - Dosis por Hectárea */}
                                 <td className={cellStyle.replace('text-[10px]', 'text-[9px]')}>
                                     <input type="number" step="0.01" value={orden.dosisHa} onChange={(e) => onOrderChange(orden.id, 'dosisHa', e.target.value)} className={`${cellInputStyle.replace('text-[10px]', 'text-[9px]')} text-right`} placeholder="0.00"/>
                                 </td>
 
-                                {/* CUBA (Columna 9) - Dosis por Cuba */}
                                 <td className={cellStyle.replace('text-[10px]', 'text-[9px]')}>
                                     <input type="number" step="0.01" value={orden.dosisCuba} onChange={(e) => onOrderChange(orden.id, 'dosisCuba', e.target.value)} className={`${cellInputStyle.replace('text-[10px]', 'text-[9px]')} text-right`} placeholder="0.00"/>
                                 </td>
 
-                                {/* UNIDAD (Columna 10) - Stock Unidad (Display) */}
                                 <td className={`${cellStyle.replace('text-[10px]', 'text-[9px]')} text-center font-bold text-gray-600`}>
                                     {orden.stockUnidad || 'L/Kg'}
                                 </td>
 
-                                {/* STOCK (Columna 11) - Stock Restante/Final (CALCULADO) */}
                                 <td 
                                     className={`${cellStyle.replace('text-[10px]', 'text-[9px]')} ${stockColumnClass} text-center font-extrabold ${hiddenInPrintClass} ${
                                         orden.alerta 
-                                            ? 'bg-red-200 text-red-800 animate-pulse' // Alerta visual
+                                            ? 'bg-red-200 text-red-800 animate-pulse'
                                             : 'text-green-700'
                                     }`}
                                 >
@@ -520,26 +449,21 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
                                         : 'N/A'}
                                 </td>
                                 
-                                {/* PREVISTO (Columna 12) - INDEPENDIENTE */}
                                 <td className={cellStyle.replace('text-[10px]', 'text-[9px]')}>
                                     <input type="text" value={orden.previsto} onChange={(e) => onOrderChange(orden.id, 'previsto', e.target.value)} className={`${cellInputStyle.replace('text-[10px]', 'text-[9px]')} text-right font-extrabold text-red-700`} placeholder="0.00"/>
                                 </td>
 
-                                {/* REAL (Columna 13) - Cantidad Real Aplicada */}
                                 <td className={cellStyle.replace('text-[10px]', 'text-[9px]')}>
                                     <input type="number" step="0.01" value={orden.real} onChange={(e) => onOrderChange(orden.id, 'real', e.target.value)} className={`${cellInputStyle.replace('text-[10px]', 'text-[9px]')} text-right`} placeholder="0.00"/>
                                 </td>
                                 
-                                {/* EFICACIA (Columna 14) - Calificación */}
                                 <td className={cellStyle.replace('text-[10px]', 'text-[9px]')}>
                                     <input type="text" value={orden.eficacia} onChange={(e) => onOrderChange(orden.id, 'eficacia', e.target.value)} className={`${cellInputStyle.replace('text-[10px]', 'text-[9px]')} text-center`} placeholder="B"/>
                                 </td>
 
-                                {/* 🛑 BOTÓN ELIMINAR (Columna 15) 🛑 */}
                                 <td className={`${cellStyle.replace('text-[10px]', 'text-[9px]')} text-center ${hiddenInPrintClass}`}>
                                     <button
                                         onClick={() => onDeleteRow(orden.id)}
-                                        // Deshabilitar si solo hay una fila
                                         disabled={ordersArray.length === 1}
                                         title="Eliminar esta fila de producto"
                                         className={`p-0 w-full h-full font-extrabold transition duration-150 active:scale-90 
@@ -558,7 +482,6 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
                 </table>
             </div>
             
-            {/* 🚨 BOTÓN PARA AÑADIR FILAS 🚨 */}
             <div className="flex justify-center py-2 bg-gray-50 border-b border-black print:hidden">
                 <button
                     onClick={onAddRow}
@@ -569,10 +492,8 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
                 </button>
             </div>
             
-            {/* -------------------- PIE DE PÁGINA (Footer) -------------------- */}
             <div className="grid grid-cols-10 border-t-2 border-black">
                 
-                {/* 1. Responsable/Aplicador/Instrucciones */}
                 <div className="col-span-8 border-r border-gray-500">
                     <div className="grid grid-cols-8">
                         <div className={`${cellStyle} col-span-4 font-bold h-10`}>
@@ -587,7 +508,6 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
                     </div>
                 </div>
 
-                {/* 2. Confirmación del Tratamiento */}
                  <div className="col-span-2">
                     <div className="grid grid-cols-2">
                         <div className={`${cellStyle} col-span-2 text-center bg-blue-100 font-bold border-b border-gray-500`}>
@@ -597,7 +517,6 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
                 </div>
             </div>
             
-            {/* 3. Tabla de Confirmación Final (con 4 filas de datos) */}
             <div className="overflow-x-auto border-t border-black">
                 <table className="min-w-full border-collapse"> 
                     <thead className="bg-gray-100"> 
@@ -611,7 +530,6 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
                         </tr>
                     </thead>
                     <tbody>
-                         {/* 4 Filas de datos para la confirmación (mantenidas) */}
                         {plan.confirmaciones.map((conf, index) => (
                             <tr key={index} className="text-gray-700">
                                 <td className={`${cellStyle} h-8`}>
@@ -644,11 +562,51 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
 
 
 // =========================================================================
-// 🚀 COMPONENTE PRINCIPAL: OrdenFumigacionSimulador (Lógica de Stock)
+// 🚀 COMPONENTE PRINCIPAL: OrdenFumigacionSimulador
 // =========================================================================
 
 const OrdenFumigacionSimulador = () => { 
-    // Ahora, solo se inicia con el primer plan.
+    const dispatch = useDispatch();
+    const userId = useSelector(selectUserId);
+    const userRole = useSelector(selectRole);
+    const products = useSelector(state => state.product.products);
+
+    // Cargar productos al montar
+    useEffect(() => {
+        if (userId) {
+            dispatch(getProducts({ userId, userRole }));
+        }
+    }, [dispatch, userId, userRole]);
+
+    // Transformar productos de Redux al formato esperado por el simulador
+    const inventory = useMemo(() => {
+        return products.map(p => {
+            // El stock se calcula como entradas - salidas
+            const entradas = parseInt(p.entradas, 10) || 0;
+            const salidas = parseInt(p.salidas, 10) || 0;
+            const stockCalculado = entradas - salidas;
+            
+            return {
+                id: p.id || p._id,
+                nombre: p.name,
+                stock: stockCalculado,
+                unidad: p.unit || 'Unidad'
+            };
+        });
+    }, [products]);
+
+    const productOptions = useMemo(() => {
+        return inventory.map(p => ({
+            id: p.id,
+            nombre: `${p.nombre} (${p.unidad})`
+        }));
+    }, [inventory]);
+
+    const findProduct = useCallback((id) => {
+        return inventory.find(p => String(p.id) === String(id));
+    }, [inventory]);
+
+
     const [planes, setPlanes] = useState([
         createNewPlan(1, 0), 
     ]);
@@ -656,7 +614,7 @@ const OrdenFumigacionSimulador = () => {
     const [alertaModalState, setAlertaModalState] = useState({ visible: false, mensaje: null });
     const [alertaCriticaId, setAlertaCriticaId] = useState(null); 
     
-    // Lógica de cálculo de stock (REVISADA Y CORREGIDA)
+    // Lógica de cálculo de stock
     const planesCalculados = useMemo(() => {
         let allOrders = [];
         planes.forEach(plan => {
@@ -677,8 +635,7 @@ const OrdenFumigacionSimulador = () => {
             return a.id - b.id; 
         });
         
-        // Inicializa el stock con el inventario base
-        const stockActual = new Map(INVENTARIO_BASE.map(p => [p.id, p.stock]));
+        const stockActual = new Map(inventory.map(p => [p.id, p.stock]));
         const ordersProcessed = [];
 
         for (const orden of allOrders) {
@@ -691,8 +648,7 @@ const OrdenFumigacionSimulador = () => {
             if (orden.productoId) {
                 const cantidad = parseFloat(orden.cantidadUsada) || 0;
                 
-                // Obtener el stock disponible ANTES de esta orden
-                let stockDisponibleAntes = stockActual.get(orden.productoId) || 0;
+                let stockDisponibleAntes = stockActual.get(String(orden.productoId)) || 0;
                 
                 let stockDespues = stockDisponibleAntes - cantidad;
                 ordenCalculada.alerta = false;
@@ -701,13 +657,10 @@ const OrdenFumigacionSimulador = () => {
                      ordenCalculada.alerta = true;
                 }
                 
-                // 🚀 ESTO ASEGURA LA ACUMULACIÓN SECUENCIAL
-                // El stock restante es el stock que queda DESPUÉS de esta orden
-                stockActual.set(orden.productoId, stockDespues);
+                stockActual.set(String(orden.productoId), stockDespues);
                 ordenCalculada.stockRestante = stockDespues;
                 
             } else {
-                 // Si no hay producto, el stock restante es N/A
                  ordenCalculada.stockRestante = null; 
             }
             
@@ -722,7 +675,7 @@ const OrdenFumigacionSimulador = () => {
         });
 
         return planesActualizados;
-    }, [planes]); 
+    }, [planes, inventory, findProduct]); 
     
     // Lógica para mostrar el MODAL de Alerta 
     useEffect(() => {
@@ -733,14 +686,13 @@ const OrdenFumigacionSimulador = () => {
             const newAlertaId = `${primerAlertaCritica.planId}-${primerAlertaCritica.id}`;
             
             if (alertaCriticaId !== newAlertaId) {
-                // Calcular stock disponible justo antes de esta orden
                 const allOrdersBeforeCurrent = planesCalculados.flatMap(p => p.ordenesCalculadas)
                     .filter(o => o.planId < primerAlertaCritica.planId || (o.planId === primerAlertaCritica.planId && o.id < primerAlertaCritica.id));
 
                 let stockDisponibleEnEseMomento = findProduct(primerAlertaCritica.productoId)?.stock || 0; 
                 
                 for(const orden of allOrdersBeforeCurrent) {
-                    if(orden.productoId === primerAlertaCritica.productoId && orden.cantidadUsada) {
+                    if(String(orden.productoId) === String(primerAlertaCritica.productoId) && orden.cantidadUsada) {
                          const cantidad = parseFloat(orden.cantidadUsada) || 0;
                          stockDisponibleEnEseMomento -= cantidad;
                     }
@@ -750,7 +702,6 @@ const OrdenFumigacionSimulador = () => {
                 const cantidadSolicitada = parseFloat(primerAlertaCritica.cantidadUsada);
                 const unidad = prod?.unidad || 'Unidades';
 
-                // *** MENSAJE CON FORMATO JSX ***
                 const mensajeJSX = (
                     <>
                         El producto <span className="font-extrabold text-red-800">{prod?.nombre}</span> (Orden <span className="font-extrabold">#{primerAlertaCritica.id}</span> del Plan <span className="font-extrabold">#{primerAlertaCritica.planId}</span>) requiere <span className="font-extrabold text-red-700">{cantidadSolicitada.toFixed(2)} {unidad}</span>, pero el stock actual disponible es de <span className="font-extrabold text-green-700">{stockDisponibleEnEseMomento.toFixed(2)} {unidad}</span>.
@@ -769,7 +720,7 @@ const OrdenFumigacionSimulador = () => {
             }
             setAlertaCriticaId(null);
         }
-    }, [planesCalculados, alertaCriticaId, alertaModalState.visible]); 
+    }, [planesCalculados, alertaCriticaId, alertaModalState.visible, findProduct]); 
 
     const closeModal = () => {
         setAlertaModalState({ visible: false, mensaje: null });
@@ -779,12 +730,10 @@ const OrdenFumigacionSimulador = () => {
         setPlanes(prevPlanes => 
             prevPlanes.map(plan => {
                 if (plan.id === planId) {
-                    // Cambios a nivel de Plan (ordenId === null)
                     if (ordenId === null && key !== 'nuevaFila' && key !== 'actualizarConfirmacion' && key !== 'eliminarFila') {
                          return { ...plan, [key]: value };
                     } 
                     
-                    // Manejar la actualización de filas de confirmación
                     if (key === 'actualizarConfirmacion') {
                         const { index, key: confKey, value: confValue } = value;
                         const newConfirmaciones = [...plan.confirmaciones];
@@ -792,25 +741,21 @@ const OrdenFumigacionSimulador = () => {
                         return { ...plan, confirmaciones: newConfirmaciones };
                     }
                     
-                    // 🚨 AGREGAR NUEVA FILA DE PRODUCTO 🚨
                     if (key === 'nuevaFila') {
-                        // Calcula el ID único (máximo ID existente + 1)
                         const nextId = plan.ordenes.length > 0 
                             ? Math.max(...plan.ordenes.map(o => o.id)) + 1 
                             : 1;
+
                         return { 
                             ...plan, 
                             ordenes: [...plan.ordenes, createNewOrderRow(nextId)] 
                         };
                     }
                     
-                    // 🛑 NUEVA LÓGICA: ELIMINAR FILA DE PRODUCTO 🛑
                     if (key === 'eliminarFila') {
-                        const idToDelete = value; // value contiene el ordenId a eliminar
+                        const idToDelete = value;
                         
-                        // Asegura que siempre quede al menos una fila
                         if (plan.ordenes.length <= 1) {
-                             // No hay necesidad de mostrar alerta ya que el botón está deshabilitado en el componente hijo
                              return plan;
                         }
 
@@ -818,7 +763,6 @@ const OrdenFumigacionSimulador = () => {
                         return { ...plan, ordenes: newOrdenes };
                     }
 
-                    // Cambios a nivel de Orden
                     const newOrdenes = plan.ordenes.map(orden => {
                         if (orden.id === ordenId) {
                             const newOrder = { ...orden, [key]: value };
@@ -837,22 +781,19 @@ const OrdenFumigacionSimulador = () => {
                 return plan;
             })
         );
-    }, []); 
+    }, [findProduct]); 
 
     const addPlan = () => {
-        // Asegura que el nuevo ID sea el siguiente del último plan existente
         const newId = (planes.length ? planes[planes.length - 1].id : 0) + 1;
         setPlanes([...planes, createNewPlan(newId, planes.length)]); 
     };
 
-    // 🛑 FUNCIÓN PARA ELIMINAR PLAN 🛑
     const deletePlan = useCallback((planId) => {
         if (!window.confirm(`¿Estás seguro de que quieres eliminar el Plan Fitosanitario #${planId}?\nEsta acción es irreversible.`)) {
             return;
         }
         setPlanes(prevPlanes => {
             const newPlanes = prevPlanes.filter(plan => plan.id !== planId);
-            // Lógica para limpiar la alerta si el plan eliminado era el que la causaba
             const isAlertPlan = alertaCriticaId && alertaCriticaId.startsWith(`${planId}-`);
             if (isAlertPlan) {
                 setAlertaCriticaId(null);
@@ -863,54 +804,90 @@ const OrdenFumigacionSimulador = () => {
     }, [alertaCriticaId]);
 
 
-    // Función para manejar la impresión/exportación
     const handlePrint = () => {
         window.print();
     };
 
     return (
         <div className="space-y-8 p-4 md:p-8 bg-gray-100 min-h-screen">
-            {/* Estilos CSS para impresión (saltos de página, ocultar stock y SELECTS) */}
             <style jsx global>{`
                 @media print {
-                    /* Oculta los elementos que no deben imprimirse */
-                    .print:hidden, .print-button {
+                    /* Ocultar TODOS los elementos de la aplicación excepto este componente */
+                    body > *:not(#root) {
                         display: none !important;
                     }
                     
-                    /* Fuerza un salto de página después de cada plan fitosanitario */
+                    /* Ocultar header, sidebar, navbar, etc. */
+                    header, nav, aside, footer, 
+                    [class*="sidebar"], [class*="Sidebar"],
+                    [class*="header"], [class*="Header"],
+                    [class*="navbar"], [class*="Navbar"],
+                    [class*="nav"], [class*="Nav"],
+                    [class*="menu"], [class*="Menu"] {
+                        display: none !important;
+                    }
+                    
+                    /* Resetear estilos de página para impresión */
+                    html, body {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        width: 100% !important;
+                        height: auto !important;
+                        background: white !important;
+                    }
+                    
+                    /* Ocultar elementos específicos del componente */
+                    .print\\:hidden, .print-button {
+                        display: none !important;
+                    }
+                    
+                    /* Configurar saltos de página */
                     .print-page-break {
                         page-break-after: always;
+                        break-after: page;
                     }
                     
-                    /* Asegura que el último plan no tenga un salto de página extra */
                     .print-page-break:last-child {
                         page-break-after: avoid;
+                        break-after: avoid;
                     }
                     
-                    /* Oculta la columna STOCK (header y celdas) */
+                    /* Ocultar columna de stock en impresión */
                     .stock-col {
                         display: none !important;
                     }
                     
-                    /* 🚩 ESTILOS PARA OCULTAR SELECTS Y MOSTRAR SOLO EL TEXTO 🚩 */
+                    /* Hacer que los selects se vean como texto */
                     .print-as-text {
-                        -webkit-appearance: none; /* Chrome/Safari */
-                        -moz-appearance: none; /* Firefox */
-                        appearance: none; /* Standard */
+                        -webkit-appearance: none;
+                        -moz-appearance: none;
+                        appearance: none;
                         background: none !important;
                         border: none !important;
-                        padding-right: 0 !important; /* Elimina espacio para la flecha */
-                        color: #000 !important; /* Asegura que el texto sea visible */
+                        padding-right: 0 !important;
+                        color: #000 !important;
                     }
                     
-                    /* Asegura que los selects impresos mantengan el valor de texto visible */
                     .print-as-text option {
                         display: none;
                     }
-                    .print-as-text:after {
-                        content: attr(value);
-                        white-space: pre;
+                    
+                    /* Ajustar el contenedor principal */
+                    .space-y-8 {
+                        padding: 0 !important;
+                        margin: 0 !important;
+                        background: white !important;
+                    }
+                    
+                    /* Asegurar que cada plan ocupe una página completa */
+                    .pb-8 {
+                        padding-bottom: 0 !important;
+                    }
+                    
+                    /* Optimizar para tamaño de página A4 */
+                    @page {
+                        size: A4;
+                        margin: 10mm;
                     }
                 }
             `}</style>
@@ -922,19 +899,16 @@ const OrdenFumigacionSimulador = () => {
             />
             
             <h1 className="text-2xl text-center font-sans font-extrabold text-gray-800 print:hidden">
-                Fitosanitario (Prueba v.06) - Planes
+                HORTICULTURA DEL SURESTE
             </h1>
 
             {planesCalculados.map((plan) => (
-                // 🛑 AÑADIMOS LA CLASE CLAVE AQUÍ 🛑
                 <div key={plan.id} className="pb-8 print-page-break"> 
                     
-                    {/* 🛑 Header con botón de eliminación (Solo en vista de simulación) 🛑 */}
                     <div className="flex justify-between items-center mb-2 px-2 print:hidden">
                         <h2 className="text-xl font-bold text-gray-700">Plan Fitosanitario <span className="text-indigo-600">#{plan.id}</span></h2>
                         
                         <button 
-                            // Deshabilita el botón si solo queda un plan para evitar un estado vacío no deseado
                             onClick={() => deletePlan(plan.id)}
                             disabled={planes.length === 1}
                             className={`
@@ -962,15 +936,14 @@ const OrdenFumigacionSimulador = () => {
                             }
                         }}
                         onAddRow={() => handlePlanChange(plan.id, 'nuevaFila', true)}
-                        // 🛑 PROP PARA ELIMINAR FILA 🛑
                         onDeleteRow={(ordenId) => handlePlanChange(plan.id, 'eliminarFila', ordenId)}
+                        productOptions={productOptions}
                     />
                 </div>
             ))}
             
             <div className="flex flex-col sm:flex-row justify-center items-center pt-4 space-y-4 sm:space-y-0 sm:space-x-8 print:hidden">
                 
-                {/* Botón de Añadir Nuevo Plan (mantenido) */}
                 <button 
                     onClick={addPlan}
                     className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 transition duration-150"
@@ -978,7 +951,6 @@ const OrdenFumigacionSimulador = () => {
                     + Agregar Nuevo Plan/Día
                 </button>
                 
-                {/* Botón de Impresión/Exportación (Diseño Avanzado) */}
                 <button 
                     onClick={handlePrint}
                     className="
