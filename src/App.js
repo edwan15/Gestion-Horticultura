@@ -334,14 +334,10 @@ export const SERVER_URL = process.env.REACT_APP_BACKEND_URL;
 
 // Componente para evitar la repetición de SideBar y Layout (usa Tailwind)
 const ProtectedLayout = ({ children }) => (
-    <div className="flex">
-        <SideBar />
-        <div className="flex-1">
-            <Layout>{children}</Layout>
-        </div>
-    </div>
+    <SideBar>
+        <Layout>{children}</Layout>
+    </SideBar>
 );
-
 // Lista de roles permitidos
 const ALL_ROLES = ["admin", "usuario", "subscriber", "invitado"];
 
