@@ -1084,9 +1084,9 @@ export const HomeView = ({
                     title="Visión General de Invernaderos" 
                     icon={<FaMapMarkerAlt />} 
                     titleColor="text-gray-700"
-                    className="h-[400px]"
+                    className="h-[400px] relative"
                 >
-                    <div className="h-[300px] -m-5 mt-0">
+                    <div className="h-[300px] relative z-0">
                         <GreenhouseMap 
                             greenhouses={greenhouses} 
                             onGreenhouseSelect={handleMapSelect} 

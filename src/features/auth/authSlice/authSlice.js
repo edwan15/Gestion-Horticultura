@@ -505,146 +505,224 @@
 // };
 
 
+// import { createSlice } from "@reduxjs/toolkit";
+
+// // 🛑 PASO 1: Cargamos los datos de sesión persistentes
+// const storedImpersonationState = localStorage.getItem("impersonation_state");
+// const initialImpersonation = storedImpersonationState ? JSON.parse(storedImpersonationState) : {};
+
+// // 🔑 CLAVE: Cargamos el token JWT/ID Token de Firebase guardado por Login.js
+// const userToken = localStorage.getItem('userToken'); 
+
+// const initialState = {
+//     // Determinamos el estado de login basándonos en si existe el token
+//     isLoggedIn: !!userToken, 
+//     name: "",
+    
+//     // 🛑 PROPIEDAD CRÍTICA: Almacena el token JWT
+//     token: userToken || null, 
+    
+//     user: {
+//         uid: null, 
+//         name: "",
+//         email: "",
+//         // Agregando `createdAt` al inicial para consistencia, aunque será nulo
+//         createdAt: null, 
+//         role: "invitado",
+//     }, 
+//     role: "invitado", 
+    
+//     // Lógica de suplantación (impersonation)
+//     isImpersonating: initialImpersonation.isImpersonating || false,
+//     targetUserId: initialImpersonation.targetUserId || null,
+//     adminToken: initialImpersonation.adminToken || null, 
+// };
+
+// const authSlice = createSlice({
+//     name: "auth",
+//     initialState,
+//     reducers: {
+//         // 🛑 NUEVO REDUCER: Guarda el token en el estado
+//         SET_TOKEN(state, action) {
+//             state.token = action.payload;
+//         },
+        
+//         SET_LOGIN(state, action) {
+//             state.isLoggedIn = action.payload;
+            
+//             if (!action.payload) {
+//                 // Limpieza de persistencia
+//                 localStorage.removeItem("impersonation_state"); 
+//                 localStorage.removeItem("userToken"); // 🔑 Limpiar el token al cerrar sesión
+                
+//                 // Limpieza de estado
+//                 state.role = "invitado";
+//                 state.name = "";
+//                 // Asegurar que el objeto user se limpie completamente
+//                 state.user = { uid: null, name: "", email: "", createdAt: null, role: "invitado" }; 
+//                 state.isImpersonating = false;
+//                 state.targetUserId = null;
+//                 state.adminToken = null;
+//                 state.token = null; // Limpiar el estado del token
+//             }
+//         },
+        
+//         SET_NAME(state, action) {
+//             state.name = action.payload;
+//                 state.isImpersonating = true;
+//                 state.adminToken = adminToken; 
+//                 state.targetUserId = targetUserId;
+                
+//                 localStorage.setItem("impersonation_state", JSON.stringify({
+//                     isImpersonating: true,
+//                     targetUserId,
+//                     adminToken
+//                 }));
+//             } else {
+//                 state.isImpersonating = false;
+//                 state.targetUserId = null;
+//                 state.adminToken = null; 
+//                 localStorage.removeItem("impersonation_state");
+//             }
+//         }
+//     },
+// });
+
+// // 🔑 Exportar el nuevo reducer SET_TOKEN
+// export const { SET_LOGIN, SET_NAME, SET_USER, SET_IMPERSONATION, SET_TOKEN } = authSlice.actions; 
+
+// export default authSlice.reducer;
+
+// // ----------------------------------------------------
+// // SELECTORES CLAVE
+// // ----------------------------------------------------
+
+// // SELECTOR CRÍTICO: El logSlice lo lee desde aquí (thunkAPI.getState().auth.token)
+// export const selectToken = (state) => state.auth.token; 
+// export const selectIsLoggedIn = (state) => state.auth.isLoggedIn;
+// export const selectName = (state) => state.auth.name;
+// export const selectRole = (state) => state.auth.role; 
+// export const selectUser = (state) => state.auth.user; 
+
+// /**
+//  * Devuelve el ID del usuario activo o el ID del usuario impersonado (Target).
+//  */
+// export const selectUserId = (state) => {
+//     // 1. Si estamos suplantando, devolvemos el ID del usuario objetivo
+//     if (state.auth.isImpersonating) {
+//         return state.auth.targetUserId;
+//     }
+//     // 2. Si no, devolvemos el ID de la sesión activa de Firebase
+//     return state.auth.user?.uid || null; 
+// };
+
+
+
 import { createSlice } from "@reduxjs/toolkit";
 
-// 🛑 PASO 1: Cargamos los datos de sesión persistentes
 const storedImpersonationState = localStorage.getItem("impersonation_state");
 const initialImpersonation = storedImpersonationState ? JSON.parse(storedImpersonationState) : {};
 
-// 🔑 CLAVE: Cargamos el token JWT/ID Token de Firebase guardado por Login.js
-const userToken = localStorage.getItem('userToken'); 
+const userToken = localStorage.getItem('userToken');
 
 const initialState = {
-    // Determinamos el estado de login basándonos en si existe el token
-    isLoggedIn: !!userToken, 
+    isLoggedIn: !!userToken,
     name: "",
-    
-    // 🛑 PROPIEDAD CRÍTICA: Almacena el token JWT
-    token: userToken || null, 
-    
+    token: userToken || null,
     user: {
-        uid: null, 
+        uid: null,
         name: "",
         email: "",
-        // Agregando `createdAt` al inicial para consistencia, aunque será nulo
-        createdAt: null, 
+        createdAt: null,
         role: "invitado",
-    }, 
-    role: "invitado", 
-    
-    // Lógica de suplantación (impersonation)
+    },
+    role: "invitado",
     isImpersonating: initialImpersonation.isImpersonating || false,
     targetUserId: initialImpersonation.targetUserId || null,
-    adminToken: initialImpersonation.adminToken || null, 
+    adminToken: initialImpersonation.adminToken || null,
 };
 
 const authSlice = createSlice({
     name: "auth",
     initialState,
     reducers: {
-        // 🛑 NUEVO REDUCER: Guarda el token en el estado
         SET_TOKEN(state, action) {
             state.token = action.payload;
         },
-        
         SET_LOGIN(state, action) {
             state.isLoggedIn = action.payload;
-            
             if (!action.payload) {
-                // Limpieza de persistencia
-                localStorage.removeItem("impersonation_state"); 
-                localStorage.removeItem("userToken"); // 🔑 Limpiar el token al cerrar sesión
-                
-                // Limpieza de estado
+                localStorage.removeItem("impersonation_state");
+                localStorage.removeItem("userToken");
                 state.role = "invitado";
                 state.name = "";
-                // Asegurar que el objeto user se limpie completamente
-                state.user = { uid: null, name: "", email: "", createdAt: null, role: "invitado" }; 
+                state.user = { uid: null, name: "", email: "", createdAt: null, role: "invitado" };
                 state.isImpersonating = false;
                 state.targetUserId = null;
                 state.adminToken = null;
-                state.token = null; // Limpiar el estado del token
+                state.token = null;
             }
         },
-        
         SET_NAME(state, action) {
             state.name = action.payload;
-            if (state.user) {
-                state.user.name = action.payload; 
-            }
         },
-        
-        // 🚨 REDUCER CORREGIDO para manejar la serialización de datos
         SET_USER(state, action) {
-            const userData = action.payload;
-
-            if (!userData || typeof userData !== 'object' || !userData.uid) {
-                return; 
-            }
-            
-            // 🛑 CORRECCIÓN: Sanear el campo `createdAt` si es un objeto Timestamp
-            const sanitizedUser = {
-                ...userData,
-                createdAt: userData.createdAt && typeof userData.createdAt.toDate === 'function' 
-                           ? userData.createdAt.toDate().toISOString() 
-                           : userData.createdAt,
-            };
-            
-            state.user = sanitizedUser; // Guardamos el objeto limpio
-            state.name = sanitizedUser.name || "";
-            
-            const rawRole = sanitizedUser.role ?? "usuario"; 
-            state.role = rawRole.toLowerCase().trim();
-            state.user.role = state.role; 
-        },
-        
+    const userData = action.payload;
+    if (!userData || typeof userData !== 'object' || !userData.uid) {
+        return; 
+    }
+    
+    // 🛑 CORRECCIÓN: Sanear los campos `createdAt` y `updatedAt` si son objetos Timestamp de Firebase
+    const sanitizedUser = {
+        ...userData,
+        createdAt: userData.createdAt && typeof userData.createdAt.toDate === 'function' 
+                   ? userData.createdAt.toDate().toISOString() 
+                   : userData.createdAt,
+        updatedAt: userData.updatedAt && typeof userData.updatedAt.toDate === 'function' 
+                   ? userData.updatedAt.toDate().toISOString() 
+                   : userData.updatedAt,
+    };
+    
+    state.user = sanitizedUser;
+    state.name = sanitizedUser.name || "";
+    
+    const rawRole = sanitizedUser.role ?? "usuario"; 
+    state.role = rawRole.toLowerCase().trim();
+    state.user.role = state.role; 
+},
         SET_IMPERSONATION(state, action) {
-            const { targetUserId, adminToken, activate } = action.payload;
-            
-            if (activate) {
-                state.isImpersonating = true;
-                state.adminToken = adminToken; 
+            const { isImpersonating, targetUserId, adminToken } = action.payload;
+            state.isImpersonating = isImpersonating;
+            if (isImpersonating) {
+                state.adminToken = adminToken;
                 state.targetUserId = targetUserId;
-                
                 localStorage.setItem("impersonation_state", JSON.stringify({
                     isImpersonating: true,
                     targetUserId,
                     adminToken
                 }));
             } else {
-                state.isImpersonating = false;
                 state.targetUserId = null;
-                state.adminToken = null; 
+                state.adminToken = null;
                 localStorage.removeItem("impersonation_state");
             }
         }
     },
 });
 
-// 🔑 Exportar el nuevo reducer SET_TOKEN
-export const { SET_LOGIN, SET_NAME, SET_USER, SET_IMPERSONATION, SET_TOKEN } = authSlice.actions; 
+export const { SET_LOGIN, SET_NAME, SET_USER, SET_IMPERSONATION, SET_TOKEN } = authSlice.actions;
 
 export default authSlice.reducer;
 
-// ----------------------------------------------------
-// SELECTORES CLAVE
-// ----------------------------------------------------
-
-// SELECTOR CRÍTICO: El logSlice lo lee desde aquí (thunkAPI.getState().auth.token)
-export const selectToken = (state) => state.auth.token; 
+export const selectToken = (state) => state.auth.token;
 export const selectIsLoggedIn = (state) => state.auth.isLoggedIn;
 export const selectName = (state) => state.auth.name;
-export const selectRole = (state) => state.auth.role; 
-export const selectUser = (state) => state.auth.user; 
+export const selectRole = (state) => state.auth.role;
+export const selectUser = (state) => state.auth.user;
 
-/**
- * Devuelve el ID del usuario activo o el ID del usuario impersonado (Target).
- */
 export const selectUserId = (state) => {
-    // 1. Si estamos suplantando, devolvemos el ID del usuario objetivo
     if (state.auth.isImpersonating) {
         return state.auth.targetUserId;
     }
-    // 2. Si no, devolvemos el ID de la sesión activa de Firebase
-    return state.auth.user?.uid || null; 
+    return state.auth.user?.uid || null;
 };

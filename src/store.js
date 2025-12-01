@@ -5,6 +5,7 @@ import ProductReducer from "./features/product/ProductSlice";
 
 import FilterReducer from "./features/filter/FilterSearch";
 import logReducer from "./features/logs/logSlice";
+import notificationReducer from "./features/notifications/notificationSlice";
 
 export const store = configureStore({
   reducer: {
@@ -12,5 +13,6 @@ export const store = configureStore({
     product: ProductReducer,
     filter: FilterReducer,
     log: logReducer,
+    notifications: notificationReducer,
   },
 });

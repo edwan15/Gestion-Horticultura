@@ -1,9 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { MdMenu, MdLocalFlorist, MdNotifications } from 'react-icons/md';
+import { MdMenu, MdLocalFlorist } from 'react-icons/md';
 import EnterpriseMenu from "./EnterpriseMenu";
 import UserMenu from "./UserMenu";
+import NotificationBell from "./NotificationBell";
 
 const Header = ({ onMenuToggle }) => {
     const navigate = useNavigate();
@@ -54,11 +55,8 @@ const Header = ({ onMenuToggle }) => {
             {/* 2. SECCIÓN DERECHA: Acciones y Perfil */}
             <div className="flex items-center gap-2 sm:gap-4">
                 
-                {/* Notificaciones (Icono simple) */}
-                <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors relative">
-                    <MdNotifications className="text-2xl" />
-                    <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-                </button>
+                {/* Notificaciones (Componente Funcional) */}
+                <NotificationBell />
 
                 {/* Separador Vertical */}
                 <div className="h-6 w-px bg-gray-200 hidden sm:block"></div>

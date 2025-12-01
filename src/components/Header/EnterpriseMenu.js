@@ -49,8 +49,7 @@ const EnterpriseMenu = () => {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden"
-                    >
+className="fixed inset-x-4 top-20 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-80 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden"                    >
                         <div className="p-4 bg-gray-50 border-b border-gray-100">
                             <h3 className="text-sm font-semibold text-gray-700">Aplicaciones Empresariales</h3>
                         </div>

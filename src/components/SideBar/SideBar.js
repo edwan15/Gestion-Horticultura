@@ -27,7 +27,8 @@ const LinkItem = ({ to, icon, label, setIsMenu }) => {
     return (
         <Link to={to} onClick={() => setIsMenu(false)}>
             <motion.div
-                className="px-4 py-3 flex items-center gap-4 text-sm font-semibold cursor-pointer text-gray-700 hover:bg-white/80 hover:text-green-700 rounded-xl transition-all duration-300 mx-2 backdrop-blur-sm border border-transparent hover:border-green-200 hover:shadow-md"
+                className="px-4 py-3 flex items-center gap-4 text-sm font-extrabold cursor-pointer text-gray-900 hover:bg-white/80 hover:text-green-700 rounded-xl transition-all duration-300 mx-2 backdrop-blur-sm border border-transparent hover:border-green-200 hover:shadow-md"
+                style={{ textShadow: '0 1px 3px rgba(0, 0, 0, 0.2)' }}
                 whileTap={{ scale: 0.96 }}
                 whileHover={{ x: 4 }}
             >
@@ -252,8 +253,7 @@ const SideBar = ({ children }) => {
                                         className="space-y-2"
                                     >
                                         {/* Enlaces Rápidos con diseño premium */}
-                                        <div className="px-4 py-2 text-xs font-bold text-gray-600 uppercase tracking-widest flex items-center gap-2">
-                                            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-green-400 to-transparent"></div>
+                                         <div className="px-4 py-2 text-xs font-extrabold text-gray-900 uppercase tracking-widest flex items-center gap-2" style={{ textShadow: '0 1px 2px rgba(0, 0, 0, 0.15)' }}>                                            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-green-400 to-transparent"></div>
                                             <span>Accesos Directos</span>
                                             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-green-400 to-transparent"></div>
                                         </div>
