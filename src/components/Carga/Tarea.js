@@ -494,425 +494,840 @@ const ExportModal = ({
   );
 };
 
-
-
-
-
 const CalendarView = ({
-  currentDate,
-  navigateMonth,
-  handleDayClick,
-  setSelectedCalendarId,
-  selectedCalendarId,
-  calendars,
-  events,
-  dailyData,
-  isAuthReady,
-  setIsCalendarModalOpen,
-  selectedCalendarName,
-  globalTotals,
-  setIsExportModalOpen, // Usado para exportar rango
-  openExportModalInSingleDayMode, // Usado para exportar día único
-  handleDeleteCalendar, // Función para eliminar el registro
-  openStatsModal, // Estaba sin usar en el componente original, pero la mantengo como parte de las props
+currentDate,
+navigateMonth,
+handleDayClick,
+setSelectedCalendarId,
+selectedCalendarId,
+calendars,
+events,
+dailyData,
+isAuthReady,
+setIsCalendarModalOpen,
+selectedCalendarName,
+globalTotals,
+setIsExportModalOpen,
+openExportModalInSingleDayMode,
+handleDeleteCalendar,
+openStatsModal,
 }) => {
-  // --- Utilidades y Constantes ---
-  const DAYS_OF_WEEK = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
-  const MONTHS = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
-  ];
+const DAYS_OF_WEEK = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+const MONTHS = [
+"Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+"Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+];
 
-  const formatDate = (date) => {
-    // La función toISOString().split('T')[0] asegura el formato YYYY-MM-DD
-    return date.toISOString().split('T')[0];
-  };
-
-  // --- LÓGICA DE GENERACIÓN DE DÍAS ---
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
-  const firstDayOfMonth = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const days = [];
-  const prevMonthDaysTotal = new Date(year, month, 0).getDate();
-  const startDay = prevMonthDaysTotal - firstDayOfMonth + 1;
-
-  // Días del mes anterior
-  for (let i = startDay; i <= prevMonthDaysTotal; i++) {
-    if (i > prevMonthDaysTotal - firstDayOfMonth) {
-      const fullDate = new Date(year, month - 1, i);
-      days.push({
-        key: `prev-${i}`,
-        day: i,
-        isCurrentMonth: false,
-        fullDate,
-        dateKey: formatDate(fullDate),
-        events: [],
-      });
-    }
-  }
-
-  // Días del mes actual
-  for (let i = 1; i <= daysInMonth; i++) {
-    const fullDate = new Date(year, month, i);
-    const dateKey = formatDate(fullDate);
-    days.push({
-      key: `curr-${i}`,
-      day: i,
-      isCurrentMonth: true,
-      fullDate,
-      dateKey,
-      events: events[dateKey] || [],
-    });
-  }
-
-  // Días del mes siguiente (para completar la cuadrícula)
-  let nextDay = 1;
-  while (days.length < 42) {
-    const fullDate = new Date(year, month + 1, nextDay);
-    days.push({
-      key: `next-${nextDay}`,
-      day: nextDay,
-      isCurrentMonth: false,
-      fullDate,
-      dateKey: formatDate(fullDate),
-      events: [],
-    });
-    nextDay++;
-  }
-
-  const today = formatDate(new Date());
-  const selectedCalendarColor =
-    calendars.find((c) => c.id === selectedCalendarId)?.color || "#3b82f6";
-
-  // --- RENDERING (JSX) ---
-  return (
-    // 1. Contenedor Principal: Bordes súper redondeados y sombra elevada
-    <div className="bg-white p-1 sm:p-6 md:p-8 rounded-3xl shadow-2xl shadow-indigo-100 border border-gray-100 transition-all duration-300">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-        {/* COLUMNA IZQUIERDA: CALENDARIO (2/3) */}
-        <div className="lg:col-span-2 flex flex-col space-y-6">
-          <div className="p-4 bg-white border-2 border-green-200 rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300">
-            <h2 className="text-xl sm:text-2xl font-bold text-green-800 mb-4 border-b-2 border-green-100 pb-3 flex items-center gap-2">
-              🌶️ Vista del Mes - Producción de Pimientos
-            </h2>
-
-            {selectedCalendarId ? (
-              <>
-                {/* Navegación del Calendario */}
-                <div className="flex justify-between items-center mb-6 ">
-                  <button
-                    onClick={() => navigateMonth(-1)}
-                    className="p-3 bg-green-100 hover:bg-green-300 text-green-800 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-110"
-                    title="Mes Anterior"
-                  >
-                    ⬅️
-                  </button>
-                  <h2 className="text-2xl font-extrabold text-gray-800 tracking-wide">
-                    {MONTHS[month]} {year}
-                  </h2>
-                  <button
-                    onClick={() => navigateMonth(1)}
-                    className="p-3 bg-indigo-100 hover:bg-indigo-300 text-indigo-700 rounded-full transition-all duration-300 rotate-180 shadow-lg hover:shadow-xl"
-                    title="Mes Siguiente"
-                  >
-                    ⬅️
-                  </button>
-                </div>
-
-                {/* Días de la semana */}
-                <div className="grid grid-cols-7 text-center font-bold text-green-800 border-b-2 border-green-300 pb-3 mb-1">
-                  {DAYS_OF_WEEK.map((day) => (
-                    <div key={day} className="text-sm sm:text-base p-1">
-                      {day}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Grid de Días del Mes */}
-                <div className="grid grid-cols-7 gap-1 mt-2 p-0">
-                  {days.map((dayData) => {
-                    // Lógica de Cálculo de Métricas Diarias
-                    const eventCount = dayData.events.length;
-
-                    const dailyTotalResult = dayData.events.reduce(
-                      (sum, event) => sum + (event.result || 0),
-                      0
-                    );
-
-                    const dailyCostEntry = dailyData[dayData.dateKey]?.costs;
-                    const costPerUnitFinal = parseFloat(dailyCostEntry?.finalResult) || 0;
-
-                    const isToday = dayData.isCurrentMonth && dayData.dateKey === today;
-
-                    return (
-                      // Estilos de la celda de día: Compactos y con estilo
-                      <div
-                        key={dayData.key}
-                        onClick={() => handleDayClick(dayData)}
-                        className={`
-                          flex flex-col cursor-pointer transition-all duration-300 rounded-xl p-1 sm:p-2
-                          shadow-md border border-transparent
-                          hover:shadow-lg hover:border-blue-400 hover:scale-[1.02]
-                          relative group h-auto aspect-square
-
-                          ${
-                            dayData.isCurrentMonth
-                              ? "bg-white text-gray-800"
-                              : "bg-gray-50 text-gray-400 opacity-70"
-                          }
-
-                          ${
-                            isToday
-                              ? "border-2 border-red-500 ring-4 ring-red-200 shadow-xl z-20 bg-red-50 hover:bg-red-100"
-                              : "z-10"
-                          }
-                        `}
-                      >
-                        {/* Número del día */}
-                        <span
-                          className={`font-extrabold text-lg text-right w-full
-                            ${dayData.isCurrentMonth ? "text-gray-900" : "text-gray-400"}
-                            ${isToday ? "text-red-700" : ""}
-                            `}
-                        >
-                          {dayData.day}
-                        </span>
-
-                        {/* Contenido Dinámico (Métricas) */}
-                        {eventCount > 0 && (
-                          <div className="flex flex-col items-end px-0 space-y-0.5 opacity-90 group-hover:opacity-100">
-
-                            {/* 1. INDICADOR DE EVENTO (PUNTO) - SOLO EN MÓVIL */}
-                            <div className="flex justify-end w-full sm:hidden">
-                                <div
-                                  className="w-2.5 h-2.5 rounded-full shadow-md ring-2 ring-white"
-                                  style={{ backgroundColor: selectedCalendarColor }}
-                                  title={`${eventCount} producto(s) registrado(s)`}
-                                ></div>
-                            </div>
-
-                            {/* 2. INFORMACIÓN DETALLADA - OCULTA EN MÓVIL, VISIBLE EN TABLET/ESCRITORIO */}
-                            <div className="hidden sm:flex flex-col items-center w-full space-y-0.5 mt-auto">
-
-                              {/* Total de Productos Guardados */}
-                              <p className="font-medium text-[8px] sm:text-xs text-gray-700 leading-tight bg-gray-100/70 rounded-full px-2">
-                                {eventCount} Prod(s)
-                              </p>
-
-                              {/* COSTO DE PRODUCCIÓN POR UNIDAD */}
-                              <p className="font-bold text-[8px] sm:text-xs text-blue-600 leading-tight">
-                                C/u: {costPerUnitFinal > 0 ? `$${costPerUnitFinal.toFixed(4)}` : '$0.0000'}
-                              </p>
-
-                              {/* TOTAL ACUMULADO DEL DÍA */}
-                              <p className="font-extrabold text-[8px] sm:text-xs text-green-700 leading-tight">
-                                Total: {dailyTotalResult > 0 ? `$${dailyTotalResult.toFixed(2)}` : '$0.00'}
-                              </p>
-
-                            </div>
-
-                          </div>
-                        )}
-
-                        {/* Mensaje sutil si no hay eventos */}
-                        {eventCount === 0 && dayData.isCurrentMonth && (
-                            <p className="text-gray-300 text-[8px] sm:text-[10px] mt-2 text-right invisible group-hover:visible">
-                                Click
-                            </p>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </>
-            ) : (
-              // Mensaje cuando no hay registro seleccionado
-              <div className="p-10 text-center text-gray-500 bg-white rounded-2xl border-dashed border-4 border-gray-200 mt-4 shadow-inner">
-                📦
-                <p className="text-xl font-semibold">
-                  Crea un registro para comenzar
-                </p>
-                <p className="mt-2">
-                  Selecciona un registro o utiliza el botón Nuevo Registro
-                  en el panel lateral.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* COLUMNA DERECHA: CONTROLES Y TOTALES (1/3) */}
-        <div className="lg:col-span-1 flex flex-col space-y-8">
-          {/* Controles Superiores (Select, Export, New, Delete, Stats) */}
-          <div className="p-5 bg-white border-t-8 border-green-600 rounded-2xl shadow-2xl hover:shadow-3xl transition-shadow">
-            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2 border-b-2 border-gray-100 pb-3">
-              🚜 Gestión del Invernadero
-            </h3>
-            <div className="space-y-4">
-              {/* Selector de Registro */}
-              <div className="flex flex-col space-y-2">
-                <label
-                  htmlFor="calendar-select"
-                  className="text-sm font-semibold text-gray-700"
-                >
-                  Registro Actual:
-                </label>
-                <select
-                  id="calendar-select"
-                  value={selectedCalendarId || ""}
-                  onChange={(e) => setSelectedCalendarId(e.target.value)}
-                  className={`w-full p-3 border-2 rounded-xl shadow-inner text-base font-medium transition duration-200
-                    ${
-                      selectedCalendarId
-                        ? "bg-indigo-50 text-gray-800 border-indigo-300 focus:ring-indigo-500 focus:border-indigo-500"
-                        : "bg-gray-100 text-gray-500 border-dashed border-gray-400"
-                    }`}
-                  disabled={!isAuthReady || calendars.length === 0}
-                >
-                  {calendars.length === 0 ? (
-                    <option value="">Crea un registro</option>
-                  ) : (
-                    calendars.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))
-                  )}
-                </select>
-              </div>
-
-              {/* Botones de Acción */}
-              <div className="flex flex-col space-y-3 pt-2">
-                {/* Botón de Nuevo Registro */}
-                <button
-                  onClick={() => setIsCalendarModalOpen(true)}
-                  className="flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-lg bg-green-600 hover:bg-green-700 text-white w-full transform hover:scale-[1.01]"
-                  title="Crear Nuevo Registro/Calendario"
-                >
-                  ➕
-                  Nuevo Registro
-                </button>
-
-                {/* Botón de Exportar Rango */}
-                <button
-                  onClick={() => setIsExportModalOpen("range")}
-                  disabled={
-                    !selectedCalendarId || globalTotals?.totalResult === 0
-                  }
-                  className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-md w-full transform hover:scale-[1.01]
-                    ${
-                      selectedCalendarId && globalTotals?.totalResult > 0
-                        ? "bg-blue-600 hover:bg-blue-700 text-white"
-                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    }`}
-                  title="Exportar todos los registros filtrados (Rango de Fechas)"
-                >
-                  ⬆️
-                  Exportar Rango de Fechas
-                </button>
-
-                {/* Botón de Exportar Día Único */}
-                <button
-                  onClick={openExportModalInSingleDayMode}
-                  disabled={
-                    !selectedCalendarId || globalTotals?.totalResult === 0
-                  }
-                  className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-md w-full transform hover:scale-[1.01]
-                    ${
-                      selectedCalendarId && globalTotals?.totalResult > 0
-                        ? "bg-orange-600 hover:bg-orange-700 text-white"
-                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    }`}
-                  title="Exportar registros de un día específico"
-                >
-                  🕒
-                  Exportar Día
-                </button>
-
-                {/* 🗑️ BOTÓN ELIMINAR REGISTRO */}
-                <button
-                  onClick={() =>
-                    // Confirmación de seguridad antes de llamar a la función de eliminación
-                    selectedCalendarId && selectedCalendarName &&
-                    window.confirm(`¿Estás seguro de que quieres ELIMINAR el registro "${selectedCalendarName}" y todos sus datos? Esta acción es irreversible.`) &&
-                    handleDeleteCalendar(selectedCalendarId)
-                  }
-                  disabled={!selectedCalendarId}
-                  className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-lg w-full transform hover:scale-[1.01] mt-4
-                    ${
-                      selectedCalendarId
-                        ? "bg-red-600 hover:bg-red-700 text-white"
-                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    }`}
-                  title="Eliminar el registro seleccionado y todos sus datos (¡Cuidado!)"
-                >
-                  🗑️
-                  Eliminar Registro
-                </button>
-
-                {/* 📊 BOTÓN DATOS ESTADÍSTICOS */}
-                <button
-                  onClick={() => openStatsModal(true)} // Usando openStatsModal, asumo que es la función correcta para abrir el modal de estadísticas.
-                  disabled={!selectedCalendarId}
-                  className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-lg w-full transform hover:scale-[1.02] mt-3
-                    ${
-                      selectedCalendarId
-                        ? "bg-purple-600 hover:bg-purple-700 text-white shadow-purple-300"
-                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    }`}
-                  title="Ver y editar datos estadísticos del invernadero"
-                >
-                  📊
-                  Datos Estadísticos
-                </button>
-                {/* ---------------------------------- */}
-              </div>
-            </div>
-          </div>
-
-          {/* Totales Globales del Registro Seleccionado */}
-          <div className="p-5 bg-white border-t-8 border-orange-500 rounded-2xl shadow-2xl hover:shadow-3xl transition-shadow">
-            <h3 className="text-xl font-bold text-orange-800 mb-4 flex items-center gap-2 border-b-2 border-gray-100 pb-3">
-              🧺 Cosecha Total
-            </h3>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 bg-green-100 rounded-xl text-center shadow-inner border-2 border-green-200 hover:border-green-400 transition-colors">
-                  <p className="font-medium text-xs text-green-700 uppercase flex items-center justify-center gap-1">
-                    🌱 Total Valor A
-                  </p>
-                  <p className="font-semibold text-green-900 text-xl mt-1">
-                    {globalTotals?.totalA?.toFixed(2) || "0.00"}
-                  </p>
-                </div>
-
-                <div className="p-3 bg-yellow-100 rounded-xl text-center shadow-inner border-2 border-yellow-200 hover:border-yellow-400 transition-colors">
-                  <p className="font-medium text-xs text-yellow-700 uppercase flex items-center justify-center gap-1">
-                    ☀️ Total Valor B
-                  </p>
-                  <p className="font-semibold text-yellow-900 text-xl mt-1">
-                    {globalTotals?.totalB?.toFixed(2) || "0.00"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-4 bg-gradient-to-r from-orange-600 via-red-600 to-red-700 rounded-2xl text-white shadow-xl shadow-orange-300 text-center transform hover:scale-[1.02] transition-transform">
-                <p className="font-medium text-sm uppercase flex items-center justify-center gap-2">
-                  🌶️ PRODUCCIÓN TOTAL ($A \times B$)
-                </p>
-                <p className="font-extrabold text-4xl mt-2">
-                  ${globalTotals?.totalResult?.toFixed(2) || "0.00"}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+// CORRECCIÓN DE ZONA HORARIA: Utiliza la fecha local (getFullYear, getMonth, getDate)
+const formatDate = (date) => {
+const year = date.getFullYear();
+const month = (date.getMonth() + 1).toString().padStart(2, '0');
+const day = date.getDate().toString().padStart(2, '0');
+return `${year}-${month}-${day}`;
 };
+
+const year = currentDate.getFullYear();
+const month = currentDate.getMonth();
+const firstDayOfMonth = new Date(year, month, 1).getDay();
+const daysInMonth = new Date(year, month + 1, 0).getDate();
+const days = [];
+const prevMonthDaysTotal = new Date(year, month, 0).getDate();
+const startDay = prevMonthDaysTotal - firstDayOfMonth + 1;
+
+// Días del mes anterior
+for (let i = startDay; i <= prevMonthDaysTotal; i++) {
+if (i > prevMonthDaysTotal - firstDayOfMonth) {
+const fullDate = new Date(year, month - 1, i);
+days.push({
+key: `prev-${i}`,
+day: i,
+isCurrentMonth: false,
+fullDate,
+dateKey: formatDate(fullDate),
+events: [],
+});
+}
+}
+
+// Días del mes actual
+for (let i = 1; i <= daysInMonth; i++) {
+const fullDate = new Date(year, month, i);
+const dateKey = formatDate(fullDate);
+days.push({
+key: `curr-${i}`,
+day: i,
+isCurrentMonth: true,
+fullDate,
+dateKey,
+events: events[dateKey] || [],
+});
+}
+
+// Días del mes siguiente (para completar la cuadrícula)
+let nextDay = 1;
+while (days.length < 42) {
+const fullDate = new Date(year, month + 1, nextDay);
+days.push({
+key: `next-${nextDay}`,
+day: nextDay,
+isCurrentMonth: false,
+fullDate,
+dateKey: formatDate(fullDate),
+events: [],
+});
+nextDay++;
+}
+
+const today = formatDate(new Date());
+const selectedCalendarColor =
+calendars.find((c) => c.id === selectedCalendarId)?.color || "#3b82f6";
+
+// --- RENDERING (JSX) ---
+return (
+// 1. Contenedor Principal: Bordes súper redondeados y sombra elevada
+<div className="bg-white p-1 sm:p-6 md:p-8 rounded-3xl shadow-2xl shadow-indigo-100 border border-gray-100 transition-all duration-300">
+<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+{/* COLUMNA IZQUIERDA: CALENDARIO (2/3) */}
+<div className="lg:col-span-2 flex flex-col space-y-6">
+<div className="p-4 bg-white border-2 border-green-200 rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300">
+<h2 className="text-xl sm:text-2xl font-bold text-green-800 mb-4 border-b-2 border-green-100 pb-3 flex items-center gap-2">
+🌶️ Vista del Mes - Producción de Pimientos
+</h2>
+
+{selectedCalendarId ? (
+<>
+{/* Navegación del Calendario */}
+<div className="flex justify-between items-center mb-6 ">
+<button
+onClick={() => navigateMonth(-1)}
+className="p-3 bg-green-100 hover:bg-green-300 text-green-800 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-110"
+title="Mes Anterior"
+>
+⬅️
+</button>
+<h2 className="text-2xl font-extrabold text-gray-800 tracking-wide">
+{MONTHS[month]} {year}
+</h2>
+<button
+onClick={() => navigateMonth(1)}
+className="p-3 bg-indigo-100 hover:bg-indigo-300 text-indigo-700 rounded-full transition-all duration-300 rotate-180 shadow-lg hover:shadow-xl"
+title="Mes Siguiente"
+>
+⬅️
+</button>
+</div>
+
+{/* Días de la semana */}
+<div className="grid grid-cols-7 text-center font-bold text-green-800 border-b-2 border-green-300 pb-3 mb-1">
+{DAYS_OF_WEEK.map((day) => (
+<div key={day} className="text-sm sm:text-base p-1">
+{day}
+</div>
+))}
+</div>
+
+{/* Grid de Días del Mes */}
+<div className="grid grid-cols-7 gap-1 mt-2 p-0">
+{days.map((dayData) => {
+// Lógica de Cálculo de Métricas Diarias
+const eventCount = dayData.events.length;
+
+const dailyTotalResult = dayData.events.reduce(
+(sum, event) => sum + (event.result || 0),
+0
+);
+
+const dailyCostEntry = dailyData[dayData.dateKey]?.costs;
+const costPerUnitFinal = parseFloat(dailyCostEntry?.finalResult) || 0;
+
+const isToday = dayData.isCurrentMonth && dayData.dateKey === today;
+
+return (
+// Estilos de la celda de día: Compactos y con estilo
+<div
+key={dayData.key}
+onClick={() => handleDayClick(dayData)}
+className={`
+flex flex-col cursor-pointer transition-all duration-300 rounded-xl p-1 sm:p-2
+shadow-md border border-transparent
+hover:shadow-lg hover:border-blue-400 hover:scale-[1.02]
+relative group h-auto aspect-square
+
+${
+dayData.isCurrentMonth
+? "bg-white text-gray-800"
+: "bg-gray-50 text-gray-400 opacity-70"
+}
+
+${
+isToday
+? "border-2 border-red-500 ring-4 ring-red-200 shadow-xl z-20 bg-red-50 hover:bg-red-100"
+: "z-10"
+}
+`}
+>
+{/* Número del día */}
+<span
+className={`font-extrabold text-lg text-right w-full
+${dayData.isCurrentMonth ? "text-gray-900" : "text-gray-400"}
+${isToday ? "text-red-700" : ""}
+`}
+>
+{dayData.day}
+</span>
+
+{/* Contenido Dinámico (Métricas) */}
+{eventCount > 0 && (
+<div className="flex flex-col items-end px-0 space-y-0.5 opacity-90 group-hover:opacity-100">
+
+{/* 1. INDICADOR DE EVENTO (PUNTO) - SOLO EN MÓVIL */}
+<div className="flex justify-end w-full sm:hidden">
+<div
+className="w-2.5 h-2.5 rounded-full shadow-md ring-2 ring-white"
+style={{ backgroundColor: selectedCalendarColor }}
+title={`${eventCount} producto(s) registrado(s)`}
+></div>
+</div>
+
+{/* 2. INFORMACIÓN DETALLADA - OCULTA EN MÓVIL, VISIBLE EN TABLET/ESCRITORIO */}
+<div className="hidden sm:flex flex-col items-center w-full space-y-0.5 mt-auto">
+
+{/* Total de Productos Guardados */}
+<p className="font-medium text-[8px] sm:text-xs text-gray-700 leading-tight bg-gray-100/70 rounded-full px-2">
+{eventCount} Prod(s)
+</p>
+
+{/* COSTO DE PRODUCCIÓN POR UNIDAD */}
+<p className="font-bold text-[8px] sm:text-xs text-blue-600 leading-tight">
+C/u: {costPerUnitFinal > 0 ? `$${costPerUnitFinal.toFixed(4)}` : '$0.0000'}
+</p>
+
+{/* TOTAL ACUMULADO DEL DÍA */}
+<p className="font-extrabold text-[8px] sm:text-xs text-green-700 leading-tight">
+Total: {dailyTotalResult > 0 ? `$${dailyTotalResult.toFixed(2)}` : '$0.00'}
+</p>
+
+</div>
+
+</div>
+)}
+
+{/* Mensaje sutil si no hay eventos */}
+{eventCount === 0 && dayData.isCurrentMonth && (
+<p className="text-gray-300 text-[8px] sm:text-[10px] mt-2 text-right invisible group-hover:visible">
+Click
+</p>
+)}
+</div>
+);
+})}
+</div>
+</>
+) : (
+// Mensaje cuando no hay registro seleccionado
+<div className="p-10 text-center text-gray-500 bg-white rounded-2xl border-dashed border-4 border-gray-200 mt-4 shadow-inner">
+📦
+<p className="text-xl font-semibold">
+Crea un registro para comenzar
+</p>
+<p className="mt-2">
+Selecciona un registro o utiliza el botón Nuevo Registro
+en el panel lateral.
+</p>
+</div>
+)}
+</div>
+</div>
+
+{/* COLUMNA DERECHA: CONTROLES Y TOTALES (1/3) */}
+<div className="lg:col-span-1 flex flex-col space-y-8">
+{/* Controles Superiores (Select, Export, New, Delete, Stats) */}
+<div className="p-5 bg-white border-t-8 border-green-600 rounded-2xl shadow-2xl hover:shadow-3xl transition-shadow">
+<h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2 border-b-2 border-gray-100 pb-3">
+🚜 Gestión del Invernadero
+</h3>
+<div className="space-y-4">
+{/* Selector de Registro */}
+<div className="flex flex-col space-y-2">
+<label
+htmlFor="calendar-select"
+className="text-sm font-semibold text-gray-700"
+>
+Registro Actual:
+</label>
+<select
+id="calendar-select"
+value={selectedCalendarId || ""}
+onChange={(e) => setSelectedCalendarId(e.target.value)}
+className={`w-full p-3 border-2 rounded-xl shadow-inner text-base font-medium transition duration-200
+${
+selectedCalendarId
+? "bg-indigo-50 text-gray-800 border-indigo-300 focus:ring-indigo-500 focus:border-indigo-500"
+: "bg-gray-100 text-gray-500 border-dashed border-gray-400"
+}`}
+disabled={!isAuthReady || calendars.length === 0}
+>
+{calendars.length === 0 ? (
+<option value="">Crea un registro</option>
+) : (
+calendars.map((c) => (
+<option key={c.id} value={c.id}>
+{c.name}
+</option>
+))
+)}
+</select>
+</div>
+
+{/* Botones de Acción */}
+<div className="flex flex-col space-y-3 pt-2">
+{/* Botón de Nuevo Registro */}
+<button
+onClick={() => setIsCalendarModalOpen(true)}
+className="flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-lg bg-green-600 hover:bg-green-700 text-white w-full transform hover:scale-[1.01]"
+title="Crear Nuevo Registro/Calendario"
+>
+➕
+Nuevo Registro
+</button>
+
+{/* Botón de Exportar Rango */}
+<button
+onClick={() => setIsExportModalOpen("range")}
+disabled={
+!selectedCalendarId || globalTotals?.totalResult === 0
+}
+className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-md w-full transform hover:scale-[1.01]
+${
+selectedCalendarId && globalTotals?.totalResult > 0
+? "bg-blue-600 hover:bg-blue-700 text-white"
+: "bg-gray-300 text-gray-500 cursor-not-allowed"
+}`}
+title="Exportar todos los registros filtrados (Rango de Fechas)"
+>
+⬆️
+Exportar Rango de Fechas
+</button>
+
+{/* Botón de Exportar Día Único */}
+<button
+onClick={openExportModalInSingleDayMode}
+disabled={
+!selectedCalendarId || globalTotals?.totalResult === 0
+}
+className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-md w-full transform hover:scale-[1.01]
+${
+selectedCalendarId && globalTotals?.totalResult > 0
+? "bg-orange-600 hover:bg-orange-700 text-white"
+: "bg-gray-300 text-gray-500 cursor-not-allowed"
+}`}
+title="Exportar registros de un día específico"
+>
+🕒
+Exportar Día
+</button>
+
+{/* 🗑️ BOTÓN ELIMINAR REGISTRO */}
+<button
+onClick={() =>
+// Confirmación de seguridad antes de llamar a la función de eliminación
+selectedCalendarId && selectedCalendarName &&
+window.confirm(`¿Estás seguro de que quieres ELIMINAR el registro "${selectedCalendarName}" y todos sus datos? Esta acción es irreversible.`) &&
+handleDeleteCalendar(selectedCalendarId)
+}
+disabled={!selectedCalendarId}
+className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-lg w-full transform hover:scale-[1.01] mt-4
+${
+selectedCalendarId
+? "bg-red-600 hover:bg-red-700 text-white"
+: "bg-gray-300 text-gray-500 cursor-not-allowed"
+}`}
+title="Eliminar el registro seleccionado y todos sus datos (¡Cuidado!)"
+>
+🗑️
+Eliminar Registro
+</button>
+
+{/* 📊 BOTÓN DATOS ESTADÍSTICOS */}
+<button
+onClick={() => openStatsModal(true)}
+disabled={!selectedCalendarId}
+className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-lg w-full transform hover:scale-[1.02] mt-3
+${
+selectedCalendarId
+? "bg-purple-600 hover:bg-purple-700 text-white shadow-purple-300"
+: "bg-gray-300 text-gray-500 cursor-not-allowed"
+}`}
+title="Ver y editar datos estadísticos del invernadero"
+>
+📊
+Datos Estadísticos
+</button>
+{/* ---------------------------------- */}
+</div>
+</div>
+</div>
+
+{/* Totales Globales del Registro Seleccionado */}
+<div className="p-5 bg-white border-t-8 border-orange-500 rounded-2xl shadow-2xl hover:shadow-3xl transition-shadow">
+<h3 className="text-xl font-bold text-orange-800 mb-4 flex items-center gap-2 border-b-2 border-gray-100 pb-3">
+🧺 Cosecha Total
+</h3>
+<div className="space-y-4">
+<div className="grid grid-cols-2 gap-4">
+<div className="p-3 bg-green-100 rounded-xl text-center shadow-inner border-2 border-green-200 hover:border-green-400 transition-colors">
+<p className="font-medium text-xs text-green-700 uppercase flex items-center justify-center gap-1">
+🌱 Total Valor A
+</p>
+<p className="font-semibold text-green-900 text-xl mt-1">
+{globalTotals?.totalA?.toFixed(2) || "0.00"}
+</p>
+</div>
+
+<div className="p-3 bg-yellow-100 rounded-xl text-center shadow-inner border-2 border-yellow-200 hover:border-yellow-400 transition-colors">
+<p className="font-medium text-xs text-yellow-700 uppercase flex items-center justify-center gap-1">
+☀️ Total Valor B
+</p>
+<p className="font-semibold text-yellow-900 text-xl mt-1">
+{globalTotals?.totalB?.toFixed(2) || "0.00"}
+</p>
+</div>
+</div>
+
+<div className="p-4 bg-gradient-to-r from-orange-600 via-red-600 to-red-700 rounded-2xl text-white shadow-xl shadow-orange-300 text-center transform hover:scale-[1.02] transition-transform">
+<p className="font-medium text-sm uppercase flex items-center justify-center gap-2">
+🌶️ PRODUCCIÓN TOTAL ($A \times B$)
+</p>
+<p className="font-extrabold text-4xl mt-2">
+${globalTotals?.totalResult?.toFixed(2) || "0.00"}
+</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+);
+};
+
+
+
+// const CalendarView = ({
+//   currentDate,
+//   navigateMonth,
+//   handleDayClick,
+//   setSelectedCalendarId,
+//   selectedCalendarId,
+//   calendars,
+//   events,
+//   dailyData,
+//   isAuthReady,
+//   setIsCalendarModalOpen,
+//   selectedCalendarName,
+//   globalTotals,
+//   setIsExportModalOpen, // Usado para exportar rango
+//   openExportModalInSingleDayMode, // Usado para exportar día único
+//   handleDeleteCalendar, // Función para eliminar el registro
+//   openStatsModal, // Estaba sin usar en el componente original, pero la mantengo como parte de las props
+// }) => {
+//   // --- Utilidades y Constantes ---
+//   const DAYS_OF_WEEK = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+//   const MONTHS = [
+//     "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+//     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+//   ];
+
+//   const formatDate = (date) => {
+//     // La función toISOString().split('T')[0] asegura el formato YYYY-MM-DD
+//     return date.toISOString().split('T')[0];
+//   };
+
+//   // --- LÓGICA DE GENERACIÓN DE DÍAS ---
+//   const year = currentDate.getFullYear();
+//   const month = currentDate.getMonth();
+//   const firstDayOfMonth = new Date(year, month, 1).getDay();
+//   const daysInMonth = new Date(year, month + 1, 0).getDate();
+//   const days = [];
+//   const prevMonthDaysTotal = new Date(year, month, 0).getDate();
+//   const startDay = prevMonthDaysTotal - firstDayOfMonth + 1;
+
+//   // Días del mes anterior
+//   for (let i = startDay; i <= prevMonthDaysTotal; i++) {
+//     if (i > prevMonthDaysTotal - firstDayOfMonth) {
+//       const fullDate = new Date(year, month - 1, i);
+//       days.push({
+//         key: `prev-${i}`,
+//         day: i,
+//         isCurrentMonth: false,
+//         fullDate,
+//         dateKey: formatDate(fullDate),
+//         events: [],
+//       });
+//     }
+//   }
+
+//   // Días del mes actual
+//   for (let i = 1; i <= daysInMonth; i++) {
+//     const fullDate = new Date(year, month, i);
+//     const dateKey = formatDate(fullDate);
+//     days.push({
+//       key: `curr-${i}`,
+//       day: i,
+//       isCurrentMonth: true,
+//       fullDate,
+//       dateKey,
+//       events: events[dateKey] || [],
+//     });
+//   }
+
+//   // Días del mes siguiente (para completar la cuadrícula)
+//   let nextDay = 1;
+//   while (days.length < 42) {
+//     const fullDate = new Date(year, month + 1, nextDay);
+//     days.push({
+//       key: `next-${nextDay}`,
+//       day: nextDay,
+//       isCurrentMonth: false,
+//       fullDate,
+//       dateKey: formatDate(fullDate),
+//       events: [],
+//     });
+//     nextDay++;
+//   }
+
+//   const today = formatDate(new Date());
+//   const selectedCalendarColor =
+//     calendars.find((c) => c.id === selectedCalendarId)?.color || "#3b82f6";
+
+//   // --- RENDERING (JSX) ---
+//   return (
+//     // 1. Contenedor Principal: Bordes súper redondeados y sombra elevada
+//     <div className="bg-white p-1 sm:p-6 md:p-8 rounded-3xl shadow-2xl shadow-indigo-100 border border-gray-100 transition-all duration-300">
+//       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+//         {/* COLUMNA IZQUIERDA: CALENDARIO (2/3) */}
+//         <div className="lg:col-span-2 flex flex-col space-y-6">
+//           <div className="p-4 bg-white border-2 border-green-200 rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300">
+//             <h2 className="text-xl sm:text-2xl font-bold text-green-800 mb-4 border-b-2 border-green-100 pb-3 flex items-center gap-2">
+//               🌶️ Vista del Mes - Producción de Pimientos
+//             </h2>
+
+//             {selectedCalendarId ? (
+//               <>
+//                 {/* Navegación del Calendario */}
+//                 <div className="flex justify-between items-center mb-6 ">
+//                   <button
+//                     onClick={() => navigateMonth(-1)}
+//                     className="p-3 bg-green-100 hover:bg-green-300 text-green-800 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-110"
+//                     title="Mes Anterior"
+//                   >
+//                     ⬅️
+//                   </button>
+//                   <h2 className="text-2xl font-extrabold text-gray-800 tracking-wide">
+//                     {MONTHS[month]} {year}
+//                   </h2>
+//                   <button
+//                     onClick={() => navigateMonth(1)}
+//                     className="p-3 bg-indigo-100 hover:bg-indigo-300 text-indigo-700 rounded-full transition-all duration-300 rotate-180 shadow-lg hover:shadow-xl"
+//                     title="Mes Siguiente"
+//                   >
+//                     ⬅️
+//                   </button>
+//                 </div>
+
+//                 {/* Días de la semana */}
+//                 <div className="grid grid-cols-7 text-center font-bold text-green-800 border-b-2 border-green-300 pb-3 mb-1">
+//                   {DAYS_OF_WEEK.map((day) => (
+//                     <div key={day} className="text-sm sm:text-base p-1">
+//                       {day}
+//                     </div>
+//                   ))}
+//                 </div>
+
+//                 {/* Grid de Días del Mes */}
+//                 <div className="grid grid-cols-7 gap-1 mt-2 p-0">
+//                   {days.map((dayData) => {
+//                     // Lógica de Cálculo de Métricas Diarias
+//                     const eventCount = dayData.events.length;
+
+//                     const dailyTotalResult = dayData.events.reduce(
+//                       (sum, event) => sum + (event.result || 0),
+//                       0
+//                     );
+
+//                     const dailyCostEntry = dailyData[dayData.dateKey]?.costs;
+//                     const costPerUnitFinal = parseFloat(dailyCostEntry?.finalResult) || 0;
+
+//                     const isToday = dayData.isCurrentMonth && dayData.dateKey === today;
+
+//                     return (
+//                       // Estilos de la celda de día: Compactos y con estilo
+//                       <div
+//                         key={dayData.key}
+//                         onClick={() => handleDayClick(dayData)}
+//                         className={`
+//                           flex flex-col cursor-pointer transition-all duration-300 rounded-xl p-1 sm:p-2
+//                           shadow-md border border-transparent
+//                           hover:shadow-lg hover:border-blue-400 hover:scale-[1.02]
+//                           relative group h-auto aspect-square
+
+//                           ${
+//                             dayData.isCurrentMonth
+//                               ? "bg-white text-gray-800"
+//                               : "bg-gray-50 text-gray-400 opacity-70"
+//                           }
+
+//                           ${
+//                             isToday
+//                               ? "border-2 border-red-500 ring-4 ring-red-200 shadow-xl z-20 bg-red-50 hover:bg-red-100"
+//                               : "z-10"
+//                           }
+//                         `}
+//                       >
+//                         {/* Número del día */}
+//                         <span
+//                           className={`font-extrabold text-lg text-right w-full
+//                             ${dayData.isCurrentMonth ? "text-gray-900" : "text-gray-400"}
+//                             ${isToday ? "text-red-700" : ""}
+//                             `}
+//                         >
+//                           {dayData.day}
+//                         </span>
+
+//                         {/* Contenido Dinámico (Métricas) */}
+//                         {eventCount > 0 && (
+//                           <div className="flex flex-col items-end px-0 space-y-0.5 opacity-90 group-hover:opacity-100">
+
+//                             {/* 1. INDICADOR DE EVENTO (PUNTO) - SOLO EN MÓVIL */}
+//                             <div className="flex justify-end w-full sm:hidden">
+//                                 <div
+//                                   className="w-2.5 h-2.5 rounded-full shadow-md ring-2 ring-white"
+//                                   style={{ backgroundColor: selectedCalendarColor }}
+//                                   title={`${eventCount} producto(s) registrado(s)`}
+//                                 ></div>
+//                             </div>
+
+//                             {/* 2. INFORMACIÓN DETALLADA - OCULTA EN MÓVIL, VISIBLE EN TABLET/ESCRITORIO */}
+//                             <div className="hidden sm:flex flex-col items-center w-full space-y-0.5 mt-auto">
+
+//                               {/* Total de Productos Guardados */}
+//                               <p className="font-medium text-[8px] sm:text-xs text-gray-700 leading-tight bg-gray-100/70 rounded-full px-2">
+//                                 {eventCount} Prod(s)
+//                               </p>
+
+//                               {/* COSTO DE PRODUCCIÓN POR UNIDAD */}
+//                               <p className="font-bold text-[8px] sm:text-xs text-blue-600 leading-tight">
+//                                 C/u: {costPerUnitFinal > 0 ? `$${costPerUnitFinal.toFixed(4)}` : '$0.0000'}
+//                               </p>
+
+//                               {/* TOTAL ACUMULADO DEL DÍA */}
+//                               <p className="font-extrabold text-[8px] sm:text-xs text-green-700 leading-tight">
+//                                 Total: {dailyTotalResult > 0 ? `$${dailyTotalResult.toFixed(2)}` : '$0.00'}
+//                               </p>
+
+//                             </div>
+
+//                           </div>
+//                         )}
+
+//                         {/* Mensaje sutil si no hay eventos */}
+//                         {eventCount === 0 && dayData.isCurrentMonth && (
+//                             <p className="text-gray-300 text-[8px] sm:text-[10px] mt-2 text-right invisible group-hover:visible">
+//                                 Click
+//                             </p>
+//                         )}
+//                       </div>
+//                     );
+//                   })}
+//                 </div>
+//               </>
+//             ) : (
+//               // Mensaje cuando no hay registro seleccionado
+//               <div className="p-10 text-center text-gray-500 bg-white rounded-2xl border-dashed border-4 border-gray-200 mt-4 shadow-inner">
+//                 📦
+//                 <p className="text-xl font-semibold">
+//                   Crea un registro para comenzar
+//                 </p>
+//                 <p className="mt-2">
+//                   Selecciona un registro o utiliza el botón Nuevo Registro
+//                   en el panel lateral.
+//                 </p>
+//               </div>
+//             )}
+//           </div>
+//         </div>
+
+//         {/* COLUMNA DERECHA: CONTROLES Y TOTALES (1/3) */}
+//         <div className="lg:col-span-1 flex flex-col space-y-8">
+//           {/* Controles Superiores (Select, Export, New, Delete, Stats) */}
+//           <div className="p-5 bg-white border-t-8 border-green-600 rounded-2xl shadow-2xl hover:shadow-3xl transition-shadow">
+//             <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2 border-b-2 border-gray-100 pb-3">
+//               🚜 Gestión del Invernadero
+//             </h3>
+//             <div className="space-y-4">
+//               {/* Selector de Registro */}
+//               <div className="flex flex-col space-y-2">
+//                 <label
+//                   htmlFor="calendar-select"
+//                   className="text-sm font-semibold text-gray-700"
+//                 >
+//                   Registro Actual:
+//                 </label>
+//                 <select
+//                   id="calendar-select"
+//                   value={selectedCalendarId || ""}
+//                   onChange={(e) => setSelectedCalendarId(e.target.value)}
+//                   className={`w-full p-3 border-2 rounded-xl shadow-inner text-base font-medium transition duration-200
+//                     ${
+//                       selectedCalendarId
+//                         ? "bg-indigo-50 text-gray-800 border-indigo-300 focus:ring-indigo-500 focus:border-indigo-500"
+//                         : "bg-gray-100 text-gray-500 border-dashed border-gray-400"
+//                     }`}
+//                   disabled={!isAuthReady || calendars.length === 0}
+//                 >
+//                   {calendars.length === 0 ? (
+//                     <option value="">Crea un registro</option>
+//                   ) : (
+//                     calendars.map((c) => (
+//                       <option key={c.id} value={c.id}>
+//                         {c.name}
+//                       </option>
+//                     ))
+//                   )}
+//                 </select>
+//               </div>
+
+//               {/* Botones de Acción */}
+//               <div className="flex flex-col space-y-3 pt-2">
+//                 {/* Botón de Nuevo Registro */}
+//                 <button
+//                   onClick={() => setIsCalendarModalOpen(true)}
+//                   className="flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-lg bg-green-600 hover:bg-green-700 text-white w-full transform hover:scale-[1.01]"
+//                   title="Crear Nuevo Registro/Calendario"
+//                 >
+//                   ➕
+//                   Nuevo Registro
+//                 </button>
+
+//                 {/* Botón de Exportar Rango */}
+//                 <button
+//                   onClick={() => setIsExportModalOpen("range")}
+//                   disabled={
+//                     !selectedCalendarId || globalTotals?.totalResult === 0
+//                   }
+//                   className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-md w-full transform hover:scale-[1.01]
+//                     ${
+//                       selectedCalendarId && globalTotals?.totalResult > 0
+//                         ? "bg-blue-600 hover:bg-blue-700 text-white"
+//                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
+//                     }`}
+//                   title="Exportar todos los registros filtrados (Rango de Fechas)"
+//                 >
+//                   ⬆️
+//                   Exportar Rango de Fechas
+//                 </button>
+
+//                 {/* Botón de Exportar Día Único */}
+//                 <button
+//                   onClick={openExportModalInSingleDayMode}
+//                   disabled={
+//                     !selectedCalendarId || globalTotals?.totalResult === 0
+//                   }
+//                   className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-md w-full transform hover:scale-[1.01]
+//                     ${
+//                       selectedCalendarId && globalTotals?.totalResult > 0
+//                         ? "bg-orange-600 hover:bg-orange-700 text-white"
+//                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
+//                     }`}
+//                   title="Exportar registros de un día específico"
+//                 >
+//                   🕒
+//                   Exportar Día
+//                 </button>
+
+//                 {/* 🗑️ BOTÓN ELIMINAR REGISTRO */}
+//                 <button
+//                   onClick={() =>
+//                     // Confirmación de seguridad antes de llamar a la función de eliminación
+//                     selectedCalendarId && selectedCalendarName &&
+//                     window.confirm(`¿Estás seguro de que quieres ELIMINAR el registro "${selectedCalendarName}" y todos sus datos? Esta acción es irreversible.`) &&
+//                     handleDeleteCalendar(selectedCalendarId)
+//                   }
+//                   disabled={!selectedCalendarId}
+//                   className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-lg w-full transform hover:scale-[1.01] mt-4
+//                     ${
+//                       selectedCalendarId
+//                         ? "bg-red-600 hover:bg-red-700 text-white"
+//                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
+//                     }`}
+//                   title="Eliminar el registro seleccionado y todos sus datos (¡Cuidado!)"
+//                 >
+//                   🗑️
+//                   Eliminar Registro
+//                 </button>
+
+//                 {/* 📊 BOTÓN DATOS ESTADÍSTICOS */}
+//                 <button
+//                   onClick={() => openStatsModal(true)} // Usando openStatsModal, asumo que es la función correcta para abrir el modal de estadísticas.
+//                   disabled={!selectedCalendarId}
+//                   className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-lg w-full transform hover:scale-[1.02] mt-3
+//                     ${
+//                       selectedCalendarId
+//                         ? "bg-purple-600 hover:bg-purple-700 text-white shadow-purple-300"
+//                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
+//                     }`}
+//                   title="Ver y editar datos estadísticos del invernadero"
+//                 >
+//                   📊
+//                   Datos Estadísticos
+//                 </button>
+//                 {/* ---------------------------------- */}
+//               </div>
+//             </div>
+//           </div>
+
+//           {/* Totales Globales del Registro Seleccionado */}
+//           <div className="p-5 bg-white border-t-8 border-orange-500 rounded-2xl shadow-2xl hover:shadow-3xl transition-shadow">
+//             <h3 className="text-xl font-bold text-orange-800 mb-4 flex items-center gap-2 border-b-2 border-gray-100 pb-3">
+//               🧺 Cosecha Total
+//             </h3>
+//             <div className="space-y-4">
+//               <div className="grid grid-cols-2 gap-4">
+//                 <div className="p-3 bg-green-100 rounded-xl text-center shadow-inner border-2 border-green-200 hover:border-green-400 transition-colors">
+//                   <p className="font-medium text-xs text-green-700 uppercase flex items-center justify-center gap-1">
+//                     🌱 Total Valor A
+//                   </p>
+//                   <p className="font-semibold text-green-900 text-xl mt-1">
+//                     {globalTotals?.totalA?.toFixed(2) || "0.00"}
+//                   </p>
+//                 </div>
+
+//                 <div className="p-3 bg-yellow-100 rounded-xl text-center shadow-inner border-2 border-yellow-200 hover:border-yellow-400 transition-colors">
+//                   <p className="font-medium text-xs text-yellow-700 uppercase flex items-center justify-center gap-1">
+//                     ☀️ Total Valor B
+//                   </p>
+//                   <p className="font-semibold text-yellow-900 text-xl mt-1">
+//                     {globalTotals?.totalB?.toFixed(2) || "0.00"}
+//                   </p>
+//                 </div>
+//               </div>
+
+//               <div className="p-4 bg-gradient-to-r from-orange-600 via-red-600 to-red-700 rounded-2xl text-white shadow-xl shadow-orange-300 text-center transform hover:scale-[1.02] transition-transform">
+//                 <p className="font-medium text-sm uppercase flex items-center justify-center gap-2">
+//                   🌶️ PRODUCCIÓN TOTAL ($A \times B$)
+//                 </p>
+//                 <p className="font-extrabold text-4xl mt-2">
+//                   ${globalTotals?.totalResult?.toFixed(2) || "0.00"}
+//                 </p>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
 
 
 
