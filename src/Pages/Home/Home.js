@@ -325,221 +325,615 @@
 
 
 
+// import React from "react";
+// import { AiFillGithub, AiOutlineCloudServer } from "react-icons/ai";
+// import { FaUnity } from "react-icons/fa";
+// import { DiMongodb } from "react-icons/di";
+// import { GrNode } from "react-icons/gr";
+// import IMAGE from "../../asset/inventary.png";
+// import LOGO from "../../asset/LOGOS.svg";
+// import { Link } from "react-router-dom";
+// import { ShowOnLogout, ShowOnLogin } from "../../protect/HiddenLiks";
+// import { motion } from "framer-motion";
+// import { FiLogIn, FiUserPlus, FiGrid } from "react-icons/fi";
+
+// // =================================================================
+// // 1. VARIANTES DE FRAMER MOTION
+// // =================================================================
+
+// // Contenedor principal para animaciones escalonadas
+// const containerVariants = {
+//   hidden: { opacity: 0 },
+//   visible: {
+//     opacity: 1,
+//     transition: {
+//       staggerChildren: 0.1, // Retraso entre la aparición de los hijos
+//     },
+//   },
+// };
+
+// // Animación para el texto principal
+// const itemVariants = {
+//   hidden: { opacity: 0, y: 50 },
+//   visible: {
+//     opacity: 1,
+//     y: 0,
+//     transition: { type: "spring", stiffness: 100, damping: 10 },
+//   },
+// };
+
+// // Animación para los íconos de tecnología
+// const iconVariants = {
+//   hidden: { opacity: 0, scale: 0.5 },
+//   visible: {
+//     opacity: 1,
+//     scale: 1,
+//     transition: { type: "spring", stiffness: 150, damping: 12 },
+//   },
+// };
+
+// // Eliminamos la variante 'imageFloat' ya que el usuario no quiere que la imagen se mueva.
+
+// const Home = () => {
+//   return (
+//     // CONTENEDOR PRINCIPAL: Degradado oscuro con un borde sutil y animación de entrada
+//     <motion.div
+//       className="bg-gray-900 text-white min-h-screen flex flex-col relative overflow-hidden"
+//       initial={{ opacity: 0 }}
+//       animate={{ opacity: 1 }}
+//       transition={{ duration: 0.5 }}
+//     >
+//       {/* Efecto de fondo sutil (Estrellas / Nebulosa) */}
+//       <div className="absolute inset-0 bg-repeat opacity-5" style={{ backgroundImage: "radial-gradient(#1e40af 1px, transparent 1px), radial-gradient(#6366f1 1px, transparent 1px)", backgroundSize: "40px 40px", backgroundPosition: "0 0, 20px 20px" }}></div>
+//       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+
+//       {/* Contenido centrado y con max-width */}
+//       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 flex flex-col flex-grow relative z-10">
+
+//         {/* 1. CABECERA / NAVEGACIÓN */}
+//         <header className="w-full mb-8 sm:mb-16">
+//           <motion.div
+//             className="flex justify-between items-center py-4 w-full border-b border-white/10"
+//             initial={{ y: -50, opacity: 0 }}
+//             animate={{ y: 0, opacity: 1 }}
+//             transition={{ type: "spring", stiffness: 120, delay: 0.2 }}
+//           >
+//             {/* DIV 1: Logo */}
+//             <motion.div whileHover={{ scale: 1.05, rotate: 1 }}>
+//               <a
+//                 href="https://horticulturadelsureste.com/"
+//                 target="_blank"
+//                 rel="noreferrer"
+//               >
+//                 <img src={LOGO} alt="logo" className="w-28 sm:w-40 filter drop-shadow-lg" />
+//               </a>
+//             </motion.div>
+
+//             {/* DIV 2: Botones */}
+//             <div className="flex gap-3 sm:gap-4 items-center">
+//               <ShowOnLogout>
+//                 <Link to="/register">
+//                   <motion.button
+//                     whileHover={{ scale: 1.05, boxShadow: "0 0 15px rgba(59, 130, 246, 0.5)" }}
+//                     whileTap={{ scale: 0.95 }}
+//                     className="py-2 px-3 sm:px-4 bg-transparent border border-blue-400 text-blue-300 font-semibold rounded-full transition duration-300 hover:bg-blue-400/20 flex items-center gap-2 text-sm sm:text-lg"
+//                   >
+//                     <FiUserPlus className="text-xl" /> Register
+//                   </motion.button>
+//                 </Link>
+//               </ShowOnLogout>
+
+//               <ShowOnLogout>
+//                 <Link to="/login">
+//                   <motion.button
+//                     whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(29, 78, 216, 0.8)" }}
+//                     whileTap={{ scale: 0.95 }}
+//                     className="py-2 px-3 sm:px-4 bg-blue-600 rounded-full text-white cursor-pointer font-bold transition duration-300 hover:bg-blue-700 flex items-center gap-2 text-sm sm:text-lg"
+//                   >
+//                     <FiLogIn className="text-xl" /> Login
+//                   </motion.button>
+//                 </Link>
+//               </ShowOnLogout>
+
+//               <ShowOnLogin>
+//                 <Link to="/acumuladoC">
+//                   <motion.button
+//                     whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(16, 185, 129, 0.8)" }}
+//                     whileTap={{ scale: 0.95 }}
+//                     className="py-2 px-3 sm:px-4 bg-emerald-600 rounded-full text-white font-bold transition duration-300 hover:bg-emerald-700 flex items-center gap-2 text-sm sm:text-lg"
+//                   >
+//                     <FiGrid className="text-xl" /> Panel
+//                   </motion.button>
+//                 </Link>
+//               </ShowOnLogin>
+//             </div>
+//           </motion.div>
+//         </header>
+
+//         {/* 2. CONTENIDO PRINCIPAL */}
+//         <main className="grid flex-grow grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 justify-center items-center mt-2 px-0 sm:px-4">
+
+//           {/* COLUMNA DE TEXTO (Animación escalonada) */}
+//           <motion.div
+//             className="lg:col-span-6 order-2 lg:order-1 flex flex-col justify-center items-center lg:items-start text-center lg:text-left"
+//             variants={containerVariants}
+//             initial="hidden"
+//             animate="visible"
+//           >
+//             <motion.h1
+//               className="text-white text-5xl md:text-6xl font-extrabold leading-tight tracking-tighter drop-shadow-xl"
+//               variants={itemVariants}
+//             >
+//               Inventario & Stock De Productos
+//             </motion.h1>
+//             <motion.h2
+//               className="text-gray-300 text-xl md:text-2xl mt-6 max-w-xl font-light"
+//               variants={itemVariants}
+//             >
+//               Sistema de control de Administración diseñado para ser integrado
+//               en tiempo real utilizando una base de Datos implementada en la nube.
+//             </motion.h2>
+
+//             {/* ÍCONOS DE TECNOLOGÍA (Animación escalonada) */}
+//             <motion.div
+//               className="flex mt-10 gap-6 items-center"
+//               variants={containerVariants}
+//               initial="hidden"
+//               animate="visible"
+//             >
+//               <motion.div variants={iconVariants}>
+//                 <FaUnity className="text-4xl text-purple-400 hover:text-purple-300 transition duration-300 cursor-help" title="Unity Integration" />
+//               </motion.div>
+//               <motion.div variants={iconVariants}>
+//                 <AiOutlineCloudServer className="text-4xl text-cyan-400 hover:text-cyan-300 transition duration-300 cursor-help" title="Cloud Server" />
+//               </motion.div>
+//               <motion.div variants={iconVariants}>
+//                 <DiMongodb className="text-4xl text-green-500 hover:text-green-400 transition duration-300 cursor-help" title="MongoDB Database" />
+//               </motion.div>
+//               <motion.div variants={iconVariants}>
+//                 <GrNode className="text-4xl text-green-600 hover:text-green-500 transition duration-300 cursor-help" title="Node.js Backend" />
+//               </motion.div>
+//             </motion.div>
+//           </motion.div>
+
+//           {/* COLUMNA DE IMAGEN (Ahora solo con animación de entrada) */}
+//           <motion.div
+//             className="lg:col-span-6 order-1 lg:order-2 flex justify-center items-center p-4 lg:p-0"
+//             initial={{ scale: 0.8, opacity: 0 }}
+//             animate={{ scale: 1, opacity: 1 }}
+//             transition={{ type: "spring", stiffness: 100, delay: 0.5 }}
+//           >
+//             <img // Cambiamos de motion.img a img simple si solo queremos la animación inicial
+//               src={IMAGE}
+//               alt="Inventario Dashboard"
+//               className="w-full max-w-xl h-auto object-contain rounded-xl shadow-2xl shadow-blue-500/30 border border-white/10"
+//             />
+//           </motion.div>
+//         </main>
+
+//         {/* 3. FOOTER ESTATICO */}
+//         <footer className="w-full mt-16 p-4 border-t border-white/10 flex justify-between items-center relative">
+//           <p className="text-sm sm:text-md text-gray-500">
+//             © {new Date().getFullYear()} Horticultura
+//           </p>
+//           <p className="text-md sm:text-lg font-semibold text-white/80">
+//             HORTICULTURA -{" "}
+//             <a
+//               href="https://agrodolores.com/"
+//               className="lowercase text-blue-400 hover:text-blue-200 transition"
+//               target="_blank"
+//               rel="noopener noreferrer"
+//             >
+//               Finca BALSICAS
+//             </a>
+//           </p>
+//           <motion.a
+//             href="https://agrodolores.com/"
+//             target="_blank"
+//             rel="noopener noreferrer"
+//             whileHover={{ scale: 1.1, rotate: 5, color: "#9CA3AF" }}
+//             whileTap={{ scale: 0.9 }}
+//           >
+//             <AiFillGithub className="text-3xl text-white hover:text-gray-300 transition" />
+//           </motion.a>
+//         </footer>
+//       </div>
+//     </motion.div>
+//   );
+// };
+
+// export default Home;
+
+
+
+// import React from "react";
+// import { Link } from "react-router-dom";
+// import { motion } from "framer-motion";
+// import { ShowOnLogout, ShowOnLogin } from "../../protect/HiddenLiks";
+// // Reemplazando íconos técnicos por íconos agrícolas/empresariales
+// import { FiLogIn, FiUserPlus, FiGrid } from "react-icons/fi";
+// import { FaSeedling, FaTractor, FaCloudUploadAlt, FaChartLine } from "react-icons/fa"; 
+// import { AiFillGithub } from "react-icons/ai"; // Mantenemos GitHub por si es relevante internamente
+// import IMAGE from "../../asset/inventary.png"; // Asumiendo que esta imagen ahora es un dashboard agrícola
+// import LOGO from "../../asset/LOGOS.svg";
+
+// // =================================================================
+// // 1. VARIANTES DE FRAMER MOTION (Sutiles)
+// // =================================================================
+
+// const containerVariants = {
+//     hidden: { opacity: 0 },
+//     visible: {
+//         opacity: 1,
+//         transition: {
+//             staggerChildren: 0.1, // Suave aparición en secuencia
+//         },
+//     },
+// };
+
+// const itemVariants = {
+//     hidden: { opacity: 0, y: 30 }, // Menos desplazamiento
+//     visible: {
+//         opacity: 1,
+//         y: 0,
+//         transition: { type: "spring", stiffness: 100, damping: 12 },
+//     },
+// };
+
+// const iconVariants = {
+//     hidden: { opacity: 0, scale: 0.8 },
+//     visible: {
+//         opacity: 1,
+//         scale: 1,
+//         transition: { type: "spring", stiffness: 150, damping: 15, duration: 0.4 },
+//     },
+// };
+
+// const Home = () => {
+//     return (
+//         // CONTENEDOR PRINCIPAL: Fondo blanco/cremoso con un degradado sutil y animacion de entrada
+//         <motion.div
+//             className="bg-gray-50 text-gray-800 min-h-screen flex flex-col relative overflow-hidden"
+//             initial={{ opacity: 0 }}
+//             animate={{ opacity: 1 }}
+//             transition={{ duration: 0.7 }}
+//         >
+//             {/* Efecto de fondo sutil: Rejilla elegante */}
+//             <div className="absolute inset-0 bg-repeat opacity-[0.03]" style={{ backgroundImage: "linear-gradient(to right, #ccc 1px, transparent 1px), linear-gradient(to bottom, #ccc 1px, transparent 1px)", backgroundSize: "50px 50px" }}></div>
+//             <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px]"></div>
+
+//             {/* Contenido centrado y con max-width */}
+//             <div className="max-w-7xl mx-auto p-4 sm:p-8 flex flex-col flex-grow relative z-10 w-full">
+
+//                 {/* 1. CABECERA / NAVEGACIÓN */}
+//                 <header className="w-full mb-12 sm:mb-20">
+//                     <motion.div
+//                         className="flex justify-between items-center py-4 w-full border-b border-gray-200"
+//                         initial={{ y: -50, opacity: 0 }}
+//                         animate={{ y: 0, opacity: 1 }}
+//                         transition={{ type: "spring", stiffness: 120, delay: 0.2 }}
+//                     >
+//                         {/* DIV 1: Logo */}
+//                         <motion.div whileHover={{ scale: 1.05 }}>
+//                             <a
+//                                 href="https://horticulturadelsureste.com/"
+//                                 target="_blank"
+//                                 rel="noreferrer"
+//                                 className="flex items-center gap-2"
+//                             >
+//                                 <img src={LOGO} alt="logo" className="w-28 sm:w-36 drop-shadow-sm" />
+//                                 <span className="hidden sm:inline text-xl font-bold text-emerald-600 tracking-wider">AGRO-MANAGER</span>
+//                             </a>
+//                         </motion.div>
+
+//                         {/* DIV 2: Botones */}
+//                         <div className="flex gap-3 sm:gap-4 items-center">
+//                             <ShowOnLogout>
+//                                 <Link to="/register">
+//                                     <motion.button
+//                                         whileHover={{ scale: 1.05 }}
+//                                         whileTap={{ scale: 0.98 }}
+//                                         className="py-2 px-3 sm:px-4 bg-transparent border border-emerald-400 text-emerald-600 font-semibold rounded-lg transition duration-300 hover:bg-emerald-50 text-sm sm:text-lg"
+//                                     >
+//                                         <FiUserPlus className="hidden sm:inline text-xl" /> Registro
+//                                     </motion.button>
+//                                 </Link>
+//                             </ShowOnLogout>
+
+//                             <ShowOnLogout>
+//                                 <Link to="/login">
+//                                     <motion.button
+//                                         whileHover={{ scale: 1.05 }}
+//                                         whileTap={{ scale: 0.98 }}
+//                                         className="py-2 px-3 sm:px-4 bg-emerald-600 rounded-lg text-white font-bold transition duration-300 hover:bg-emerald-700 shadow-lg shadow-emerald-500/30 flex items-center gap-2 text-sm sm:text-lg"
+//                                     >
+//                                         <FiLogIn className="text-xl" /> Acceder
+//                                     </motion.button>
+//                                 </Link>
+//                             </ShowOnLogout>
+
+//                             <ShowOnLogin>
+//                                 <Link to="/acumuladoC">
+//                                     <motion.button
+//                                         whileHover={{ scale: 1.05 }}
+//                                         whileTap={{ scale: 0.98 }}
+//                                         className="py-2 px-3 sm:px-4 bg-blue-600 rounded-lg text-white font-bold transition duration-300 hover:bg-blue-700 shadow-lg shadow-blue-500/30 flex items-center gap-2 text-sm sm:text-lg"
+//                                     >
+//                                         <FiGrid className="text-xl" /> Panel Ejecutivo
+//                                     </motion.button>
+//                                 </Link>
+//                             </ShowOnLogin>
+//                         </div>
+//                     </motion.div>
+//                 </header>
+
+//                 {/* 2. CONTENIDO PRINCIPAL AGRÍCOLA */}
+//                 <main className="grid flex-grow grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 justify-center items-center mt-4">
+
+//                     {/* COLUMNA DE TEXTO Y VALOR */}
+//                     <motion.div
+//                         className="lg:col-span-6 order-2 lg:order-1 flex flex-col justify-center items-center lg:items-start text-center lg:text-left"
+//                         variants={containerVariants}
+//                         initial="hidden"
+//                         animate="visible"
+//                     >
+//                         <motion.h1
+//                             className="text-gray-900 text-5xl md:text-7xl font-extrabold leading-tight tracking-tighter drop-shadow-sm"
+//                             variants={itemVariants}
+//                         >
+//                             Gestión Integral del <span className="text-emerald-600">Cultivo</span> y Trazabilidad.
+//                         </motion.h1>
+//                         <motion.h2
+//                             className="text-gray-600 text-xl md:text-2xl mt-6 max-w-xl font-light"
+//                             variants={itemVariants}
+//                         >
+//                             Plataforma diseñada para la **Dirección Ejecutiva**, optimizando costes de **Mano de Obra** y garantizando la **Eficiencia Operativa** del campo en tiempo real.
+//                         </motion.h2>
+
+//                         {/* ÍCONOS DE VALOR AGRÍCOLA (Sustituyendo iconos técnicos) */}
+//                         <motion.div
+//                             className="flex mt-12 gap-8 items-center"
+//                             variants={containerVariants}
+//                             initial="hidden"
+//                             animate="visible"
+//                         >
+//                             <motion.div variants={iconVariants} className="text-center">
+//                                 <FaSeedling className="text-4xl text-yellow-600 mx-auto hover:text-yellow-500 transition duration-300" title="Trazabilidad del Cultivo" />
+//                                 <p className="text-xs mt-1 text-gray-500 font-medium">Cultivos</p>
+//                             </motion.div>
+//                             <motion.div variants={iconVariants} className="text-center">
+//                                 <FaTractor className="text-4xl text-red-600 mx-auto hover:text-red-500 transition duration-300" title="Gestión de Maquinaria" />
+//                                 <p className="text-xs mt-1 text-gray-500 font-medium">Maquinaria</p>
+//                             </motion.div>
+//                             <motion.div variants={iconVariants} className="text-center">
+//                                 <FaCloudUploadAlt className="text-4xl text-blue-600 mx-auto hover:text-blue-500 transition duration-300" title="Datos en la Nube" />
+//                                 <p className="text-xs mt-1 text-gray-500 font-medium">Cloud Data</p>
+//                             </motion.div>
+//                             <motion.div variants={iconVariants} className="text-center">
+//                                 <FaChartLine className="text-4xl text-teal-600 mx-auto hover:text-teal-500 transition duration-300" title="Análisis de Costes" />
+//                                 <p className="text-xs mt-1 text-gray-500 font-medium">Costes</p>
+//                             </motion.div>
+//                         </motion.div>
+//                     </motion.div>
+
+//                     {/* COLUMNA DE IMAGEN (Mockup de Dashboard Agrícola) */}
+//                     <motion.div
+//                         className="lg:col-span-6 order-1 lg:order-2 flex justify-center items-center p-4 lg:p-0"
+//                         initial={{ scale: 0.9, opacity: 0 }}
+//                         animate={{ scale: 1, opacity: 1 }}
+//                         transition={{ type: "spring", stiffness: 100, delay: 0.5 }}
+//                     >
+//                         <img 
+//                             src={IMAGE}
+//                             alt="Dashboard de Gestión Agrícola y Trazabilidad"
+//                             className="w-full max-w-xl h-auto object-contain rounded-xl shadow-2xl shadow-emerald-500/40 border-4 border-white ring-4 ring-emerald-100/50"
+//                         />
+                         
+//                     </motion.div>
+//                 </main>
+
+//                 {/* 3. FOOTER ESTATICO Y SUTIL */}
+//                 <footer className="w-full mt-24 p-4 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center relative">
+//                     <p className="text-sm text-gray-400 order-2 sm:order-1 mt-4 sm:mt-0">
+//                         © {new Date().getFullYear()} Soluciones Digitales para la Horticultura.
+//                     </p>
+//                     <p className="text-md font-semibold text-gray-700 order-1 sm:order-2">
+//                         <span className="text-emerald-600">AGRO-VISION</span> | Finca Balsicas
+//                     </p>
+//                     <motion.a
+//                         href="https://agrodolores.com/" // Mantienes el enlace a la web de la empresa
+//                         target="_blank"
+//                         rel="noopener noreferrer"
+//                         whileHover={{ scale: 1.1, rotate: 5 }}
+//                         whileTap={{ scale: 0.9 }}
+//                         className="order-3 mt-4 sm:mt-0"
+//                     >
+//                         <AiFillGithub className="text-3xl text-gray-300 hover:text-gray-500 transition" title="Repositorio Interno" />
+//                     </motion.a>
+//                 </footer>
+//             </div>
+//         </motion.div>
+//     );
+// };
+
+// export default Home;
+
+
 import React from "react";
-import { AiFillGithub, AiOutlineCloudServer } from "react-icons/ai";
-import { FaUnity } from "react-icons/fa";
-import { DiMongodb } from "react-icons/di";
-import { GrNode } from "react-icons/gr";
-import IMAGE from "../../asset/inventary.png";
-import LOGO from "../../asset/LOGOS.svg";
 import { Link } from "react-router-dom";
-import { ShowOnLogout, ShowOnLogin } from "../../protect/HiddenLiks";
 import { motion } from "framer-motion";
 import { FiLogIn, FiUserPlus, FiGrid } from "react-icons/fi";
+import { FaSeedling, FaTractor, FaCloudUploadAlt, FaChartLine } from "react-icons/fa"; 
+import { AiFillGithub } from "react-icons/ai"; 
 
-// =================================================================
-// 1. VARIANTES DE FRAMER MOTION
-// =================================================================
+import IMAGE from "../../asset/inventary.png"; 
+import LOGO from "../../asset/LOGOS.svg"; 
+import { ShowOnLogout, ShowOnLogin } from "../../protect/HiddenLiks";
 
-// Contenedor principal para animaciones escalonadas
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1, // Retraso entre la aparición de los hijos
-    },
-  },
+// ... (Las variantes de Framer Motion se mantienen igual)
+const containerVariants = { 
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
 };
 
-// Animación para el texto principal
 const itemVariants = {
-  hidden: { opacity: 0, y: 50 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { type: "spring", stiffness: 100, damping: 10 },
-  },
+    hidden: { opacity: 0, y: 30 }, 
+    visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100, damping: 12 } },
 };
 
-// Animación para los íconos de tecnología
 const iconVariants = {
-  hidden: { opacity: 0, scale: 0.5 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: { type: "spring", stiffness: 150, damping: 12 },
-  },
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { opacity: 1, scale: 1, transition: { type: "spring", stiffness: 150, damping: 15, duration: 0.4 } },
 };
-
-// Eliminamos la variante 'imageFloat' ya que el usuario no quiere que la imagen se mueva.
 
 const Home = () => {
-  return (
-    // CONTENEDOR PRINCIPAL: Degradado oscuro con un borde sutil y animación de entrada
-    <motion.div
-      className="bg-gray-900 text-white min-h-screen flex flex-col relative overflow-hidden"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      {/* Efecto de fondo sutil (Estrellas / Nebulosa) */}
-      <div className="absolute inset-0 bg-repeat opacity-5" style={{ backgroundImage: "radial-gradient(#1e40af 1px, transparent 1px), radial-gradient(#6366f1 1px, transparent 1px)", backgroundSize: "40px 40px", backgroundPosition: "0 0, 20px 20px" }}></div>
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+    return (
+        // CONTENEDOR PRINCIPAL: Sin min-h-screen para evitar desbordamiento forzado
+        <motion.div
+            className="bg-gray-50 text-gray-800 relative overflow-hidden" 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.7 }}
+        >
+            {/* Efectos de fondo */}
+            <div className="absolute inset-0 bg-repeat opacity-[0.03]" style={{ backgroundImage: "linear-gradient(to right, #ccc 1px, transparent 1px), linear-gradient(to bottom, #ccc 1px, transparent 1px)", backgroundSize: "50px 50px" }}></div>
+            <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px]"></div>
 
-      {/* Contenido centrado y con max-width */}
-      <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 flex flex-col flex-grow relative z-10">
+            {/* Contenedor central: APLICAMOS UN MAYOR ESCALADO AL 80% */}
+            <div className="max-w-7xl mx-auto p-4 sm:p-6 w-full relative z-10 transform lg:scale-[0.80] lg:origin-top">
+                
+                {/* 1. CABECERA / NAVEGACIÓN */}
+                <header className="w-full mb-8 sm:mb-12">
+                    <motion.div
+                        className="flex justify-between items-center py-3 w-full border-b border-gray-200" 
+                        initial={{ y: -50, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 120, delay: 0.2 }}
+                    >
+                        {/* DIV 1: Logo */}
+                        <motion.div whileHover={{ scale: 1.05 }}>
+                            <a href="https://horticulturadelsureste.com/" target="_blank" rel="noreferrer" className="flex items-center gap-2">
+                                <img src={LOGO} alt="logo" className="w-24 sm:w-32 drop-shadow-sm" />
+                                <span className="hidden sm:inline text-lg font-bold text-emerald-600 tracking-wider">AGRO-MANAGER</span>
+                            </a>
+                        </motion.div>
 
-        {/* 1. CABECERA / NAVEGACIÓN */}
-        <header className="w-full mb-8 sm:mb-16">
-          <motion.div
-            className="flex justify-between items-center py-4 w-full border-b border-white/10"
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 120, delay: 0.2 }}
-          >
-            {/* DIV 1: Logo */}
-            <motion.div whileHover={{ scale: 1.05, rotate: 1 }}>
-              <a
-                href="https://horticulturadelsureste.com/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <img src={LOGO} alt="logo" className="w-28 sm:w-40 filter drop-shadow-lg" />
-              </a>
-            </motion.div>
+                        {/* DIV 2: Botones */}
+                        <div className="flex gap-3 items-center">
+                            <ShowOnLogout>
+                                <Link to="/register">
+                                    <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="py-1.5 px-3 bg-transparent border border-emerald-400 text-emerald-600 font-semibold rounded-lg transition duration-300 hover:bg-emerald-50 text-sm">
+                                        <FiUserPlus className="hidden sm:inline text-lg" /> Registro
+                                    </motion.button>
+                                </Link>
+                            </ShowOnLogout>
 
-            {/* DIV 2: Botones */}
-            <div className="flex gap-3 sm:gap-4 items-center">
-              <ShowOnLogout>
-                <Link to="/register">
-                  <motion.button
-                    whileHover={{ scale: 1.05, boxShadow: "0 0 15px rgba(59, 130, 246, 0.5)" }}
-                    whileTap={{ scale: 0.95 }}
-                    className="py-2 px-3 sm:px-4 bg-transparent border border-blue-400 text-blue-300 font-semibold rounded-full transition duration-300 hover:bg-blue-400/20 flex items-center gap-2 text-sm sm:text-lg"
-                  >
-                    <FiUserPlus className="text-xl" /> Register
-                  </motion.button>
-                </Link>
-              </ShowOnLogout>
+                            <ShowOnLogout>
+                                <Link to="/login">
+                                    <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="py-1.5 px-3 bg-emerald-600 rounded-lg text-white font-bold transition duration-300 hover:bg-emerald-700 shadow-lg shadow-emerald-500/30 flex items-center gap-2 text-sm">
+                                        <FiLogIn className="text-lg" /> Acceder
+                                    </motion.button>
+                                </Link>
+                            </ShowOnLogout>
 
-              <ShowOnLogout>
-                <Link to="/login">
-                  <motion.button
-                    whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(29, 78, 216, 0.8)" }}
-                    whileTap={{ scale: 0.95 }}
-                    className="py-2 px-3 sm:px-4 bg-blue-600 rounded-full text-white cursor-pointer font-bold transition duration-300 hover:bg-blue-700 flex items-center gap-2 text-sm sm:text-lg"
-                  >
-                    <FiLogIn className="text-xl" /> Login
-                  </motion.button>
-                </Link>
-              </ShowOnLogout>
+                            <ShowOnLogin>
+                                <Link to="/acumuladoC">
+                                    <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="py-1.5 px-3 bg-blue-600 rounded-lg text-white font-bold transition duration-300 hover:bg-blue-700 shadow-lg shadow-blue-500/30 flex items-center gap-2 text-sm">
+                                        <FiGrid className="text-lg" /> Panel
+                                    </motion.button>
+                                </Link>
+                            </ShowOnLogin>
+                        </div>
+                    </motion.div>
+                </header>
 
-              <ShowOnLogin>
-                <Link to="/acumuladoC">
-                  <motion.button
-                    whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(16, 185, 129, 0.8)" }}
-                    whileTap={{ scale: 0.95 }}
-                    className="py-2 px-3 sm:px-4 bg-emerald-600 rounded-full text-white font-bold transition duration-300 hover:bg-emerald-700 flex items-center gap-2 text-sm sm:text-lg"
-                  >
-                    <FiGrid className="text-xl" /> Panel
-                  </motion.button>
-                </Link>
-              </ShowOnLogin>
+                {/* 2. CONTENIDO PRINCIPAL AGRÍCOLA */}
+                <main className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 justify-center items-center mt-2">
+
+                    {/* COLUMNA DE TEXTO Y VALOR */}
+                    <motion.div
+                        className="lg:col-span-6 order-2 lg:order-1 flex flex-col justify-center items-center lg:items-start text-center lg:text-left"
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                    >
+                        <motion.h1
+                            className="text-gray-900 text-4xl md:text-5xl font-extrabold leading-tight tracking-tighter drop-shadow-sm" 
+                            variants={itemVariants}
+                        >
+                            Gestión Integral del <span className="text-emerald-600">Cultivo</span> y Trazabilidad.
+                        </motion.h1>
+                        <motion.h2
+                            className="text-gray-600 text-lg md:text-xl mt-4 max-w-xl font-light" 
+                            variants={itemVariants}
+                        >
+                            Plataforma diseñada para la **Dirección Ejecutiva**, optimizando costes de **Mano de Obra** y garantizando la **Eficiencia Operativa** del campo en tiempo real.
+                        </motion.h2>
+
+                        {/* ÍCONOS DE VALOR AGRÍCOLA */}
+                        <motion.div
+                            className="flex mt-8 gap-6 items-center"
+                            variants={containerVariants}
+                            initial="hidden"
+                            animate="visible"
+                        >
+                            <motion.div variants={iconVariants} className="text-center">
+                                <FaSeedling className="text-3xl text-yellow-600 mx-auto transition" title="Trazabilidad del Cultivo" />
+                                <p className="text-xs mt-1 text-gray-500 font-medium">Cultivos</p>
+                            </motion.div>
+                            <motion.div variants={iconVariants} className="text-center">
+                                <FaTractor className="text-3xl text-red-600 mx-auto transition" title="Gestión de Maquinaria" />
+                                <p className="text-xs mt-1 text-gray-500 font-medium">Maquinaria</p>
+                            </motion.div>
+                            <motion.div variants={iconVariants} className="text-center">
+                                <FaCloudUploadAlt className="text-3xl text-blue-600 mx-auto transition" title="Datos en la Nube" />
+                                <p className="text-xs mt-1 text-gray-500 font-medium">Cloud Data</p>
+                            </motion.div>
+                            <motion.div variants={iconVariants} className="text-center">
+                                <FaChartLine className="text-3xl text-teal-600 mx-auto transition" title="Análisis de Costes" />
+                                <p className="text-xs mt-1 text-gray-500 font-medium">Costes</p>
+                            </motion.div>
+                        </motion.div>
+                    </motion.div>
+
+                    {/* COLUMNA DE IMAGEN */}
+                    <motion.div
+                        className="lg:col-span-6 order-1 lg:order-2 flex justify-center items-center p-0" 
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 100, delay: 0.5 }}
+                    >
+                        <img 
+                            src={IMAGE}
+                            alt="Dashboard de Gestión Agrícola y Trazabilidad"
+                            className="w-full max-w-lg h-auto object-contain rounded-xl shadow-xl shadow-emerald-500/30 border-2 border-white ring-2 ring-emerald-100/50" 
+                        />
+                         
+                    </motion.div>
+                </main>
+
+                {/* 3. FOOTER ESTATICO Y SUTIL */}
+                <footer className="w-full mt-16 p-3 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center relative">
+                    <p className="text-xs text-gray-400 order-2 sm:order-1 mt-3 sm:mt-0">
+                        © {new Date().getFullYear()} Soluciones Digitales para la Horticultura.
+                    </p>
+                    <p className="text-sm font-semibold text-gray-700 order-1 sm:order-2">
+                        <span className="text-emerald-600">AGRO-VISION</span> | Finca Balsicas
+                    </p>
+                    <motion.a
+                        href="https://agrodolores.com/" 
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        whileTap={{ scale: 0.9 }}
+                        className="order-3 mt-3 sm:mt-0"
+                    >
+                        <AiFillGithub className="text-2xl text-gray-300 hover:text-gray-500 transition" title="Repositorio Interno" />
+                    </motion.a>
+                </footer>
             </div>
-          </motion.div>
-        </header>
-
-        {/* 2. CONTENIDO PRINCIPAL */}
-        <main className="grid flex-grow grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 justify-center items-center mt-2 px-0 sm:px-4">
-
-          {/* COLUMNA DE TEXTO (Animación escalonada) */}
-          <motion.div
-            className="lg:col-span-6 order-2 lg:order-1 flex flex-col justify-center items-center lg:items-start text-center lg:text-left"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            <motion.h1
-              className="text-white text-5xl md:text-6xl font-extrabold leading-tight tracking-tighter drop-shadow-xl"
-              variants={itemVariants}
-            >
-              Inventario & Stock De Productos
-            </motion.h1>
-            <motion.h2
-              className="text-gray-300 text-xl md:text-2xl mt-6 max-w-xl font-light"
-              variants={itemVariants}
-            >
-              Sistema de control de Administración diseñado para ser integrado
-              en tiempo real utilizando una base de Datos implementada en la nube.
-            </motion.h2>
-
-            {/* ÍCONOS DE TECNOLOGÍA (Animación escalonada) */}
-            <motion.div
-              className="flex mt-10 gap-6 items-center"
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              <motion.div variants={iconVariants}>
-                <FaUnity className="text-4xl text-purple-400 hover:text-purple-300 transition duration-300 cursor-help" title="Unity Integration" />
-              </motion.div>
-              <motion.div variants={iconVariants}>
-                <AiOutlineCloudServer className="text-4xl text-cyan-400 hover:text-cyan-300 transition duration-300 cursor-help" title="Cloud Server" />
-              </motion.div>
-              <motion.div variants={iconVariants}>
-                <DiMongodb className="text-4xl text-green-500 hover:text-green-400 transition duration-300 cursor-help" title="MongoDB Database" />
-              </motion.div>
-              <motion.div variants={iconVariants}>
-                <GrNode className="text-4xl text-green-600 hover:text-green-500 transition duration-300 cursor-help" title="Node.js Backend" />
-              </motion.div>
-            </motion.div>
-          </motion.div>
-
-          {/* COLUMNA DE IMAGEN (Ahora solo con animación de entrada) */}
-          <motion.div
-            className="lg:col-span-6 order-1 lg:order-2 flex justify-center items-center p-4 lg:p-0"
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 100, delay: 0.5 }}
-          >
-            <img // Cambiamos de motion.img a img simple si solo queremos la animación inicial
-              src={IMAGE}
-              alt="Inventario Dashboard"
-              className="w-full max-w-xl h-auto object-contain rounded-xl shadow-2xl shadow-blue-500/30 border border-white/10"
-            />
-          </motion.div>
-        </main>
-
-        {/* 3. FOOTER ESTATICO */}
-        <footer className="w-full mt-16 p-4 border-t border-white/10 flex justify-between items-center relative">
-          <p className="text-sm sm:text-md text-gray-500">
-            © {new Date().getFullYear()} Horticultura
-          </p>
-          <p className="text-md sm:text-lg font-semibold text-white/80">
-            HORTICULTURA -{" "}
-            <a
-              href="https://agrodolores.com/"
-              className="lowercase text-blue-400 hover:text-blue-200 transition"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Finca BALSICAS
-            </a>
-          </p>
-          <motion.a
-            href="https://agrodolores.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            whileHover={{ scale: 1.1, rotate: 5, color: "#9CA3AF" }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <AiFillGithub className="text-3xl text-white hover:text-gray-300 transition" />
-          </motion.a>
-        </footer>
-      </div>
-    </motion.div>
-  );
+        </motion.div>
+    );
 };
 
 export default Home;

@@ -27,7 +27,12 @@ const Header = ({ onMenuToggle }) => {
                 <div className="lg:hidden">
                     <MdMenu 
                         className="text-2xl text-gray-600 cursor-pointer hover:text-green-700 transition-colors"
-                        onClick={onMenuToggle} 
+                        onClick={() => {
+                            console.log('🍔 Hamburger clicked!', onMenuToggle);
+                            if (onMenuToggle) {
+                                onMenuToggle();
+                            }
+                        }} 
                     />
                 </div>
 

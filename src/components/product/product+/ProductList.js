@@ -366,13 +366,13 @@ const ProductList = ({ products, isLoading }) => {
                                 <div className="space-y-3">
                                     {/* Vista Desktop (Tabla Compacta) */}
                                     <table className="w-full text-sm text-left text-gray-500 hidden sm:table">
-                                        <thead className="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0">
+                                        <thead className="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0  ">
                                             <tr>
                                                 <th className="px-4 py-3">Producto</th>
                                                 <th className="px-4 py-3 text-center">Categoría</th>
                                                 <th className="px-4 py-3 text-center">Stock</th>
                                                 <th className="px-4 py-3 text-center">Acciones</th>
-                                            </tr>
+                                            </tr> 
                                         </thead>
                                         <tbody>
                                             {currentItems.map((product) => {

@@ -27,10 +27,11 @@ const LinkItem = ({ to, icon, label, setIsMenu }) => {
     return (
         <Link to={to} onClick={() => setIsMenu(false)}>
             <motion.div
-                className="px-4 py-3 flex items-center gap-4 text-sm font-medium cursor-pointer text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg transition-all duration-200 mx-2"
-                whileTap={{ scale: 0.98 }}
+                className="px-4 py-3 flex items-center gap-4 text-sm font-semibold cursor-pointer text-gray-700 hover:bg-white/80 hover:text-green-700 rounded-xl transition-all duration-300 mx-2 backdrop-blur-sm border border-transparent hover:border-green-200 hover:shadow-md"
+                whileTap={{ scale: 0.96 }}
+                whileHover={{ x: 4 }}
             >
-                <span className="text-xl text-gray-500 group-hover:text-green-600">{icon}</span>
+                <span className="text-xl text-green-600">{icon}</span>
                 {label}
             </motion.div>
         </Link>
@@ -156,83 +157,169 @@ const SideBar = ({ children }) => {
             ======================================================= */}
             <div className="w-full flex-1 flex flex-col h-screen overflow-hidden">
                 
-                {/* A- ENCABEZADO MÓVIL (lg:hidden) - Ahora integrado en el Header principal, 
-                    pero mantenemos la lógica del menú móvil aquí si es necesario o 
-                    simplemente usamos el Header global. 
-                    
-                    NOTA: El Header global ya maneja el botón de menú. 
-                    Aquí solo necesitamos renderizar el menú desplegable si `isMenu` es true.
-                */}
-                
-                {/* B- MENÚ DESPLEGABLE MÓVIL (Overlay) */}
+                {/* MENÚ DESPLEGABLE MÓVIL (Overlay) - GLASSMORPHISM DESIGN */}
                 <AnimatePresence>
                     {isMenu && (
                         <>
-                            {/* Backdrop Oscuro */}
+                            {/* Backdrop con efecto blur y transparencia */}
                             <motion.div 
                                 initial={{ opacity: 0 }}
-                                animate={{ opacity: 0.5 }}
+                                animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
+                                transition={{ duration: 0.3 }}
                                 onClick={() => setIsMenu(false)}
-                                className="fixed inset-0 bg-black z-40 lg:hidden"
+                                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
+                                style={{ backdropFilter: 'blur(8px)' }}
                             />
                             
-                            {/* Drawer del Menú */}
+                            {/* Drawer del Menú con Glassmorphism */}
                             <motion.div
                                 ref={menuRef}
-                                initial={{ x: '-100%' }}
-                                animate={{ x: 0 }}
-                                exit={{ x: '-100%' }}
-                                transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                className="fixed top-0 left-0 w-72 h-full bg-white shadow-2xl z-50 lg:hidden flex flex-col"
+                                initial={{ x: '-100%', opacity: 0 }}
+                                animate={{ x: 0, opacity: 1 }}
+                                exit={{ x: '-100%', opacity: 0 }}
+                                transition={{ 
+                                    type: "spring", 
+                                    damping: 30, 
+                                    stiffness: 300,
+                                    opacity: { duration: 0.2 }
+                                }}
+                                className="fixed top-0 left-0 w-80 h-full z-50 lg:hidden flex flex-col shadow-2xl"
+                                style={{
+                                    background: 'rgba(255, 255, 255, 0.85)',
+                                    backdropFilter: 'blur(20px) saturate(180%)',
+                                    WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                                    borderRight: '1px solid rgba(255, 255, 255, 0.3)'
+                                }}
                             >
-                                {/* Header del Drawer */}
-                                <div className="h-16 flex items-center px-6 border-b border-gray-100 bg-green-900 text-white">
-                                    <FaSeedling className="text-2xl text-green-400 mr-3" />
-                                    <span className="font-bold text-lg">HORTICULTURA</span>
-                                </div>
+                                {/* Header del Drawer con gradiente y glassmorphism */}
+                                <motion.div 
+                                    initial={{ y: -20, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{ delay: 0.1 }}
+                                    className="h-20 flex items-center px-6 relative overflow-hidden"
+                                    style={{
+                                        background: 'linear-gradient(135deg, rgba(22, 101, 52, 0.95) 0%, rgba(21, 128, 61, 0.9) 100%)',
+                                        backdropFilter: 'blur(10px)',
+                                        borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
+                                    }}
+                                >
+                                    {/* Efecto de brillo animado */}
+                                    <motion.div
+                                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                                        animate={{
+                                            x: ['-100%', '100%']
+                                        }}
+                                        transition={{
+                                            duration: 3,
+                                            repeat: Infinity,
+                                            repeatDelay: 5
+                                        }}
+                                    />
+                                    
+                                    <motion.div
+                                        whileHover={{ rotate: 360, scale: 1.1 }}
+                                        transition={{ duration: 0.6 }}
+                                        className="relative z-10"
+                                    >
+                                        <FaSeedling className="text-3xl text-green-300 mr-3 drop-shadow-lg" />
+                                    </motion.div>
+                                    <div className="relative z-10">
+                                        <span className="font-bold text-xl text-white tracking-wide drop-shadow-md">HORTICULTURA</span>
+                                        <p className="text-xs text-green-200 font-medium">Sistema Empresarial</p>
+                                    </div>
+                                </motion.div>
 
-                                {/* Contenido del Drawer */}
-                                <div className="flex-1 overflow-y-auto py-4">
+                                {/* Contenido del Drawer con scroll suave */}
+                                <div className="flex-1 overflow-y-auto py-6 px-2 custom-scrollbar">
                                     {isAdmin && (
-                                        <div className="px-4 mb-4">
-                                            <AdminImpersonationSelector />
-                                        </div>
+                                        <motion.div 
+                                            initial={{ y: 20, opacity: 0 }}
+                                            animate={{ y: 0, opacity: 1 }}
+                                            transition={{ delay: 0.2 }}
+                                            className="px-3 mb-6"
+                                        >
+                                            <div className="bg-white/60 backdrop-blur-md rounded-xl p-3 border border-white/40 shadow-lg">
+                                                <AdminImpersonationSelector />
+                                            </div>
+                                        </motion.div>
                                     )}
 
-                                    <div className="space-y-1">
-                                        {/* Enlaces Rápidos */}
-                                        <div className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                                            Accesos Directos
+                                    <motion.div 
+                                        initial={{ y: 20, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1 }}
+                                        transition={{ delay: 0.25 }}
+                                        className="space-y-2"
+                                    >
+                                        {/* Enlaces Rápidos con diseño premium */}
+                                        <div className="px-4 py-2 text-xs font-bold text-gray-600 uppercase tracking-widest flex items-center gap-2">
+                                            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-green-400 to-transparent"></div>
+                                            <span>Accesos Directos</span>
+                                            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-green-400 to-transparent"></div>
                                         </div>
+                                        
                                         <LinkItem to={"/panel"} icon={<MdOutlineInventory />} label="Inventario" setIsMenu={setIsMenu} />
                                         <LinkItem to={"/add-product"} icon={<MdAdd />} label="Añadir Producto" setIsMenu={setIsMenu} />
                                         
-                                        <div className="my-4 border-t border-gray-100"></div>
-                                        
-                                        {/* Menú Principal (Reutilizando lógica si es posible, o hardcodeando items clave) */}
-                                        <div className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                                            Navegación
+                                        {/* Separador con efecto glassmorphism */}
+                                        <div className="my-6 mx-4">
+                                            <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
                                         </div>
+                                        
+                                        {/* Menú Principal */}
+                                        <div className="px-4 py-2 text-xs font-bold text-gray-600 uppercase tracking-widest flex items-center gap-2">
+                                            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-green-400 to-transparent"></div>
+                                            <span>Navegación</span>
+                                            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-green-400 to-transparent"></div>
+                                        </div>
+                                        
                                         {Menu.map((product, index) => (
-                                            <SideBarItem 
-                                                key={index} 
-                                                product={product} 
-                                                isOpen={true} 
-                                                isMobile={true}
-                                                closeMobileMenu={() => setIsMenu(false)}
-                                            />
+                                            <motion.div
+                                                key={index}
+                                                initial={{ x: -20, opacity: 0 }}
+                                                animate={{ x: 0, opacity: 1 }}
+                                                transition={{ delay: 0.3 + (index * 0.05) }}
+                                            >
+                                                <SideBarItem 
+                                                    product={product} 
+                                                    isOpen={true} 
+                                                    isMobile={true}
+                                                    closeMobileMenu={() => setIsMenu(false)}
+                                                />
+                                            </motion.div>
                                         ))}
-                                    </div>
+                                    </motion.div>
                                 </div>
 
-                                {/* Footer del Drawer */}
-                                <div className="p-4 border-t border-gray-100 bg-gray-50">
-                                    <Link to="/contact-us" onClick={() => setIsMenu(false)} className="flex items-center gap-3 text-gray-600 hover:text-green-600">
-                                        <BiSupport className="text-xl" />
-                                        <span className="text-sm font-medium">Soporte y Ayuda</span>
+                                {/* Footer del Drawer con glassmorphism */}
+                                <motion.div 
+                                    initial={{ y: 20, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{ delay: 0.4 }}
+                                    className="p-4 relative"
+                                    style={{
+                                        background: 'rgba(249, 250, 251, 0.8)',
+                                        backdropFilter: 'blur(10px)',
+                                        borderTop: '1px solid rgba(255, 255, 255, 0.5)'
+                                    }}
+                                >
+                                    <Link 
+                                        to="/contact-us" 
+                                        onClick={() => setIsMenu(false)} 
+                                        className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/60 backdrop-blur-sm border border-white/40 shadow-md hover:shadow-xl hover:bg-white/80 transition-all duration-300 group"
+                                    >
+                                        <motion.div
+                                            whileHover={{ rotate: 360 }}
+                                            transition={{ duration: 0.5 }}
+                                        >
+                                            <BiSupport className="text-2xl text-green-600 group-hover:text-green-700" />
+                                        </motion.div>
+                                        <div>
+                                            <span className="text-sm font-bold text-gray-700 group-hover:text-green-700 block">Soporte y Ayuda</span>
+                                            <span className="text-xs text-gray-500">Estamos aquí para ti</span>
+                                        </div>
                                     </Link>
-                                </div>
+                                </motion.div>
                             </motion.div>
                         </>
                     )}

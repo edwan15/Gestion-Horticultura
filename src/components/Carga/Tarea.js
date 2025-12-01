@@ -1,13 +1,16 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { initializeApp } from "firebase/app";
 // setDoc es el error 5
-import DailyView from "./DailyView";
+// import DailyView from "./DailyView"; // Removed unused component
+import ConfirmationModal from "../shared/ConfirmationModal";
+import TareaEstadisticosModal from "./TareaEstadisticosModal";
 // Desde tu archivo de utilidades (asumiendo la estructura de carpetas anterior)
 import { calculateCosts } from "../../Util/costCalculations"; // calculateCosts es el error 1
 
 import { InlineMath } from "react-katex"; // 👈 ¡NECESARIO!
 import "katex/dist/katex.min.css";
 import { toast } from "react-toastify";
+
 import {
   getAuth,
   onAuthStateChanged,
@@ -23,6 +26,7 @@ import {
   doc,
   setDoc,
   getDoc,
+  getDocs,
   onSnapshot,
   addDoc,
   deleteDoc,
@@ -35,6 +39,7 @@ import {
   Plus,
   Trash2,
   X,
+  BarChart3,
   Calendar as CalendarIcon,
   Loader,
   Zap,
@@ -49,6 +54,16 @@ import {
   Filter,
   Clock,
   AlertTriangle,
+  Settings,
+  Users,
+  DollarSign,
+  Save,
+  PlusCircle,
+  Calculator,
+  Camera,
+  Sheet,
+  Edit3,
+  TrendingUp,
 } from "lucide-react";
 
 // 🔑 CORRECCIÓN 2: Definición de la función getCostsCollectionRef
@@ -481,6 +496,8 @@ const ExportModal = ({
 
 
 
+
+
 const CalendarView = ({
   currentDate,
   navigateMonth,
@@ -489,14 +506,15 @@ const CalendarView = ({
   selectedCalendarId,
   calendars,
   events,
-  dailyData, 
+  dailyData,
   isAuthReady,
   setIsCalendarModalOpen,
   selectedCalendarName,
   globalTotals,
   setIsExportModalOpen, // Usado para exportar rango
   openExportModalInSingleDayMode, // Usado para exportar día único
-  handleDeleteCalendar, // ⬅️ NUEVA PROP: Función para eliminar el registro
+  handleDeleteCalendar, // Función para eliminar el registro
+  openStatsModal, // Estaba sin usar en el componente original, pero la mantengo como parte de las props
 }) => {
   // --- Utilidades y Constantes ---
   const DAYS_OF_WEEK = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
@@ -504,7 +522,7 @@ const CalendarView = ({
     "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
   ];
-  
+
   const formatDate = (date) => {
     // La función toISOString().split('T')[0] asegura el formato YYYY-MM-DD
     return date.toISOString().split('T')[0];
@@ -537,7 +555,7 @@ const CalendarView = ({
   // Días del mes actual
   for (let i = 1; i <= daysInMonth; i++) {
     const fullDate = new Date(year, month, i);
-    const dateKey = formatDate(fullDate); 
+    const dateKey = formatDate(fullDate);
     days.push({
       key: `curr-${i}`,
       day: i,
@@ -572,12 +590,12 @@ const CalendarView = ({
     // 1. Contenedor Principal: Bordes súper redondeados y sombra elevada
     <div className="bg-white p-1 sm:p-6 md:p-8 rounded-3xl shadow-2xl shadow-indigo-100 border border-gray-100 transition-all duration-300">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
+
         {/* COLUMNA IZQUIERDA: CALENDARIO (2/3) */}
         <div className="lg:col-span-2 flex flex-col space-y-6">
-          <div className="p-4 bg-white border border-indigo-200 rounded-2xl shadow-xl">
-            <h2 className="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 border-b-2 border-indigo-100 pb-3 flex items-center">
-              🗓️ Vista del Mes
+          <div className="p-4 bg-white border-2 border-green-200 rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300">
+            <h2 className="text-xl sm:text-2xl font-bold text-green-800 mb-4 border-b-2 border-green-100 pb-3 flex items-center gap-2">
+              🌶️ Vista del Mes - Producción de Pimientos
             </h2>
 
             {selectedCalendarId ? (
@@ -586,7 +604,7 @@ const CalendarView = ({
                 <div className="flex justify-between items-center mb-6 ">
                   <button
                     onClick={() => navigateMonth(-1)}
-                    className="p-3 bg-indigo-100 hover:bg-indigo-300 text-indigo-700 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl"
+                    className="p-3 bg-green-100 hover:bg-green-300 text-green-800 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-110"
                     title="Mes Anterior"
                   >
                     ⬅️
@@ -604,7 +622,7 @@ const CalendarView = ({
                 </div>
 
                 {/* Días de la semana */}
-                <div className="grid grid-cols-7 text-center font-bold text-indigo-700 border-b-2 border-indigo-300 pb-3 mb-1">
+                <div className="grid grid-cols-7 text-center font-bold text-green-800 border-b-2 border-green-300 pb-3 mb-1">
                   {DAYS_OF_WEEK.map((day) => (
                     <div key={day} className="text-sm sm:text-base p-1">
                       {day}
@@ -613,19 +631,19 @@ const CalendarView = ({
                 </div>
 
                 {/* Grid de Días del Mes */}
-                <div className="grid grid-cols-7 gap-1 mt-2 p-0"> 
+                <div className="grid grid-cols-7 gap-1 mt-2 p-0">
                   {days.map((dayData) => {
                     // Lógica de Cálculo de Métricas Diarias
                     const eventCount = dayData.events.length;
-                    
+
                     const dailyTotalResult = dayData.events.reduce(
-                      (sum, event) => sum + (event.result || 0), 
+                      (sum, event) => sum + (event.result || 0),
                       0
                     );
-                    
+
                     const dailyCostEntry = dailyData[dayData.dateKey]?.costs;
-                    const costPerUnitFinal = parseFloat(dailyCostEntry?.finalResult) || 0; 
-                    
+                    const costPerUnitFinal = parseFloat(dailyCostEntry?.finalResult) || 0;
+
                     const isToday = dayData.isCurrentMonth && dayData.dateKey === today;
 
                     return (
@@ -634,17 +652,17 @@ const CalendarView = ({
                         key={dayData.key}
                         onClick={() => handleDayClick(dayData)}
                         className={`
-                          flex flex-col cursor-pointer transition-all duration-300 rounded-xl p-1 sm:p-2 
-                          shadow-md border border-transparent 
-                          hover:shadow-lg hover:border-blue-400 hover:scale-[1.02] 
+                          flex flex-col cursor-pointer transition-all duration-300 rounded-xl p-1 sm:p-2
+                          shadow-md border border-transparent
+                          hover:shadow-lg hover:border-blue-400 hover:scale-[1.02]
                           relative group h-auto aspect-square
-                          
+
                           ${
                             dayData.isCurrentMonth
                               ? "bg-white text-gray-800"
                               : "bg-gray-50 text-gray-400 opacity-70"
                           }
-                          
+
                           ${
                             isToday
                               ? "border-2 border-red-500 ring-4 ring-red-200 shadow-xl z-20 bg-red-50 hover:bg-red-100"
@@ -654,30 +672,30 @@ const CalendarView = ({
                       >
                         {/* Número del día */}
                         <span
-                          className={`font-extrabold text-lg text-right w-full 
+                          className={`font-extrabold text-lg text-right w-full
                             ${dayData.isCurrentMonth ? "text-gray-900" : "text-gray-400"}
                             ${isToday ? "text-red-700" : ""}
                             `}
                         >
                           {dayData.day}
                         </span>
-                        
+
                         {/* Contenido Dinámico (Métricas) */}
                         {eventCount > 0 && (
                           <div className="flex flex-col items-end px-0 space-y-0.5 opacity-90 group-hover:opacity-100">
 
                             {/* 1. INDICADOR DE EVENTO (PUNTO) - SOLO EN MÓVIL */}
-                            <div className="flex justify-end w-full sm:hidden"> 
+                            <div className="flex justify-end w-full sm:hidden">
                                 <div
                                   className="w-2.5 h-2.5 rounded-full shadow-md ring-2 ring-white"
                                   style={{ backgroundColor: selectedCalendarColor }}
                                   title={`${eventCount} producto(s) registrado(s)`}
                                 ></div>
                             </div>
-                            
+
                             {/* 2. INFORMACIÓN DETALLADA - OCULTA EN MÓVIL, VISIBLE EN TABLET/ESCRITORIO */}
                             <div className="hidden sm:flex flex-col items-center w-full space-y-0.5 mt-auto">
-                              
+
                               {/* Total de Productos Guardados */}
                               <p className="font-medium text-[8px] sm:text-xs text-gray-700 leading-tight bg-gray-100/70 rounded-full px-2">
                                 {eventCount} Prod(s)
@@ -687,7 +705,7 @@ const CalendarView = ({
                               <p className="font-bold text-[8px] sm:text-xs text-blue-600 leading-tight">
                                 C/u: {costPerUnitFinal > 0 ? `$${costPerUnitFinal.toFixed(4)}` : '$0.0000'}
                               </p>
-                              
+
                               {/* TOTAL ACUMULADO DEL DÍA */}
                               <p className="font-extrabold text-[8px] sm:text-xs text-green-700 leading-tight">
                                 Total: {dailyTotalResult > 0 ? `$${dailyTotalResult.toFixed(2)}` : '$0.00'}
@@ -697,7 +715,7 @@ const CalendarView = ({
 
                           </div>
                         )}
-                        
+
                         {/* Mensaje sutil si no hay eventos */}
                         {eventCount === 0 && dayData.isCurrentMonth && (
                             <p className="text-gray-300 text-[8px] sm:text-[10px] mt-2 text-right invisible group-hover:visible">
@@ -727,10 +745,10 @@ const CalendarView = ({
 
         {/* COLUMNA DERECHA: CONTROLES Y TOTALES (1/3) */}
         <div className="lg:col-span-1 flex flex-col space-y-8">
-          {/* Controles Superiores (Select, Export, New, Delete) */}
-          <div className="p-5 bg-white border-t-8 border-blue-500 rounded-2xl shadow-2xl">
-            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center border-b-2 border-gray-100 pb-3">
-              ⚙️ Configuración y Exportación
+          {/* Controles Superiores (Select, Export, New, Delete, Stats) */}
+          <div className="p-5 bg-white border-t-8 border-green-600 rounded-2xl shadow-2xl hover:shadow-3xl transition-shadow">
+            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2 border-b-2 border-gray-100 pb-3">
+              🚜 Gestión del Invernadero
             </h3>
             <div className="space-y-4">
               {/* Selector de Registro */}
@@ -813,11 +831,11 @@ const CalendarView = ({
                   Exportar Día
                 </button>
 
-                {/* 🔑 NUEVO: BOTÓN ELIMINAR REGISTRO */}
+                {/* 🗑️ BOTÓN ELIMINAR REGISTRO */}
                 <button
-                  onClick={() => 
+                  onClick={() =>
                     // Confirmación de seguridad antes de llamar a la función de eliminación
-                    selectedCalendarId && selectedCalendarName && 
+                    selectedCalendarId && selectedCalendarName &&
                     window.confirm(`¿Estás seguro de que quieres ELIMINAR el registro "${selectedCalendarName}" y todos sus datos? Esta acción es irreversible.`) &&
                     handleDeleteCalendar(selectedCalendarId)
                   }
@@ -833,44 +851,59 @@ const CalendarView = ({
                   🗑️
                   Eliminar Registro
                 </button>
+
+                {/* 📊 BOTÓN DATOS ESTADÍSTICOS */}
+                <button
+                  onClick={() => openStatsModal(true)} // Usando openStatsModal, asumo que es la función correcta para abrir el modal de estadísticas.
+                  disabled={!selectedCalendarId}
+                  className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-lg w-full transform hover:scale-[1.02] mt-3
+                    ${
+                      selectedCalendarId
+                        ? "bg-purple-600 hover:bg-purple-700 text-white shadow-purple-300"
+                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    }`}
+                  title="Ver y editar datos estadísticos del invernadero"
+                >
+                  📊
+                  Datos Estadísticos
+                </button>
                 {/* ---------------------------------- */}
               </div>
             </div>
           </div>
 
           {/* Totales Globales del Registro Seleccionado */}
-          <div className="p-5 bg-white border-t-8 border-purple-500 rounded-2xl shadow-2xl">
-            <h3 className="text-xl font-bold text-purple-800 mb-4 flex items-center border-b-2 border-gray-100 pb-3">
-              📊
-              Acumulado Global
+          <div className="p-5 bg-white border-t-8 border-orange-500 rounded-2xl shadow-2xl hover:shadow-3xl transition-shadow">
+            <h3 className="text-xl font-bold text-orange-800 mb-4 flex items-center gap-2 border-b-2 border-gray-100 pb-3">
+              🧺 Cosecha Total
             </h3>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 bg-purple-100 rounded-xl text-center shadow-inner border border-purple-200">
-                  <p className="font-medium text-xs text-purple-700 uppercase">
-                    Total Valor A
+                <div className="p-3 bg-green-100 rounded-xl text-center shadow-inner border-2 border-green-200 hover:border-green-400 transition-colors">
+                  <p className="font-medium text-xs text-green-700 uppercase flex items-center justify-center gap-1">
+                    🌱 Total Valor A
                   </p>
-                  <p className="font-semibold text-purple-900 text-xl mt-1">
+                  <p className="font-semibold text-green-900 text-xl mt-1">
                     {globalTotals?.totalA?.toFixed(2) || "0.00"}
                   </p>
                 </div>
 
-                <div className="p-3 bg-purple-100 rounded-xl text-center shadow-inner border border-purple-200">
-                  <p className="font-medium text-xs text-purple-700 uppercase">
-                    Total Valor B
+                <div className="p-3 bg-yellow-100 rounded-xl text-center shadow-inner border-2 border-yellow-200 hover:border-yellow-400 transition-colors">
+                  <p className="font-medium text-xs text-yellow-700 uppercase flex items-center justify-center gap-1">
+                    ☀️ Total Valor B
                   </p>
-                  <p className="font-semibold text-purple-900 text-xl mt-1">
+                  <p className="font-semibold text-yellow-900 text-xl mt-1">
                     {globalTotals?.totalB?.toFixed(2) || "0.00"}
                   </p>
                 </div>
               </div>
 
-              <div className="p-4 bg-purple-600 rounded-2xl text-white shadow-xl shadow-purple-200 text-center">
-                <p className="font-medium text-sm uppercase">
-                  RESULTADO GLOBAL ($A \times B$)
+              <div className="p-4 bg-gradient-to-r from-orange-600 via-red-600 to-red-700 rounded-2xl text-white shadow-xl shadow-orange-300 text-center transform hover:scale-[1.02] transition-transform">
+                <p className="font-medium text-sm uppercase flex items-center justify-center gap-2">
+                  🌶️ PRODUCCIÓN TOTAL ($A \times B$)
                 </p>
-                <p className="font-extrabold text-3xl mt-1">
-                  {globalTotals?.totalResult?.toFixed(2) || "0.00"}
+                <p className="font-extrabold text-4xl mt-2">
+                  ${globalTotals?.totalResult?.toFixed(2) || "0.00"}
                 </p>
               </div>
             </div>
@@ -880,6 +913,433 @@ const CalendarView = ({
     </div>
   );
 };
+
+
+
+
+
+
+
+
+
+// const CalendarView = ({
+//   currentDate,
+//   navigateMonth,
+//   handleDayClick,
+//   setSelectedCalendarId,
+//   selectedCalendarId,
+//   calendars,
+//   events,
+//   dailyData, 
+//   isAuthReady,
+//   setIsCalendarModalOpen,
+//   selectedCalendarName,
+//   globalTotals,
+//   setIsExportModalOpen, // Usado para exportar rango
+//   openExportModalInSingleDayMode, // Usado para exportar día único
+//   handleDeleteCalendar, // ⬅️ NUEVA PROP: Función para eliminar el registro
+//   openStatsModal,  
+
+// }) => {
+//   // --- Utilidades y Constantes ---
+//   const DAYS_OF_WEEK = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+//   const MONTHS = [
+//     "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+//     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+//   ];
+  
+//   const formatDate = (date) => {
+//     // La función toISOString().split('T')[0] asegura el formato YYYY-MM-DD
+//     return date.toISOString().split('T')[0];
+//   };
+
+//   // --- LÓGICA DE GENERACIÓN DE DÍAS ---
+//   const year = currentDate.getFullYear();
+//   const month = currentDate.getMonth();
+//   const firstDayOfMonth = new Date(year, month, 1).getDay();
+//   const daysInMonth = new Date(year, month + 1, 0).getDate();
+//   const days = [];
+//   const prevMonthDaysTotal = new Date(year, month, 0).getDate();
+//   const startDay = prevMonthDaysTotal - firstDayOfMonth + 1;
+
+//   // Días del mes anterior
+//   for (let i = startDay; i <= prevMonthDaysTotal; i++) {
+//     if (i > prevMonthDaysTotal - firstDayOfMonth) {
+//       const fullDate = new Date(year, month - 1, i);
+//       days.push({
+//         key: `prev-${i}`,
+//         day: i,
+//         isCurrentMonth: false,
+//         fullDate,
+//         dateKey: formatDate(fullDate),
+//         events: [],
+//       });
+//     }
+//   }
+
+//   // Días del mes actual
+//   for (let i = 1; i <= daysInMonth; i++) {
+//     const fullDate = new Date(year, month, i);
+//     const dateKey = formatDate(fullDate); 
+//     days.push({
+//       key: `curr-${i}`,
+//       day: i,
+//       isCurrentMonth: true,
+//       fullDate,
+//       dateKey,
+//       events: events[dateKey] || [],
+//     });
+//   }
+
+//   // Días del mes siguiente (para completar la cuadrícula)
+//   let nextDay = 1;
+//   while (days.length < 42) {
+//     const fullDate = new Date(year, month + 1, nextDay);
+//     days.push({
+//       key: `next-${nextDay}`,
+//       day: nextDay,
+//       isCurrentMonth: false,
+//       fullDate,
+//       dateKey: formatDate(fullDate),
+//       events: [],
+//     });
+//     nextDay++;
+//   }
+
+//   const today = formatDate(new Date());
+//   const selectedCalendarColor =
+//     calendars.find((c) => c.id === selectedCalendarId)?.color || "#3b82f6";
+
+//   // --- RENDERING (JSX) ---
+//   return (
+//     // 1. Contenedor Principal: Bordes súper redondeados y sombra elevada
+//     <div className="bg-white p-1 sm:p-6 md:p-8 rounded-3xl shadow-2xl shadow-indigo-100 border border-gray-100 transition-all duration-300">
+//       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+//         {/* COLUMNA IZQUIERDA: CALENDARIO (2/3) */}
+//         <div className="lg:col-span-2 flex flex-col space-y-6">
+//           <div className="p-4 bg-white border-2 border-green-200 rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300">
+//             <h2 className="text-xl sm:text-2xl font-bold text-green-800 mb-4 border-b-2 border-green-100 pb-3 flex items-center gap-2">
+//               🌶️ Vista del Mes - Producción de Pimientos
+//             </h2>
+
+//             {selectedCalendarId ? (
+//               <>
+//                 {/* Navegación del Calendario */}
+//                 <div className="flex justify-between items-center mb-6 ">
+//                   <button
+//                     onClick={() => navigateMonth(-1)}
+//                     className="p-3 bg-green-100 hover:bg-green-300 text-green-800 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-110"
+//                     title="Mes Anterior"
+//                   >
+//                     ⬅️
+//                   </button>
+//                   <h2 className="text-2xl font-extrabold text-gray-800 tracking-wide">
+//                     {MONTHS[month]} {year}
+//                   </h2>
+//                   <button
+//                     onClick={() => navigateMonth(1)}
+//                     className="p-3 bg-indigo-100 hover:bg-indigo-300 text-indigo-700 rounded-full transition-all duration-300 rotate-180 shadow-lg hover:shadow-xl"
+//                     title="Mes Siguiente"
+//                   >
+//                     ⬅️
+//                   </button>
+//                 </div>
+
+//                 {/* Días de la semana */}
+//                 <div className="grid grid-cols-7 text-center font-bold text-green-800 border-b-2 border-green-300 pb-3 mb-1">
+//                   {DAYS_OF_WEEK.map((day) => (
+//                     <div key={day} className="text-sm sm:text-base p-1">
+//                       {day}
+//                     </div>
+//                   ))}
+//                 </div>
+
+//                 {/* Grid de Días del Mes */}
+//                 <div className="grid grid-cols-7 gap-1 mt-2 p-0"> 
+//                   {days.map((dayData) => {
+//                     // Lógica de Cálculo de Métricas Diarias
+//                     const eventCount = dayData.events.length;
+                    
+//                     const dailyTotalResult = dayData.events.reduce(
+//                       (sum, event) => sum + (event.result || 0), 
+//                       0
+//                     );
+                    
+//                     const dailyCostEntry = dailyData[dayData.dateKey]?.costs;
+//                     const costPerUnitFinal = parseFloat(dailyCostEntry?.finalResult) || 0; 
+                    
+//                     const isToday = dayData.isCurrentMonth && dayData.dateKey === today;
+
+//                     return (
+//                       // Estilos de la celda de día: Compactos y con estilo
+//                       <div
+//                         key={dayData.key}
+//                         onClick={() => handleDayClick(dayData)}
+//                         className={`
+//                           flex flex-col cursor-pointer transition-all duration-300 rounded-xl p-1 sm:p-2 
+//                           shadow-md border border-transparent 
+//                           hover:shadow-lg hover:border-blue-400 hover:scale-[1.02] 
+//                           relative group h-auto aspect-square
+                          
+//                           ${
+//                             dayData.isCurrentMonth
+//                               ? "bg-white text-gray-800"
+//                               : "bg-gray-50 text-gray-400 opacity-70"
+//                           }
+                          
+//                           ${
+//                             isToday
+//                               ? "border-2 border-red-500 ring-4 ring-red-200 shadow-xl z-20 bg-red-50 hover:bg-red-100"
+//                               : "z-10"
+//                           }
+//                         `}
+//                       >
+//                         {/* Número del día */}
+//                         <span
+//                           className={`font-extrabold text-lg text-right w-full 
+//                             ${dayData.isCurrentMonth ? "text-gray-900" : "text-gray-400"}
+//                             ${isToday ? "text-red-700" : ""}
+//                             `}
+//                         >
+//                           {dayData.day}
+//                         </span>
+                        
+//                         {/* Contenido Dinámico (Métricas) */}
+//                         {eventCount > 0 && (
+//                           <div className="flex flex-col items-end px-0 space-y-0.5 opacity-90 group-hover:opacity-100">
+
+//                             {/* 1. INDICADOR DE EVENTO (PUNTO) - SOLO EN MÓVIL */}
+//                             <div className="flex justify-end w-full sm:hidden"> 
+//                                 <div
+//                                   className="w-2.5 h-2.5 rounded-full shadow-md ring-2 ring-white"
+//                                   style={{ backgroundColor: selectedCalendarColor }}
+//                                   title={`${eventCount} producto(s) registrado(s)`}
+//                                 ></div>
+//                             </div>
+                            
+//                             {/* 2. INFORMACIÓN DETALLADA - OCULTA EN MÓVIL, VISIBLE EN TABLET/ESCRITORIO */}
+//                             <div className="hidden sm:flex flex-col items-center w-full space-y-0.5 mt-auto">
+                              
+//                               {/* Total de Productos Guardados */}
+//                               <p className="font-medium text-[8px] sm:text-xs text-gray-700 leading-tight bg-gray-100/70 rounded-full px-2">
+//                                 {eventCount} Prod(s)
+//                               </p>
+
+//                               {/* COSTO DE PRODUCCIÓN POR UNIDAD */}
+//                               <p className="font-bold text-[8px] sm:text-xs text-blue-600 leading-tight">
+//                                 C/u: {costPerUnitFinal > 0 ? `$${costPerUnitFinal.toFixed(4)}` : '$0.0000'}
+//                               </p>
+                              
+//                               {/* TOTAL ACUMULADO DEL DÍA */}
+//                               <p className="font-extrabold text-[8px] sm:text-xs text-green-700 leading-tight">
+//                                 Total: {dailyTotalResult > 0 ? `$${dailyTotalResult.toFixed(2)}` : '$0.00'}
+//                               </p>
+
+//                             </div>
+
+//                           </div>
+//                         )}
+                        
+//                         {/* Mensaje sutil si no hay eventos */}
+//                         {eventCount === 0 && dayData.isCurrentMonth && (
+//                             <p className="text-gray-300 text-[8px] sm:text-[10px] mt-2 text-right invisible group-hover:visible">
+//                                 Click
+//                             </p>
+//                         )}
+//                       </div>
+//                     );
+//                   })}
+//                 </div>
+//               </>
+//             ) : (
+//               // Mensaje cuando no hay registro seleccionado
+//               <div className="p-10 text-center text-gray-500 bg-white rounded-2xl border-dashed border-4 border-gray-200 mt-4 shadow-inner">
+//                 📦
+//                 <p className="text-xl font-semibold">
+//                   Crea un registro para comenzar
+//                 </p>
+//                 <p className="mt-2">
+//                   Selecciona un registro o utiliza el botón Nuevo Registro
+//                   en el panel lateral.
+//                 </p>
+//               </div>
+//             )}
+//           </div>
+//         </div>
+
+//         {/* COLUMNA DERECHA: CONTROLES Y TOTALES (1/3) */}
+//         <div className="lg:col-span-1 flex flex-col space-y-8">
+//           {/* Controles Superiores (Select, Export, New, Delete, Stats) */}
+//           <div className="p-5 bg-white border-t-8 border-green-600 rounded-2xl shadow-2xl hover:shadow-3xl transition-shadow">
+//             <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2 border-b-2 border-gray-100 pb-3">
+//               🚜 Gestión del Invernadero
+//             </h3>
+//             <div className="space-y-4">
+//               {/* Selector de Registro */}
+//               <div className="flex flex-col space-y-2">
+//                 <label
+//                   htmlFor="calendar-select"
+//                   className="text-sm font-semibold text-gray-700"
+//                 >
+//                   Registro Actual:
+//                 </label>
+//                 <select
+//                   id="calendar-select"
+//                   value={selectedCalendarId || ""}
+//                   onChange={(e) => setSelectedCalendarId(e.target.value)}
+//                   className={`w-full p-3 border-2 rounded-xl shadow-inner text-base font-medium transition duration-200
+//                     ${
+//                       selectedCalendarId
+//                         ? "bg-indigo-50 text-gray-800 border-indigo-300 focus:ring-indigo-500 focus:border-indigo-500"
+//                         : "bg-gray-100 text-gray-500 border-dashed border-gray-400"
+//                     }`}
+//                   disabled={!isAuthReady || calendars.length === 0}
+//                 >
+//                   {calendars.length === 0 ? (
+//                     <option value="">Crea un registro</option>
+//                   ) : (
+//                     calendars.map((c) => (
+//                       <option key={c.id} value={c.id}>
+//                         {c.name}
+//                       </option>
+//                     ))
+//                   )}
+//                 </select>
+//               </div>
+
+//               {/* Botones de Acción */}
+//               <div className="flex flex-col space-y-3 pt-2">
+//                 {/* Botón de Nuevo Registro */}
+//                 <button
+//                   onClick={() => setIsCalendarModalOpen(true)}
+//                   className="flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-lg bg-green-600 hover:bg-green-700 text-white w-full transform hover:scale-[1.01]"
+//                   title="Crear Nuevo Registro/Calendario"
+//                 >
+//                   ➕
+//                   Nuevo Registro
+//                 </button>
+
+//                 {/* Botón de Exportar Rango */}
+//                 <button
+//                   onClick={() => setIsExportModalOpen("range")}
+//                   disabled={
+//                     !selectedCalendarId || globalTotals?.totalResult === 0
+//                   }
+//                   className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-md w-full transform hover:scale-[1.01]
+//                     ${
+//                       selectedCalendarId && globalTotals?.totalResult > 0
+//                         ? "bg-blue-600 hover:bg-blue-700 text-white"
+//                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
+//                     }`}
+//                   title="Exportar todos los registros filtrados (Rango de Fechas)"
+//                 >
+//                   ⬆️
+//                   Exportar Rango de Fechas
+//                 </button>
+
+//                 {/* Botón de Exportar Día Único */}
+//                 <button
+//                   onClick={openExportModalInSingleDayMode}
+//                   disabled={
+//                     !selectedCalendarId || globalTotals?.totalResult === 0
+//                   }
+//                   className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-md w-full transform hover:scale-[1.01]
+//                     ${
+//                       selectedCalendarId && globalTotals?.totalResult > 0
+//                         ? "bg-orange-600 hover:bg-orange-700 text-white"
+//                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
+//                     }`}
+//                   title="Exportar registros de un día específico"
+//                 >
+//                   🕒
+//                   Exportar Día
+//                 </button>
+
+//                 {/* 🔑 NUEVO: BOTÓN ELIMINAR REGISTRO */}
+//                 <button
+//                   onClick={() => 
+//                     // Confirmación de seguridad antes de llamar a la función de eliminación
+//                     selectedCalendarId && selectedCalendarName && 
+//                     window.confirm(`¿Estás seguro de que quieres ELIMINAR el registro "${selectedCalendarName}" y todos sus datos? Esta acción es irreversible.`) &&
+//                     handleDeleteCalendar(selectedCalendarId)
+//                   }
+//                   disabled={!selectedCalendarId}
+//                   className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-lg w-full transform hover:scale-[1.01] mt-4
+//                     ${
+//                       selectedCalendarId
+//                         ? "bg-red-600 hover:bg-red-700 text-white"
+//                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
+//                     }`}
+//                   title="Eliminar el registro seleccionado y todos sus datos (¡Cuidado!)"
+//                 >
+//                   🗑️
+//                   Eliminar Registro
+//                 </button>
+
+//                 {/* 📊 BOTÓN DATOS ESTADÍSTICOS */}
+//                 <button
+//                   onClick={() => setIsStatsModalOpen(true)}
+//                   disabled={!selectedCalendarId}
+//                   className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-lg w-full transform hover:scale-[1.02] mt-3
+//                     ${
+//                       selectedCalendarId
+//                         ? "bg-purple-600 hover:bg-purple-700 text-white shadow-purple-300"
+//                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
+//                     }`}
+//                   title="Ver y editar datos estadísticos del invernadero"
+//                 >
+//                   📊
+//                   Datos Estadísticos
+//                 </button>
+//                 {/* ---------------------------------- */}
+//               </div>
+//             </div>
+//           </div>
+
+//           {/* Totales Globales del Registro Seleccionado */}
+//           <div className="p-5 bg-white border-t-8 border-orange-500 rounded-2xl shadow-2xl hover:shadow-3xl transition-shadow">
+//             <h3 className="text-xl font-bold text-orange-800 mb-4 flex items-center gap-2 border-b-2 border-gray-100 pb-3">
+//               🧺 Cosecha Total
+//             </h3>
+//             <div className="space-y-4">
+//               <div className="grid grid-cols-2 gap-4">
+//                 <div className="p-3 bg-green-100 rounded-xl text-center shadow-inner border-2 border-green-200 hover:border-green-400 transition-colors">
+//                   <p className="font-medium text-xs text-green-700 uppercase flex items-center justify-center gap-1">
+//                     🌱 Total Valor A
+//                   </p>
+//                   <p className="font-semibold text-green-900 text-xl mt-1">
+//                     {globalTotals?.totalA?.toFixed(2) || "0.00"}
+//                   </p>
+//                 </div>
+
+//                 <div className="p-3 bg-yellow-100 rounded-xl text-center shadow-inner border-2 border-yellow-200 hover:border-yellow-400 transition-colors">
+//                   <p className="font-medium text-xs text-yellow-700 uppercase flex items-center justify-center gap-1">
+//                     ☀️ Total Valor B
+//                   </p>
+//                   <p className="font-semibold text-yellow-900 text-xl mt-1">
+//                     {globalTotals?.totalB?.toFixed(2) || "0.00"}
+//                   </p>
+//                 </div>
+//               </div>
+
+//               <div className="p-4 bg-gradient-to-r from-orange-600 via-red-600 to-red-700 rounded-2xl text-white shadow-xl shadow-orange-300 text-center transform hover:scale-[1.02] transition-transform">
+//                 <p className="font-medium text-sm uppercase flex items-center justify-center gap-2">
+//                   🌶️ PRODUCCIÓN TOTAL ($A \times B$)
+//                 </p>
+//                 <p className="font-extrabold text-4xl mt-2">
+//                   ${globalTotals?.totalResult?.toFixed(2) || "0.00"}
+//                 </p>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+
 
 const ConfirmModal = ({ 
   isOpen, 
@@ -2414,92 +2874,123 @@ const ProductList = ({
   loadEventForEdit,
   resetFormAndScroll,
 }) => {
-  // ... Contenido de ProductList (sin cambios relevantes en la lógica)
   return (
-    <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
-      <div className="flex justify-between items-center mb-4 pb-3 border-b">
-        <h3 className="text-xl font-bold text-gray-800">
-          Productos Guardados:{" "}
-          <span className="text-blue-600">{eventsForDay.length}</span>
+    <div className="bg-white p-6 rounded-2xl shadow-xl border border-gray-100 flex flex-col h-full">
+      <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
+        <h3 className="text-xl font-extrabold text-gray-800 flex items-center gap-2">
+          <span className="bg-green-100 p-2 rounded-lg text-green-700">
+            📦
+          </span>
+          Productos Guardados
+          <span className="ml-2 bg-gray-100 text-gray-600 py-1 px-3 rounded-full text-sm font-bold">
+            {eventsForDay.length}
+          </span>
         </h3>
         <button
           onClick={resetFormAndScroll}
-          className="flex items-center px-3 py-1.5 text-sm font-semibold rounded-full transition duration-150 shadow-md bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/50"
+          className="flex items-center px-4 py-2 text-sm font-bold rounded-xl transition-all duration-200 shadow-md bg-green-600 hover:bg-green-700 text-white hover:shadow-green-200 hover:scale-105 active:scale-95"
           title="Añadir Nuevo Producto"
         >
-          <Package size={16} className="mr-1" />
+          <Plus size={18} className="mr-2" />
           Añadir Nuevo
         </button>
       </div>
 
       {eventsForDay.length > 0 ? (
-        <ul className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+        <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-grow" style={{ maxHeight: '600px' }}>
           {eventsForDay.map((event) => (
-            <li
+            <div
               key={event.id}
-              className="p-4 bg-gray-50 rounded-xl border border-gray-200 shadow-md transition duration-150 hover:shadow-lg hover:bg-white"
+              className="group relative p-5 bg-white rounded-2xl border-2 border-gray-100 shadow-sm hover:shadow-xl hover:border-green-300 transition-all duration-300 transform hover:-translate-y-1"
             >
-              <div className="flex justify-between items-start mb-3">
-                <p className="font-bold text-gray-800 text-xl flex-1 mr-4">
-                  {event.title}
-                </p>
-                <div className="flex space-x-2">
-                  {/* Botón de Editar */}
+              {/* Encabezado de la Card */}
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-orange-50 rounded-lg text-orange-600">
+                    <Package size={24} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-800 text-lg leading-tight group-hover:text-green-700 transition-colors">
+                      {event.title}
+                    </h4>
+                    <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Producto Registrado
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Botones de Acción (Flotantes en Desktop) */}
+                <div className="flex space-x-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
                   <button
                     onClick={() => loadEventForEdit(event)}
-                    className="p-1.5 text-blue-500 hover:text-blue-700 hover:bg-blue-100 rounded-full transition"
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                     title="Editar Producto"
                   >
-                    <Edit size={20} />
+                    <Edit size={18} />
                   </button>
-                  {/* Botón de Eliminar */}
                   <button
                     onClick={() => deleteEvent(event.id)}
-                    className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-full transition"
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                     title="Eliminar Producto"
                   >
-                    <Trash2 size={20} />
+                    <Trash2 size={18} />
                   </button>
                 </div>
               </div>
 
+              {/* Imagen del Producto */}
               {event.imageBase64 && (
-                <img
-                  src={event.imageBase64}
-                  alt={`Imagen para ${event.title}`}
-                  className="w-full h-auto max-h-40 object-contain rounded-lg mb-3 shadow-sm border border-gray-300"
-                />
+                <div className="mb-4 rounded-xl overflow-hidden border border-gray-100 shadow-inner bg-gray-50">
+                  <img
+                    src={event.imageBase64}
+                    alt={`Imagen para ${event.title}`}
+                    className="w-full h-32 object-contain mix-blend-multiply"
+                  />
+                </div>
               )}
 
-              <div className="w-full grid grid-cols-3 gap-2 text-sm text-gray-600 pt-2">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <p className="font-medium text-xs text-purple-700">Valor A</p>
-                  <p className="font-semibold text-purple-900 text-lg mt-1">
+              {/* Grid de Datos */}
+              <div className="grid grid-cols-3 gap-3 text-sm">
+                <div className="p-2.5 bg-gray-50 rounded-xl border border-gray-100 text-center group-hover:bg-green-50 group-hover:border-green-100 transition-colors">
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">
+                    Valor A
+                  </p>
+                  <p className="font-bold text-gray-800 text-base">
                     {event.valueA?.toFixed(2) || "0.00"}
                   </p>
                 </div>
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <p className="font-medium text-xs text-purple-700">Valor B</p>
-                  <p className="font-semibold text-purple-900 text-lg mt-1">
+                <div className="p-2.5 bg-gray-50 rounded-xl border border-gray-100 text-center group-hover:bg-green-50 group-hover:border-green-100 transition-colors">
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">
+                    Valor B
+                  </p>
+                  <p className="font-bold text-gray-800 text-base">
                     {event.valueB?.toFixed(2) || "0.00"}
                   </p>
                 </div>
-                <div className="p-2 bg-purple-600 rounded-lg text-white">
-                  <p className="font-medium text-xs">
-                    RESULTADO ($A \times B$)
+                <div className="p-2.5 bg-gradient-to-br from-green-600 to-green-700 rounded-xl text-white text-center shadow-lg shadow-green-200 transform scale-105">
+                  <p className="text-[10px] font-bold text-green-100 uppercase tracking-wide mb-1">
+                    Total
                   </p>
-                  <p className="font-extrabold text-2xl mt-1">
-                    {event.result?.toFixed(2) || "0.00"}
+                  <p className="font-extrabold text-lg leading-none">
+                    ${event.result?.toFixed(2) || "0.00"}
                   </p>
                 </div>
               </div>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       ) : (
-        <p className="text-gray-500 italic p-4 bg-gray-50 rounded-lg text-center">
-          No hay productos registrados para este día.
-        </p>
+        <div className="flex flex-col items-center justify-center h-64 text-center p-8 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+          <div className="bg-white p-4 rounded-full shadow-sm mb-4">
+            <Package size={40} className="text-gray-300" />
+          </div>
+          <p className="text-gray-500 font-medium text-lg">
+            No hay productos registrados
+          </p>
+          <p className="text-sm text-gray-400 mt-1 max-w-xs">
+            Utiliza el formulario para añadir tu primer producto del día.
+          </p>
+        </div>
       )}
     </div>
   );
@@ -2604,117 +3095,185 @@ const CostEditorView = ({
     backToDayView();
   };
 
-  // --- RENDERIZADO (El mismo de la respuesta anterior) ---
+  // --- RENDERIZADO ---
   return (
-    <div className="bg-white p-6 sm:p-8 rounded-xl shadow-2xl border-t-4 border-teal-500">
-      <h2 className="text-2xl font-extrabold text-teal-700 mb-6 border-b pb-3 flex items-center">
-        ⚙️ Edición de Costos de Producción para{" "}
-        {selectedDate ? formatDate(selectedDate) : "la fecha seleccionada"}
-      </h2>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Campo Trabajadores */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700">
-            Trabajadores
-          </label>
-          <input
-            type="number"
-            step="1"
-            required
-            value={numWorkers}
-            onChange={(e) => setNumWorkers(e.target.value)}
-            className="w-full p-3 border-2 border-gray-300 rounded-xl focus:ring-teal-500 focus:border-teal-500 text-lg shadow-inner"
-          />
-        </div>
-
-        {/* Campo Horas Trabajadas */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700">
-            Horas Trabajadas
-          </label>
-          <input
-            type="number"
-            step="0.5"
-            required
-            value={hoursWorked}
-            onChange={(e) => setHoursWorked(e.target.value)}
-            className="w-full p-3 border-2 border-gray-300 rounded-xl focus:ring-teal-500 focus:border-teal-500 text-lg shadow-inner"
-          />
-        </div>
-
-        {/* Campo Divisor (Producción total) */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700">
-            Divisor (Unidades Producidas)
-          </label>
-          <input
-            type="number"
-            step="0.01"
-            required
-            value={localDivisor}
-            onChange={(e) => setLocalDivisor(e.target.value)}
-            className="w-full p-3 border-2 border-gray-300 rounded-xl focus:ring-yellow-500 focus:border-yellow-500 text-lg shadow-inner"
-          />
-        </div>
-
-        {/* Resumen de cálculo */}
-        <div className="pt-4 border-t border-gray-200 space-y-3">
-          <p className="flex justify-between font-medium text-teal-700 text-lg border-t pt-2">
-            COSTO TOTAL DIARIO:
-            <span className="font-extrabold text-2xl text-teal-900">
-              $ {totalCost.toFixed(2)}
-            </span>
-          </p>
-          <p className="flex justify-between font-medium text-yellow-700 text-lg">
-            COSTO POR UNIDAD:
-            <span className="font-extrabold text-2xl text-yellow-900">
-              $ {finalResult.toFixed(4)}
-            </span>
+    <div className="bg-white p-6 sm:p-10 rounded-2xl shadow-2xl border-t-8 border-teal-600 max-w-4xl mx-auto animate-fade-in">
+      <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-4">
+        <h2 className="text-3xl font-extrabold text-gray-800 flex items-center">
+          <span className="bg-teal-100 p-3 rounded-xl text-teal-700 mr-4 shadow-sm">
+            <Settings size={32} />
+          </span>
+          <div>
+            <span className="block text-sm font-semibold text-teal-600 uppercase tracking-widest mb-1">Configuración</span>
+            Costos de Producción
+          </div>
+        </h2>
+        <div className="text-right hidden sm:block">
+          <p className="text-sm text-gray-500 font-medium">Fecha Seleccionada</p>
+          <p className="text-lg font-bold text-gray-800">
+            {selectedDate ? formatDate(selectedDate) : "N/A"}
           </p>
         </div>
+      </div>
 
-        {/* Campo Carga de Imagen (se mantiene) */}
-        <div className="pt-2 border-t border-gray-200 space-y-3">
-          <label
-            className="block text-sm font-semibold text-gray-700"
-            htmlFor="formImage"
-          >
-            Foto (Opcional)
-          </label>
-          <input
-            id="formImage"
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 transition duration-150"
-          />
-          {formImageBase64 && (
-            <div className="mt-3 p-3 border border-gray-300 rounded-xl bg-gray-50 flex items-center space-x-3">
-              <img
-                src={formImageBase64}
-                alt="Vista previa de la imagen"
-                className="w-24 h-24 object-cover rounded-lg shadow-md border border-gray-200"
-              />
+      <form onSubmit={handleSubmit} className="space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Columna Izquierda: Inputs */}
+          <div className="space-y-6">
+            {/* Campo Trabajadores */}
+            <div className="group">
+              <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center group-focus-within:text-teal-600 transition-colors">
+                <Users size={18} className="mr-2 text-gray-400 group-focus-within:text-teal-500" />
+                Cantidad de Trabajadores
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  step="1"
+                  required
+                  value={numWorkers}
+                  onChange={(e) => setNumWorkers(e.target.value)}
+                  className="w-full pl-4 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-teal-100 focus:border-teal-500 text-lg font-semibold text-gray-800 transition-all shadow-sm group-hover:border-gray-300"
+                  placeholder="0"
+                />
+              </div>
             </div>
-          )}
+
+            {/* Campo Horas Trabajadas */}
+            <div className="group">
+              <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center group-focus-within:text-teal-600 transition-colors">
+                <Clock size={18} className="mr-2 text-gray-400 group-focus-within:text-teal-500" />
+                Horas Trabajadas
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  step="0.5"
+                  required
+                  value={hoursWorked}
+                  onChange={(e) => setHoursWorked(e.target.value)}
+                  className="w-full pl-4 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-teal-100 focus:border-teal-500 text-lg font-semibold text-gray-800 transition-all shadow-sm group-hover:border-gray-300"
+                  placeholder="0.0"
+                />
+              </div>
+            </div>
+
+            {/* Campo Divisor (Producción total) */}
+            <div className="group">
+              <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center group-focus-within:text-yellow-600 transition-colors">
+                <Package size={18} className="mr-2 text-gray-400 group-focus-within:text-yellow-500" />
+                Unidades Producidas (Divisor)
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  step="0.01"
+                  required
+                  value={localDivisor}
+                  onChange={(e) => setLocalDivisor(e.target.value)}
+                  className="w-full pl-4 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-yellow-100 focus:border-yellow-500 text-lg font-semibold text-gray-800 transition-all shadow-sm group-hover:border-gray-300"
+                  placeholder="1.00"
+                />
+                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                  <span className="text-gray-400 font-medium text-sm">Unidades</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Columna Derecha: Resumen y Foto */}
+          <div className="space-y-6">
+            {/* Resumen de Cálculo */}
+            <div className="bg-gradient-to-br from-gray-50 to-white p-6 rounded-2xl border border-gray-200 shadow-inner space-y-4">
+              <h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2 border-b border-gray-200 pb-2">
+                Resumen de Costos
+              </h4>
+              
+              <div className="flex justify-between items-end">
+                <span className="text-gray-600 font-medium">Costo Total Diario</span>
+                <span className="text-2xl font-extrabold text-teal-700">
+                  $ {totalCost.toFixed(2)}
+                </span>
+              </div>
+              
+              <div className="flex justify-between items-end pt-2 border-t border-dashed border-gray-300">
+                <span className="text-gray-700 font-bold flex items-center">
+                  <DollarSign size={16} className="mr-1 text-yellow-600" />
+                  Costo Por Unidad
+                </span>
+                <span className="text-3xl font-black text-yellow-600 bg-yellow-50 px-3 py-1 rounded-lg border border-yellow-200 shadow-sm">
+                  $ {finalResult.toFixed(4)}
+                </span>
+              </div>
+              
+              <p className="text-xs text-gray-400 text-center mt-2 italic">
+                Cálculo automático basado en trabajadores, horas y unidades.
+              </p>
+            </div>
+
+            {/* Campo Carga de Imagen */}
+            <div className="p-4 border-2 border-dashed border-gray-300 rounded-xl hover:bg-gray-50 transition-colors text-center cursor-pointer relative group">
+              <input
+                id="formImage"
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+              />
+              <div className="flex flex-col items-center justify-center space-y-2 py-2">
+                {formImageBase64 ? (
+                  <div className="relative">
+                    <img
+                      src={formImageBase64}
+                      alt="Vista previa"
+                      className="w-32 h-32 object-cover rounded-lg shadow-md border-2 border-white ring-2 ring-gray-200"
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                      <p className="text-white font-bold text-sm">Cambiar Foto</p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="p-3 bg-blue-50 text-blue-500 rounded-full mb-1 group-hover:scale-110 transition-transform">
+                      <Upload size={24} />
+                    </div>
+                    <p className="text-sm font-bold text-gray-600">
+                      Subir Foto de Evidencia
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      (Opcional) JPG, PNG
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Botones */}
-        <div className="flex space-x-4 pt-6 border-t border-gray-200">
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="flex-1 font-extrabold py-3 rounded-xl transition duration-200 bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-500/50"
-          >
-            {isSaving ? "Guardando..." : "💾 Guardar Costos"}
-          </button>
+        {/* Botones de Acción */}
+        <div className="flex items-center gap-4 pt-6 border-t border-gray-100 mt-4">
           <button
             type="button"
             onClick={backToDayView}
-            className="w-1/4 font-semibold py-3 rounded-xl transition duration-200 bg-gray-200 hover:bg-gray-300 text-gray-700 shadow-md"
+            className="px-6 py-4 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 hover:text-gray-800 transition-all duration-200 w-1/3 sm:w-auto"
           >
             Cancelar
+          </button>
+          <button
+            type="submit"
+            disabled={isSaving}
+            className="flex-1 py-4 rounded-xl font-extrabold text-white bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 shadow-lg shadow-teal-200 transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center text-lg"
+          >
+            {isSaving ? (
+              <>
+                <span className="animate-spin mr-2">⏳</span> Guardando...
+              </>
+            ) : (
+              <>
+                <Save size={20} className="mr-2" />
+                Guardar Configuración de Costos
+              </>
+            )}
           </button>
         </div>
       </form>
@@ -2822,18 +3381,15 @@ const EventDetailsView = ({
   // 🚨 RENDERIZADO CONDICIONAL DE VISTAS 🚨
   // ---------------------------------------------------------------------
   return (
-    <div className="bg-gray-100 p-4 sm:p-6 rounded-2xl shadow-inner min-h-full">
+    <div className="bg-gray-50 p-4 sm:p-6 rounded-3xl shadow-inner min-h-full animate-fade-in">
       {/* Renderizado Condicional: Muestra el Editor de Costos o la Vista de Productos */}
       {currentView === "cost_edit" ? (
         // 🔑 1. Renderizar la vista de edición de costos 🔑
-        // NOTA: Debes tener el componente CostEditorView disponible
-
         <CostEditorView
-          // Pasamos el divisor de Tarea (se guardará en localStorage/Firestore)
           globalCostDivisor={globalCostDivisor}
           setGlobalCostDivisor={setGlobalCostDivisor}
-          initialCostData={dailyCosts} // <--- CLAVE
-          handleSaveCosts={handleSaveCosts} // <--- CLAVE
+          initialCostData={dailyCosts}
+          handleSaveCosts={handleSaveCosts}
           backToDayView={backToDayView}
           selectedDate={selectedDate}
           userId={userId}
@@ -2841,309 +3397,259 @@ const EventDetailsView = ({
         />
       ) : (
         // 2. Renderizar la vista de productos (day_view)
-        <div className="grid grid-cols-1 lg:grid-cols-5 xl:grid-cols-6 gap-6 sm:gap-8">
-          {/* COLUMNA 1: Formulario para Añadir/Editar Evento (sin cambios) */}
-          <div
-            className="lg:col-span-3 bg-white p-6 sm:p-8 rounded-xl shadow-2xl border-t-4 border-blue-500 h-fit order-1"
-            id="product-form-container"
-          >
-            {/* ... Contenido del Formulario (Título, Fecha, Mensaje, Campos A/B, Botones) ... */}
-
-            {/* Encabezado del Formulario */}
-            <div className="flex justify-between items-start mb-4 border-b pb-3">
-              <h2
-                className={`text-2xl font-extrabold ${
-                  editingEventId ? "text-orange-600" : "text-blue-600"
-                } flex items-center`}
-              >
-                {editingEventId ? (
-                  <>
-                    <span className="mr-2">📝</span> Editar Producto
-                  </>
-                ) : (
-                  <>
-                    <span className="mr-2">➕</span> Añadir Producto
-                  </>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* COLUMNA 1: Formulario para Añadir/Editar Evento (Span 4/12) */}
+          <div className="lg:col-span-4 xl:col-span-3 order-1 space-y-6">
+            <div className="bg-white p-6 rounded-2xl shadow-xl border-t-8 border-blue-600 sticky top-4">
+              {/* Encabezado del Formulario */}
+              <div className="flex justify-between items-start mb-6 border-b border-gray-100 pb-4">
+                <div>
+                  <h2 className={`text-2xl font-black ${editingEventId ? "text-orange-600" : "text-blue-700"} flex items-center`}>
+                    {editingEventId ? (
+                      <>
+                        <Edit size={24} className="mr-2" /> Editar
+                      </>
+                    ) : (
+                      <>
+                        <PlusCircle size={24} className="mr-2" /> Nuevo
+                      </>
+                    )}
+                  </h2>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mt-1">
+                    {editingEventId ? "Modificar existente" : "Registrar Producción"}
+                  </p>
+                </div>
+                
+                {editingEventId && (
+                  <button
+                    onClick={resetFormAndScroll}
+                    className="text-xs font-bold text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-full transition-colors"
+                  >
+                    Cancelar
+                  </button>
                 )}
-              </h2>
-              {editingEventId && (
-                <button
-                  onClick={resetFormAndScroll}
-                  className="text-sm text-gray-500 hover:text-red-700 flex items-center px-2 py-1 rounded-full bg-gray-100 hover:bg-red-100 transition shadow-md"
-                  title="Cancelar Edición"
-                >
-                  Cancelar
-                </button>
+              </div>
+
+              <div className="mb-6 bg-blue-50 p-3 rounded-xl border border-blue-100 flex items-center justify-between">
+                <span className="text-xs font-bold text-blue-600 uppercase">Fecha:</span>
+                <span className="font-bold text-blue-900 text-sm">{dateStr}</span>
+              </div>
+
+              {lastSaved && (
+                <div className="bg-green-100 text-green-800 p-4 rounded-xl mb-6 flex items-center font-bold border border-green-200 shadow-sm animate-bounce-in">
+                  <CheckCircle size={20} className="mr-2" />
+                  <span>{editingEventId ? "Actualizado" : "Guardado"} con éxito</span>
+                </div>
               )}
-            </div>
 
-            <p className="text-sm text-gray-600 mb-6 font-medium">
-              Día de registro:{" "}
-              <span className="font-bold text-gray-800 bg-gray-100 px-2 py-0.5 rounded-md">
-                {dateStr}
-              </span>
-            </p>
-
-            {lastSaved && (
-              <div className="bg-green-100 text-green-800 p-3 rounded-xl mb-6 flex items-center font-medium border border-green-400 shadow-lg animate-fade-in">
-                ✅ Producto {lastSaved}{" "}
-                {editingEventId ? "actualizado" : "guardado"} con éxito.
-              </div>
-            )}
-
-            <form onSubmit={saveEvent} className="space-y-6">
-              {/* Campo 1: Título/Nombre del Producto */}
-              <div className="space-y-1">
-                <label
-                  className="block text-sm font-semibold text-gray-700"
-                  htmlFor="formTitle"
-                >
-                  Nombre del Producto <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="formTitle"
-                  type="text"
-                  value={formTitle}
-                  onChange={(e) => setFormTitle(e.target.value)}
-                  className="w-full p-3 border-2 border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-lg shadow-inner transition duration-150"
-                  placeholder="Ej: Ítem Z - Lote 2024"
-                  required
-                />
-              </div>
-
-              {/* Campos de Multiplicación (Valor A y Valor B) */}
-              <div className="pt-3 border-t border-gray-200">
-                <h3 className="text-md font-bold text-gray-700 mb-3 flex items-center">
-                  🔢 Datos de Cálculo
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label
-                      className="block text-sm font-semibold text-gray-700"
-                      htmlFor="formValueA"
-                    >
-                      Valor A (Cantidad/Precio)
-                    </label>
-                    <input
-                      id="formValueA"
-                      type="number"
-                      step="0.01"
-                      value={formValueA}
-                      onChange={(e) => setFormValueA(e.target.value)}
-                      className="w-full p-3 border-2 border-gray-300 rounded-xl focus:ring-purple-500 focus:border-purple-500 text-lg font-mono shadow-inner"
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label
-                      className="block text-sm font-semibold text-gray-700"
-                      htmlFor="formValueB"
-                    >
-                      Valor B (Multiplicador)
-                    </label>
-                    <input
-                      id="formValueB"
-                      type="number"
-                      step="0.01"
-                      value={formValueB}
-                      onChange={(e) => setFormValueB(e.target.value)}
-                      className="w-full p-3 border-2 border-gray-300 rounded-xl focus:ring-purple-500 focus:border-purple-500 text-lg font-mono shadow-inner"
-                      placeholder="0.00"
-                    />
-                  </div>
+              <form onSubmit={saveEvent} className="space-y-5">
+                {/* Campo 1: Título/Nombre del Producto */}
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-gray-700 flex items-center">
+                    Nombre del Producto <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <input
+                    id="formTitle"
+                    type="text"
+                    value={formTitle}
+                    onChange={(e) => setFormTitle(e.target.value)}
+                    className="w-full p-3.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 text-gray-800 font-semibold transition-all"
+                    placeholder="Ej: Pimiento Rojo Lote A"
+                    required
+                  />
                 </div>
 
-                <div className="mt-6 p-4 bg-purple-100 border-2 border-purple-400 rounded-xl text-center shadow-lg">
-                  <p className="text-sm text-purple-800 font-bold uppercase">
-                    Resultado Calculado ($A \times B$):
-                  </p>
-                  <p className="text-4xl font-extrabold text-purple-900 mt-1">
-                    {multiplicationResult.toFixed(2)}
-                  </p>
-                </div>
-              </div>
+                {/* Campos de Multiplicación (Valor A y Valor B) */}
+                <div className="pt-4 border-t border-gray-100">
+                  <h3 className="text-xs font-bold text-gray-400 uppercase mb-4 flex items-center">
+                    <Calculator size={14} className="mr-1" /> Cálculo de Producción
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-gray-600 block">Valor A</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={formValueA}
+                        onChange={(e) => setFormValueA(e.target.value)}
+                        className="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 font-mono font-bold text-gray-800 text-center"
+                        placeholder="0.00"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-gray-600 block">Valor B</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={formValueB}
+                        onChange={(e) => setFormValueB(e.target.value)}
+                        className="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 font-mono font-bold text-gray-800 text-center"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
 
-              {/* Campo 2: Carga y Vista Previa de Imagen */}
-              <div className="pt-2 border-t border-gray-200 space-y-3">
-                <label
-                  className="block text-sm font-semibold text-gray-700"
-                  htmlFor="formImage"
-                >
-                  Foto del Producto (Opcional)
-                </label>
-                <input
-                  id="formImage"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 transition duration-150"
-                />
-                {formImageBase64 && (
-                  <div className="mt-3 p-3 border border-gray-300 rounded-xl bg-gray-50 flex items-center space-x-3">
-                    <img
-                      src={formImageBase64}
-                      alt="Vista previa de la imagen seleccionada"
-                      className="w-24 h-24 object-cover rounded-lg shadow-md border border-gray-200"
-                    />
-                    <p className="text-xs text-gray-600 font-medium">
-                      Imagen lista para ser guardada con el producto.
+                  <div className="mt-4 p-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl text-white text-center shadow-lg shadow-purple-200">
+                    <p className="text-[10px] font-bold text-purple-200 uppercase tracking-widest mb-1">
+                      Resultado Total
+                    </p>
+                    <p className="text-3xl font-black tracking-tight">
+                      {multiplicationResult.toFixed(2)}
                     </p>
                   </div>
-                )}
-              </div>
+                </div>
 
-              <button
-                type="submit"
-                className={`w-full font-extrabold py-4 rounded-xl transition duration-200 focus:ring-4 text-xl mt-8 transform hover:scale-[1.005]
-                                    ${
-                                      editingEventId
-                                        ? "bg-orange-600 hover:bg-orange-700 text-white shadow-xl shadow-orange-500/50 focus:ring-orange-300"
-                                        : "bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-500/50 focus:ring-blue-300"
-                                    }`}
-              >
-                {saveButtonText}
-              </button>
-            </form>
+                {/* Campo 2: Carga y Vista Previa de Imagen */}
+                <div className="pt-4 border-t border-gray-100">
+                  <label className="text-sm font-bold text-gray-700 mb-2 block">
+                    Evidencia Fotográfica
+                  </label>
+                  <div className="relative group cursor-pointer">
+                    <input
+                      id="formImage"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    />
+                    <div className={`border-2 border-dashed rounded-xl p-4 text-center transition-all ${formImageBase64 ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'}`}>
+                      {formImageBase64 ? (
+                        <div className="flex items-center gap-3">
+                          <img src={formImageBase64} alt="Preview" className="w-12 h-12 rounded-lg object-cover shadow-sm" />
+                          <div className="text-left">
+                            <p className="text-xs font-bold text-blue-700">Imagen Seleccionada</p>
+                            <p className="text-[10px] text-blue-500">Click para cambiar</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center py-2">
+                          <Camera size={20} className="text-gray-400 mb-1" />
+                          <span className="text-xs font-bold text-gray-500">Subir Foto</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className={`w-full py-4 rounded-xl font-extrabold text-white text-lg shadow-xl transform transition-all hover:-translate-y-1 hover:shadow-2xl flex items-center justify-center gap-2
+                    ${editingEventId 
+                      ? "bg-gradient-to-r from-orange-500 to-red-500 shadow-orange-200" 
+                      : "bg-gradient-to-r from-blue-600 to-indigo-600 shadow-blue-200"
+                    }`}
+                >
+                  <Save size={20} />
+                  {saveButtonText}
+                </button>
+              </form>
+            </div>
           </div>
 
-          {/* COLUMNA 2: Lista de Productos Guardados y RESUMEN DE COSTOS */}
-          <div className="lg:col-span-2 xl:col-span-2 order-2 flex flex-col space-y-6">
-            {/* Botones de Exportación y Opciones (Contiene el botón de Costos) */}
-            <div className="bg-white p-5 rounded-xl shadow-lg border-t-4 border-gray-300 flex flex-col space-y-3">
-              <h3 className="text-lg font-bold text-gray-700 flex items-center border-b pb-2">
-                📥 Exportar Registros y Opciones
-              </h3>
-              <div className="flex space-x-3 justify-between">
+          {/* COLUMNA 2: Lista de Productos y Resumen (Span 6/12) */}
+          <div className="lg:col-span-5 xl:col-span-6 order-2 flex flex-col space-y-6">
+            
+            {/* Barra de Herramientas */}
+            <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-wrap gap-3 justify-between items-center">
+              <div className="flex gap-2 w-full sm:w-auto">
                 <button
                   onClick={exportToPDF}
                   disabled={eventsForDay.length === 0}
-                  className={`flex-1 flex items-center justify-center px-4 py-3 text-sm font-bold rounded-lg transition duration-150 shadow-md ${
-                    eventsForDay.length > 0
-                      ? "bg-red-600 hover:bg-red-700 text-white shadow-red-500/50"
-                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  }`}
+                  className="flex-1 sm:flex-none flex items-center justify-center px-4 py-2.5 text-xs font-bold rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  PDF
+                  <FileText size={16} className="mr-2" /> PDF
                 </button>
                 <button
                   onClick={exportToCSV}
                   disabled={eventsForDay.length === 0}
-                  className={`flex-1 flex items-center justify-center px-4 py-3 text-sm font-bold rounded-lg transition duration-150 shadow-md ${
-                    eventsForDay.length > 0
-                      ? "bg-green-600 hover:bg-green-700 text-white shadow-green-500/50"
-                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  }`}
+                  className="flex-1 sm:flex-none flex items-center justify-center px-4 py-2.5 text-xs font-bold rounded-xl bg-green-50 text-green-600 hover:bg-green-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Excel (CSV)
-                </button>
-                <button
-                  onClick={() => setCurrentView("cost_edit")}
-                  className="flex-1 flex items-center justify-center px-4 py-3 text-sm font-bold rounded-lg transition duration-150 shadow-md bg-teal-600 hover:bg-teal-700 text-white shadow-teal-500/50"
-                >
-                  **{costButtonText}**
+                  <Sheet size={16} className="mr-2" /> Excel
                 </button>
               </div>
+              
+              <button
+                onClick={() => setCurrentView("cost_edit")}
+                className={`w-full sm:w-auto flex items-center justify-center px-5 py-2.5 text-sm font-bold rounded-xl text-white shadow-lg transition-transform hover:scale-105
+                  ${hasCostData ? "bg-teal-600 hover:bg-teal-700 shadow-teal-200" : "bg-gray-800 hover:bg-gray-900 shadow-gray-300"}`}
+              >
+                {hasCostData ? <Edit3 size={16} className="mr-2" /> : <Settings size={16} className="mr-2" />}
+                {costButtonText}
+              </button>
             </div>
 
-            {/* 💰 TARJETA DE RESUMEN DE COSTOS DIARIOS (NUEVO/CORREGIDO) 💰 */}
-            {/* Se muestra SOLO si hay datos de costos registrados */}
+            {/* 💰 TARJETA DE RESUMEN DE COSTOS DIARIOS 💰 */}
             {hasCostData && (
-              <div className="bg-white p-5 rounded-xl shadow-2xl border-t-4 border-teal-500">
-                <h3 className="text-lg font-extrabold text-teal-800 mb-4 flex items-center border-b pb-2">
-                  📈 Resumen de Costos Diarios
-                </h3>
-
-                <div className="space-y-4">
-                  {/* Costo Total Diario */}
-                  <div className="p-3 bg-teal-50 border border-teal-300 rounded-lg shadow-inner">
-                    <p className="text-sm font-semibold text-teal-700 uppercase flex justify-between items-center">
-                      Costo Total Diario:
-                      <span className="text-xl font-extrabold text-teal-900">
-                        $ {parseFloat(dailyCosts.totalCost || 0).toFixed(2)}
-                      </span>
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      ({dailyCosts.numWorkers || 0} Trabajadores $\times${" "}
-                      {dailyCosts.hoursWorked || 0} Horas)
-                    </p>
+              <div className="bg-white rounded-2xl shadow-xl border-l-8 border-teal-500 overflow-hidden transform transition-all hover:shadow-2xl">
+                <div className="bg-teal-50 p-4 border-b border-teal-100 flex justify-between items-center">
+                  <h3 className="text-teal-800 font-extrabold flex items-center gap-2">
+                    <TrendingUp size={20} />
+                    Resumen de Costos
+                  </h3>
+                  <span className="text-xs font-bold text-teal-600 bg-white px-2 py-1 rounded-md shadow-sm">
+                    {dailyCosts.numWorkers || 0} Trabajadores
+                  </span>
+                </div>
+                
+                <div className="p-6 grid grid-cols-2 gap-6">
+                  <div className="text-center border-r border-gray-100 last:border-0">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Costo Total</p>
+                    <p className="text-2xl font-black text-gray-800">${parseFloat(dailyCosts.totalCost || 0).toFixed(2)}</p>
                   </div>
-
-                  {/* Costo por Unidad (finalResult) */}
-                  <div className="p-3 bg-yellow-50 border border-yellow-300 rounded-lg shadow-inner">
-                    <p className="text-sm font-semibold text-yellow-700 uppercase flex justify-between items-center">
-                      Costo de Prod. por Unidad:
-                      <span className="text-xl font-extrabold text-yellow-900">
-                        $ {parseFloat(dailyCosts.finalResult || 0).toFixed(4)}
-                      </span>
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      (Total Costo / Divisor: {dailyCosts.divisor || 1.0})
-                    </p>
+                  <div className="text-center">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Costo Unitario</p>
+                    <p className="text-2xl font-black text-yellow-600">${parseFloat(dailyCosts.finalResult || 0).toFixed(4)}</p>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Contenedor de la Lista de Productos (ProductList) */}
+            {/* Lista de Productos */}
             <div className="flex-grow">
-              {eventsForDay.length > 0 ? (
-                <div className="bg-white p-5 rounded-xl shadow-2xl border-t-4 border-gray-700">
-                  <h3 className="text-lg font-extrabold text-gray-700 mb-4 border-b pb-2">
-                    📦 Productos Guardados ({eventsForDay.length})
-                  </h3>
-                  {/* Asegúrate de que ProductList está importado y acepta estas props */}
-                  <ProductList
-                    eventsForDay={eventsForDay}
-                    deleteEvent={deleteEvent}
-                    loadEventForEdit={loadEventForEdit}
-                  />
-                </div>
-              ) : (
-                <div className="bg-white p-5 rounded-xl shadow-lg border-l-4 border-gray-400">
-                  <p className="text-sm text-gray-600 font-medium">
-                    Aún no hay productos guardados para esta fecha.
-                  </p>
-                </div>
-              )}
+              <ProductList
+                eventsForDay={eventsForDay}
+                deleteEvent={deleteEvent}
+                loadEventForEdit={loadEventForEdit}
+                resetFormAndScroll={resetFormAndScroll}
+              />
             </div>
           </div>
 
-          {/* COLUMNA 3: Totales Mensuales (sin cambios) */}
-          <div className="lg:col-span-5 xl:col-span-1 order-3">
-            <div className="bg-white p-6 rounded-xl shadow-2xl border-t-4 border-purple-500 h-fit sticky top-4">
-              <h3 className="text-xl font-extrabold text-purple-800 mb-4 flex items-center border-b pb-3">
+          {/* COLUMNA 3: Totales Mensuales (Span 3/12) */}
+          <div className="lg:col-span-3 xl:col-span-3 order-3">
+            <div className="bg-gradient-to-b from-purple-700 to-indigo-800 p-6 rounded-2xl shadow-2xl text-white sticky top-4">
+              <h3 className="text-lg font-bold mb-6 flex items-center border-b border-purple-500 pb-4">
+                <CalendarIcon size={20} className="mr-2 text-purple-300" />
                 Acumulado Mensual
               </h3>
-              <div className="space-y-4">
-                <div className="p-4 bg-purple-600 rounded-xl border-2 border-purple-800 shadow-xl text-white text-center">
-                  <span className="text-sm font-semibold uppercase block">
-                    TOTAL ACUMULADO:
-                  </span>
-                  <span className="text-4xl font-black block mt-1">
-                    {monthlyTotals.totalResult.toFixed(2)}
-                  </span>
+              
+              <div className="space-y-6">
+                <div className="text-center">
+                  <p className="text-xs font-bold text-purple-300 uppercase tracking-widest mb-2">
+                    Total General
+                  </p>
+                  <p className="text-4xl font-black tracking-tight text-white drop-shadow-md">
+                    ${monthlyTotals.totalResult.toFixed(2)}
+                  </p>
                 </div>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-purple-100 rounded-lg text-sm shadow-inner">
-                    <span className="font-medium text-purple-700">
-                      Total Valor A:
-                    </span>
-                    <span className="font-extrabold text-purple-900">
-                      {monthlyTotals.totalA.toFixed(2)}
-                    </span>
+                
+                <div className="space-y-3 bg-white/10 p-4 rounded-xl backdrop-blur-sm">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="font-medium text-purple-200">Total Valor A</span>
+                    <span className="font-bold">{monthlyTotals.totalA.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-purple-100 rounded-lg text-sm shadow-inner">
-                    <span className="font-medium text-purple-700">
-                      Total Valor B:
-                    </span>
-                    <span className="font-extrabold text-purple-900">
-                      {monthlyTotals.totalB.toFixed(2)}
-                    </span>
+                  <div className="flex justify-between items-center text-sm border-t border-purple-500/30 pt-2">
+                    <span className="font-medium text-purple-200">Total Valor B</span>
+                    <span className="font-bold">{monthlyTotals.totalB.toFixed(2)}</span>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 pt-2 border-t text-center">
-                  Datos del mes de {MONTH_NAMES[currentDate.getMonth()]}
-                </p>
+                
+                <div className="text-center pt-4 border-t border-purple-500">
+                  <span className="inline-block bg-purple-900/50 px-3 py-1 rounded-full text-xs font-bold text-purple-200">
+                    {MONTH_NAMES[currentDate.getMonth()]}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -3304,6 +3810,10 @@ const Tarea = () => {
   const [formValueA, setFormValueA] = useState("");
   const [formValueB, setFormValueB] = useState("");
   const [newCalendarName, setNewCalendarName] = useState("");
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+const [calendarToDelete, setCalendarToDelete] = useState(null);
+const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
+const [statsData, setStatsData] = useState({});
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [exportModalInitialMode, setExportModalInitialMode] = useState("range");
@@ -3384,6 +3894,79 @@ const Tarea = () => {
     },
     [userId, newCalendarName]
   );
+
+  const handleDeleteCalendar = useCallback(
+  async (calendarId) => {
+    if (!userId || !calendarId) return;
+    
+    try {
+      // Eliminar todos los eventos del calendario primero
+      const eventsRef = getEventsCollectionRef(userId, calendarId);
+      if (eventsRef) {
+        const eventsSnapshot = await getDocs(eventsRef);
+        const deletePromises = eventsSnapshot.docs.map((doc) =>
+          deleteDoc(doc.ref)
+        );
+        await Promise.all(deletePromises);
+      }
+      
+      // Eliminar el calendario
+      const calendarsRef = getCalendarsCollectionRef(userId);
+      const calendarDocRef = doc(calendarsRef, calendarId);
+      await deleteDoc(calendarDocRef);
+      
+      // Resetear selección si se eliminó el calendario seleccionado
+      if (selectedCalendarId === calendarId) {
+        setSelectedCalendarId(null);
+      }
+      
+      // Cerrar modal
+      setIsDeleteModalOpen(false);
+      setCalendarToDelete(null);
+    } catch (e) {
+      console.error("Error deleting calendar:", e);
+      setError("Error al eliminar el registro: " + e.message);
+    }
+  },
+  [userId, selectedCalendarId]
+);
+
+// 🔥 Abrir modal de confirmación de eliminación
+const openDeleteModal = useCallback((calendarId, calendarName) => {
+  setCalendarToDelete({ id: calendarId, name: calendarName });
+  setIsDeleteModalOpen(true);
+}, []);
+
+// 🔥 Guardar datos estadísticos
+const handleSaveStats = useCallback(
+  async (calendarId, data) => {
+    if (!userId || !calendarId) return;
+    
+    try {
+      // Guardar en Firestore
+      const statsRef = doc(
+        db,
+        `artifacts/${appId}/users/${userId}/calendars/${calendarId}/stats/data`
+      );
+      await setDoc(statsRef, {
+        ...data,
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
+      
+      // Actualizar estado local
+      setStatsData(prev => ({
+        ...prev,
+        [calendarId]: data,
+      }));
+      
+      console.log('✅ Datos estadísticos guardados');
+    } catch (e) {
+      console.error("Error saving stats:", e);
+      throw e;
+    }
+  },
+  [userId]
+);
 
   // 🟢 LISTENER PARA CALENDARIOS (Registros) - Evita el bucle
   useEffect(() => {
@@ -4396,6 +4979,8 @@ const Tarea = () => {
 
 
 
+
+
 return (
     <div className="p-4 sm:p-8 min-h-screen bg-gray-50">
       {/* --- Botón de Cierre de Sesión --- */}
@@ -4458,10 +5043,34 @@ return (
         initialMode={exportModalInitialMode}
       />
 
+      {/* Modal de Datos Estadísticos */}
+      <TareaEstadisticosModal
+        isOpen={isStatsModalOpen}
+        onClose={() => setIsStatsModalOpen(false)}
+        calendarId={selectedCalendarId}
+        calendarName={selectedCalendarName}
+        onSave={handleSaveStats}
+        initialData={statsData[selectedCalendarId] || {}}
+      />
+
+      {/* Modal de Confirmación para Eliminar */}
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setCalendarToDelete(null);
+        }}
+        onConfirm={() => handleDeleteCalendar(calendarToDelete?.id)}
+        title="Eliminar Registro"
+        message={`¿Estás seguro de que deseas eliminar el registro "${calendarToDelete?.name}"? Esta acción eliminará todos los productos asociados y no se puede deshacer.`}
+        confirmText="Eliminar"
+        variant="danger"
+      />
+
       {/* 🔑 CONTENEDOR PRINCIPAL DEL CALENDARIO Y TÍTULO */}
       <div className="max-w-full lg:max-w-screen-xl 2xl:max-w-screen-2xl mx-auto">
         {/* Contenedor del Título y Botón de Retroceso (Mejorado para móvil) */}
-        <div className="flex flex-col sm:flex-row sm:items-center mb-6 px-4 sm:px-0"> {/* Añadido padding horizontal para móviles */}
+        <div className="flex flex-col sm:flex-row sm:items-center mb-6 px-4 sm:px-0">
           {currentView === "details" && (
             <button
               onClick={backToCalendar}
@@ -4492,7 +5101,7 @@ return (
         </div>
 
         {error && (
-          <div className="bg-red-100 text-red-800 p-3 rounded-lg mb-4 font-medium border border-red-300 mx-4 sm:mx-0"> {/* Añadido mx-4 para que el error no toque el borde en móvil */}
+          <div className="bg-red-100 text-red-800 p-3 rounded-lg mb-4 font-medium border border-red-300 mx-4 sm:mx-0">
             {error}
           </div>
         )}
@@ -4517,8 +5126,12 @@ return (
               setIsExportModalOpen={openExportModalInRangeMode}
               openExportModalInSingleDayMode={openExportModalInSingleDayMode}
               dailyData={dailyData}
+                handleDeleteCalendar={openDeleteModal}
+              openStatsModal={() => setIsStatsModalOpen(true)}
               
             />
+
+            
           ) : (
             <EventDetailsView
               selectedDate={selectedDate}
@@ -4554,7 +5167,7 @@ return (
         </div>
 
         {/* Bloque de ID de Usuario */}
-        <div className="mt-8 pt-4 border-t border-gray-200 px-4 sm:px-0"> {/* Añadido padding horizontal para móviles */}
+        <div className="mt-8 pt-4 border-t border-gray-200 px-4 sm:px-0">
           <p className="text-xs text-gray-400">
             <span className="font-semibold">ID de Usuario:</span>
             <span className="truncate font-mono text-gray-500 ml-1">
@@ -4563,9 +5176,208 @@ return (
           </p>
         </div>
       </div>
+
+      {/* Modal de Confirmación para Eliminar */}
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setCalendarToDelete(null);
+        }}
+        onConfirm={() => handleDeleteCalendar(calendarToDelete?.id)}
+        title="Eliminar Registro"
+        message={`¿Estás seguro de que deseas eliminar el registro "${calendarToDelete?.name}"? Esta acción eliminará todos los productos asociados y no se puede deshacer.`}
+        confirmText="Eliminar"
+        variant="danger"
+      />
+
+      {/* Modal de Datos Estadísticos */}
+      <TareaEstadisticosModal
+        isOpen={isStatsModalOpen}
+        onClose={() => setIsStatsModalOpen(false)}
+        calendarId={selectedCalendarId}
+        calendarName={selectedCalendarName}
+        onSave={handleSaveStats}
+        initialData={statsData[selectedCalendarId] || {}}
+      />
     </div>
   );
 };
+
+// return (
+//     <div className="p-4 sm:p-8 min-h-screen bg-gray-50">
+//       {/* --- Botón de Cierre de Sesión --- */}
+//       {/* <div className="max-w-full lg:max-w-screen-xl 2xl:max-w-screen-2xl mx-auto flex justify-end mb-4 px-4 sm:px-0">
+//         <button
+//           onClick={handleSignOut}
+//           className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition shadow-md"
+//         >
+//           Cerrar Sesión
+//         </button>
+//       </div> */}
+//       {/* ------------------------------------------- */}
+
+//       {/* Modal para Crear Calendario */}
+//       <div
+//         className={`fixed inset-0 z-50 bg-gray-900 bg-opacity-75 flex items-center justify-center ${
+//           isCalendarModalOpen ? "" : "hidden"
+//         }`}
+//       >
+//         <div className="bg-white rounded-xl p-6 w-11/12 max-w-md shadow-2xl transform transition-all duration-300 scale-100">
+//           <div className="flex justify-between items-center mb-4 border-b pb-2">
+//             <h2 className="text-xl font-bold text-gray-800">
+//               Crear Nuevo Registro
+//             </h2>
+//             {/* El ícono X debe estar importado */}
+//             <button
+//               onClick={() => setIsCalendarModalOpen(false)}
+//               className="text-gray-400 hover:text-gray-600"
+//             >
+//               <X size={24} />
+//             </button>
+//           </div>
+//           <form onSubmit={saveNewCalendar} className="space-y-4">
+//             <input
+//               type="text"
+//               value={newCalendarName}
+//               onChange={(e) => setNewCalendarName(e.target.value)}
+//               className="w-full p-2 border border-gray-300 rounded-lg"
+//               placeholder="Nombre del Registro (Ej: Ventas 2024)"
+//               required
+//             />
+//             <button
+//               type="submit"
+//               className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-lg"
+//             >
+//               Crear Registro
+//             </button>
+//           </form>
+//         </div>
+//       </div>
+
+//       {/* Modal de Exportación Global/Día Único */}
+//       <ExportModal
+//         isOpen={isExportModalOpen}
+//         onClose={() => setIsExportModalOpen(false)}
+//         events={events}
+//         selectedCalendarName={selectedCalendarName}
+//         handleGlobalExport={handleGlobalExport}
+//         isLoadingExport={isLoadingExport}
+//         initialMode={exportModalInitialMode}
+//       />
+
+//       {/* 🔑 CONTENEDOR PRINCIPAL DEL CALENDARIO Y TÍTULO */}
+//       <div className="max-w-full lg:max-w-screen-xl 2xl:max-w-screen-2xl mx-auto">
+//         {/* Contenedor del Título y Botón de Retroceso (Mejorado para móvil) */}
+//         <div className="flex flex-col sm:flex-row sm:items-center mb-6 px-4 sm:px-0"> {/* Añadido padding horizontal para móviles */}
+//           {currentView === "details" && (
+//             <button
+//               onClick={backToCalendar}
+//               className="mb-4 sm:mb-0 mr-4 p-2 bg-gray-200 hover:bg-gray-300 rounded-full transition shadow-md self-start sm:self-auto"
+//               title="Volver al calendario"
+//             >
+//               {/* El ícono ArrowLeft debe estar importado */}
+//               <ArrowLeft size={24} className="text-gray-700" />
+//             </button>
+//           )}
+//           <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-800 flex items-center flex-wrap">
+//             {/* El ícono CalendarIcon debe estar importado */}
+//             <CalendarIcon
+//               className="mr-3 text-blue-600 flex-shrink-0"
+//               size={36}
+//             />
+//             <span className="truncate flex-1 min-w-0">
+//               {selectedCalendarName}
+//             </span>
+//             {currentView === "calendar" && (
+//               <span className="text-xl text-gray-400 ml-0 sm:ml-3 mt-1 sm:mt-0 w-full sm:w-auto">
+//                 {/* Asegúrate de que MONTHS esté definido/importado */}
+//                 | {MONTHS && MONTHS[currentDate?.getMonth()]}{" "}
+//                 {currentDate?.getFullYear()}
+//               </span>
+//             )}
+//           </h1>
+//         </div>
+
+//         {error && (
+//           <div className="bg-red-100 text-red-800 p-3 rounded-lg mb-4 font-medium border border-red-300 mx-4 sm:mx-0"> {/* Añadido mx-4 para que el error no toque el borde en móvil */}
+//             {error}
+//           </div>
+//         )}
+
+//         {/* Renderizado Condicional de Vistas */}
+//         <div className="w-full overflow-x-auto">
+//           {currentView === "calendar" ? (
+//             <CalendarView
+//               // Aseguramos que CalendarView ocupe todo el ancho disponible
+//               className="w-full"
+//               currentDate={currentDate}
+//               navigateMonth={navigateMonth}
+//               handleDayClick={handleDayClick}
+//               setSelectedCalendarId={setSelectedCalendarId}
+//               selectedCalendarId={selectedCalendarId}
+//               calendars={calendars}
+//               events={events}
+//               isAuthReady={isAuthReady}
+//               setIsCalendarModalOpen={setIsCalendarModalOpen}
+//               selectedCalendarName={selectedCalendarName}
+//               globalTotals={globalTotals}
+//               setIsExportModalOpen={openExportModalInRangeMode}
+//               openExportModalInSingleDayMode={openExportModalInSingleDayMode}
+//               dailyData={dailyData}
+//                handleDeleteCalendar={openDeleteModal}
+//              openStatsModal={() => setIsStatsModalOpen(true)}
+              
+//             />
+
+            
+//           ) : (
+//             <EventDetailsView
+//               selectedDate={selectedDate}
+//               userId={userId}
+//               calendarId={selectedCalendarId}
+//               globalCostDivisor={globalCostDivisor}
+//               setGlobalCostDivisor={setGlobalCostDivisor}
+//               dailyCosts={getDailyCosts(selectedDate)}
+//               handleSaveCosts={handleSaveCosts}
+//               events={events}
+//               saveEvent={saveEvent}
+//               formTitle={formTitle}
+//               setFormTitle={setFormTitle}
+//               formImageBase64={formImageBase64}
+//               handleImageChange={handleImageChange}
+//               formValueA={formValueA}
+//               setFormValueA={setFormValueA}
+//               formValueB={formValueB}
+//               setFormValueB={setFormValueB}
+//               multiplicationResult={multiplicationResult}
+//               deleteEvent={deleteEvent}
+//               exportToPDF={exportToPDF}
+//               exportToCSV={exportToCSV}
+//               lastSaved={lastSaved}
+//               setLastSaved={setLastSaved}
+//               currentDate={currentDate}
+//               monthlyTotals={monthlyTotals}
+//               resetFormAndScroll={resetFormAndScroll}
+//               editingEventId={editingEventId}
+//               loadEventForEdit={loadEventForEdit}
+//             />
+//           )}
+//         </div>
+
+//         {/* Bloque de ID de Usuario */}
+//         <div className="mt-8 pt-4 border-t border-gray-200 px-4 sm:px-0"> {/* Añadido padding horizontal para móviles */}
+//           <p className="text-xs text-gray-400">
+//             <span className="font-semibold">ID de Usuario:</span>
+//             <span className="truncate font-mono text-gray-500 ml-1">
+//               {userId || "N/A (Error de autenticación)"}
+//             </span>
+//           </p>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
 
 
 export default Tarea;
