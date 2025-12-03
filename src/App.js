@@ -769,6 +769,7 @@ import HelpSupport from "./Pages/HelpSupport/HelpSupport";
 import NotificationManagement from "./Pages/NotificationManagement/NotificationManagement";
 // import { CostDashboard } from "./components/COSTOS/CostDashboard";
 import  CostesManager  from "./components/COSTOS/CostesManager";
+import FarmSettings from "./Pages/FarmSettings/FarmSettings";
 
 
 axios.defaults.withCredentials = true;
@@ -952,6 +953,18 @@ function App() {
                         path="/profile"
                         element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><Profile /></ProtectedLayout></RoleRoute>}
                     />
+
+                    {/* Perfil */}
+                    <Route
+                        path="/costes"
+                        element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><CostesManager /></ProtectedLayout></RoleRoute>}
+                    />
+
+                    {/* Perfil */}
+                    <Route
+                        path="/farm-settings"
+                        element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><FarmSettings /></ProtectedLayout></RoleRoute>}
+                    />
                     <Route
                         path="/profiles"
                         element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><Profiles /></ProtectedLayout></RoleRoute>}
@@ -979,22 +992,17 @@ function App() {
                         element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><RendimientoHistoricoV10 /></ProtectedLayout></RoleRoute>}
                     />
                     <Route
+                        path="/company-settings"
+                        element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><CompanySettings /></ProtectedLayout></RoleRoute>}
+                    />
+                    <Route
                         path="/homeCard"
                         element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><HomeContent /></ProtectedLayout></RoleRoute>}
                     />
-                    <Route
-                        path="/costes"
-                        element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><CostesManager /></ProtectedLayout></RoleRoute>}
-                    />
-
-                    {/* Tareas / Horas */}
+                      {/* Tareas / Horas */}
                     <Route
                         path="/tarea"
                         element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><Tarea /></ProtectedLayout></RoleRoute>}
-                    />
-                    <Route
-                        path="/company-settings"
-                        element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><CompanySettings /></ProtectedLayout></RoleRoute>}
                     />
                     <Route
                         path="/trabajador"

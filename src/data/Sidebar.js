@@ -3,14 +3,10 @@ import { AiFillFileAdd } from "react-icons/ai";
 import { MdManageAccounts, MdOutlineSupportAgent, MdPeopleOutline, MdLocalShipping, MdOutlineGrass } from "react-icons/md";
 import { SiAdafruit } from "react-icons/si";
 import { WiHumidity } from "react-icons/wi";
-
-
-// Nuevas importaciones de iconos
 import { GiFarmTractor } from "react-icons/gi"; 
 import { IoIosListBox } from "react-icons/io"; 
-import { FaUsersCog, FaChessKing, FaExchangeAlt, FaFileContract,FaCommentDollar } from "react-icons/fa"; // FaChessKing y FaExchangeAlt son nuevas
+import { FaUsersCog, FaChessKing, FaExchangeAlt, FaFileContract, FaCommentDollar, FaTractor } from "react-icons/fa";
 import { BsDropletFill } from "react-icons/bs"; 
-
 
 const Menu = [
   // ----------------------------------------------------
@@ -102,13 +98,18 @@ const Menu = [
         path: "/costes",
       },
       {
+        title: "Gestión de Finca",
+        icon: <FaTractor />,
+        path: "/farm-settings",
+      },
+      {
         title: "Mi Perfil",
-        icon: <MdManageAccounts />, // Añadido un ícono para mantener la estética
+        icon: <MdManageAccounts />, 
         path: "/profiles",
       },
       {
         title: "Editar Perfil",
-        icon: <MdManageAccounts />, // Reutilizado
+        icon: <MdManageAccounts />, 
         path: "/edit-profile",
       },
     ],
@@ -119,20 +120,18 @@ const Menu = [
   // ----------------------------------------------------
   {
     title: "Superadministración",
-    icon: <FaChessKing />, // Ícono que denota rol superior
+    icon: <FaChessKing />, 
     childrens: [
       {
         title: "Gestión de Roles",
         icon: <FaUsersCog />,
-        path: "/user-management", // Ruta típica para gestión de roles
+        path: "/user-management", 
       },
       {
         title: "Log de Auditoría",
-        icon: <FaExchangeAlt />, // Ícono para movimientos/cambios
-        path: "/user-master", // Nueva ruta de ejemplo
+        icon: <FaExchangeAlt />, 
+        path: "/user-master", 
       },
-      // 🛑 Añade aquí cualquier otra función de superusuario
-      // EJEMPLO: { title: "Configuración Global", icon: <IoIosListBox />, path: "/config-global" }, 
     ],
   },
 
