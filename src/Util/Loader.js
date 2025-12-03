@@ -1,19 +1,12 @@
 import React from "react";
-import { Puff } from "react-loader-spinner";
 
 const Loader = () => {
   return (
-    <div className=" flex justify-center  inset-x-60 inset-y-60  absolute md:inset-x-1.5  xl:inset-56 xl:mx-96">
-      <Puff
-        height="80"
-        width="80"
-        radius={1}
-        color="#4fa94d"
-        ariaLabel="puff-loading"
-        wrapperStyle={{}}
-        wrapperClass=""
-        visible={true}
-      />
+    <div className="flex justify-center items-center min-h-screen w-full bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="flex flex-col items-center gap-4">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-emerald-600"></div>
+        <p className="text-gray-600 font-medium">Cargando...</p>
+      </div>
     </div>
   );
 };

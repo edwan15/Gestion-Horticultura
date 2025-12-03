@@ -97,6 +97,11 @@ const Menu = [
         path: "/analizer-work",
       },
       {
+        title: "Costes",
+        icon: <FaCommentDollar />,
+        path: "/costes",
+      },
+      {
         title: "Mi Perfil",
         icon: <MdManageAccounts />, // Añadido un ícono para mantener la estética
         path: "/profiles",

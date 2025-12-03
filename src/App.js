@@ -767,6 +767,8 @@ import CompanySettings from "./Pages/CompanySettings/CompanySettings";
 import Settings from "./Pages/Settings/Settings";
 import HelpSupport from "./Pages/HelpSupport/HelpSupport";
 import NotificationManagement from "./Pages/NotificationManagement/NotificationManagement";
+// import { CostDashboard } from "./components/COSTOS/CostDashboard";
+import  CostesManager  from "./components/COSTOS/CostesManager";
 
 
 axios.defaults.withCredentials = true;
@@ -979,6 +981,10 @@ function App() {
                     <Route
                         path="/homeCard"
                         element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><HomeContent /></ProtectedLayout></RoleRoute>}
+                    />
+                    <Route
+                        path="/costes"
+                        element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><CostesManager /></ProtectedLayout></RoleRoute>}
                     />
 
                     {/* Tareas / Horas */}
