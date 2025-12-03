@@ -1,6 +1,7 @@
 import React from "react";
 import Footer from "../Footer/Footer";
 import Header from "../Header/Header";
+import FloatingActionButton from "../FloatingActionButton/FloatingActionButton";
 
 const Layout = ({ children, onMenuToggle }) => {
     return (
@@ -12,6 +13,9 @@ const Layout = ({ children, onMenuToggle }) => {
             </main>
 
             <Footer />
+            
+            {/* Botón Flotante Global */}
+            <FloatingActionButton />
         </div>
     );
 };
