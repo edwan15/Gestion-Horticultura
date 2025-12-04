@@ -816,21 +816,21 @@ const TimeSheetWizard = ({ db, userId, setErrorMessage, availableLocals = [] }) 
     };
 
     return (
-        <div className="max-w-5xl mx-auto p-6 sm:p-8">
+        <div className="w-full">
             {/* Modern Header with Branding */}
-            <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-8 rounded-2xl shadow-2xl mb-8 text-white">
-                <div className="flex items-center gap-4 mb-2">
-                    <FaLeaf className="text-5xl" />
-                    <div>
-                        <h1 className="text-3xl sm:text-4xl font-extrabold">Horticultura Del Sureste</h1>
-                        <p className="text-green-100 text-sm sm:text-base">Sistema de Registro de Tareas Agrícolas</p>
+            <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-4 sm:p-6 md:p-8 rounded-xl md:rounded-2xl shadow-2xl mb-4 sm:mb-6 md:mb-8 text-white">
+                <div className="flex items-center gap-3 sm:gap-4">
+                    <FaLeaf className="text-3xl sm:text-4xl md:text-5xl flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold leading-tight">Horticultura Del Sureste</h1>
+                        <p className="text-green-100 text-xs sm:text-sm md:text-base mt-1">Sistema de Registro de Tareas Agrícolas</p>
                     </div>
                 </div>
             </div>
             
             <ProgressBar currentStep={currentStep} />
             
-            <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-xl">
+            <div className="bg-white p-4 sm:p-6 md:p-8 rounded-xl md:rounded-2xl shadow-xl">
                 {renderStep()}
             </div>
         </div>
