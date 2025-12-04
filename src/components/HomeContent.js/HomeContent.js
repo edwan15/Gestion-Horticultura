@@ -468,6 +468,8 @@ const useUserAuth = () => {
     return { db, userId, loadingAuth };
 };
 
+const CROPS_COLLECTION_PATH = `artifacts/${appId}/public/data/crops`;
+
 const useProjectAndEntityData = (db, userId, setNotification) => {
     const [availableLocals, setAvailableLocals] = useState([]); 
     const [availableEntityObjects, setAvailableEntityObjects] = useState([]); 
@@ -477,15 +479,47 @@ const useProjectAndEntityData = (db, userId, setNotification) => {
         if (!db || !userId) { setLoadingData(false); return; }
         const firestore = getFirestore();
         
+        // 1. Fetch Projects
         const qProjects = query(collection(firestore, PROJECTS_COLLECTION_PATH), where("userId", "==", userId));
-        const unsubscribeProjects = onSnapshot(qProjects, (snapshot) => {
-            const projects = snapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name, type: doc.data().cropType || 'Proyecto General', ...doc.data() }));
-            setAvailableLocals(projects);
+        
+        // 2. Fetch Crops
+        const qCrops = query(collection(firestore, CROPS_COLLECTION_PATH), where("userId", "==", userId));
+
+        // Combined listener logic
+        let projects = [];
+        let crops = [];
+
+        const updateCombinedLocals = () => {
+            const combined = [
+                ...projects.map(p => ({ ...p, type: p.cropType || 'Proyecto General' })),
+                ...crops.map(c => ({ 
+                    id: c.id, 
+                    name: c.name, 
+                    type: 'Cultivo', 
+                    area: c.plantedArea, 
+                    cropName: c.name, // Ensure cropName is available
+                    ...c 
+                }))
+            ];
+            // Remove duplicates if any (though IDs should be unique across collections usually, but safe to keep all)
+            setAvailableLocals(combined);
             setLoadingData(false);
+        };
+
+        const unsubscribeProjects = onSnapshot(qProjects, (snapshot) => {
+            projects = snapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name, ...doc.data() }));
+            updateCombinedLocals();
         }, (error) => {
             console.error("Firestore project data error:", error);
-            setNotification({ message: "Error al cargar la lista de proyectos (Locales).", type: "error" });
-            setLoadingData(false);
+            setNotification({ message: "Error al cargar la lista de proyectos.", type: "error" });
+        });
+
+        const unsubscribeCrops = onSnapshot(qCrops, (snapshot) => {
+            crops = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            updateCombinedLocals();
+        }, (error) => {
+            console.error("Firestore crop data error:", error);
+            // Don't block if crops fail, just log it
         });
 
         const qEntities = query(collection(firestore, ENTITIES_COLLECTION_PATH), where("userId", "==", userId));
@@ -497,7 +531,7 @@ const useProjectAndEntityData = (db, userId, setNotification) => {
             setNotification({ message: "Error al cargar la lista de entidades.", type: "error" });
         });
 
-        return () => { unsubscribeProjects(); unsubscribeEntities(); };
+        return () => { unsubscribeProjects(); unsubscribeCrops(); unsubscribeEntities(); };
     }, [db, userId, setNotification]);
     return { availableLocals, availableEntityObjects, loadingData }; 
 };
