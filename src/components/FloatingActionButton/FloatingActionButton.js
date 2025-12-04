@@ -5,6 +5,8 @@ import { getFirestore, collection, query, onSnapshot, where, addDoc, serverTimes
 import { getAuth } from 'firebase/auth';
 import { initializeApp } from 'firebase/app';
 import { firebaseConfig } from '../../firebaseConfig';
+import { useSelector } from 'react-redux';
+import { selectUserId } from '../../features/auth/authSlice/authSlice';
 import NewCostWizardModal from '../COSTOS/NewCostWizardModal';
 import TimeSheetWizardModal from '../COSTOS/TimeSheetWizardModal';
 
@@ -42,18 +44,13 @@ const FloatingActionButton = () => {
     const [projects, setProjects] = useState([]);
     const [crops, setCrops] = useState([]);
     const [entities, setEntities] = useState([]);
-    const [userId, setUserId] = useState(null);
+    
+    // Usar Redux para obtener el userId (soporta impersonación)
+    const userId = useSelector(selectUserId);
+    
     const [availableLocals, setAvailableLocals] = useState([]);
 
-    // Obtener usuario autenticado
-    useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged((user) => {
-            if (user) {
-                setUserId(user.uid);
-            }
-        });
-        return () => unsubscribe();
-    }, []);
+    // Eliminado useEffect de onAuthStateChanged porque usamos Redux
 
     // Auto-minimizar después de 3 segundos de inactividad
     useEffect(() => {

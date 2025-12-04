@@ -29,6 +29,8 @@ import {
 
 // 🚨 Asegúrate de que esta ruta sea correcta para tu proyecto
 import { db, auth } from '../../firebaseConfig'; 
+import { useSelector } from 'react-redux';
+import { selectUserId } from '../../features/auth/authSlice/authSlice'; 
 
 // --- Componentes que se asume que están importados de otros archivos ---
 // <=== SOLICITADO: Importación del componente WeatherForecast
@@ -450,23 +452,8 @@ const LaborCostDashboardDisplay = ({
 // === 3. HOOKS PERSONALIZADOS
 // =======================================================================
 // (Se mantienen como los proporcionaste, ya que son correctos)
-const useUserAuth = () => {
-    const [userId, setUserId] = useState(null);
-    const [loadingAuth, setLoadingAuth] = useState(true);
-
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (user) {
-                setUserId(user.uid);
-            } else {
-                setUserId(null);
-            }
-            setLoadingAuth(false);
-        });
-        return () => unsubscribe(); 
-    }, []); 
-    return { db, userId, loadingAuth };
-};
+// Eliminado useUserAuth para usar Redux y soportar impersonación
+// const useUserAuth = () => { ... }
 
 const CROPS_COLLECTION_PATH = `artifacts/${appId}/public/data/crops`;
 
@@ -1269,8 +1256,10 @@ export const HomeView = ({
 
 const HomeContent = (props) => {
     
-    // 1. OBTENER DB, USERID y estado de carga de Autenticación
-    const { db, userId, loadingAuth } = useUserAuth(); 
+    // 1. OBTENER DB y USERID desde Redux (Soporta Impersonación)
+    const userId = useSelector(selectUserId);
+    const loadingAuth = false; // Asumimos carga inicial manejada por App/Redux
+    
     const [activeView, setActiveView] = useState('home'); 
     const [notification, setNotification] = useState(null); 
     
