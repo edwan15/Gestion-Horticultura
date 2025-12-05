@@ -10,15 +10,15 @@ const isDaytime = (hour) => hour >= 7 && hour < 20;
 
 // Clasificación detallada: Retorna estado + factores limitantes
 // Clasificación detallada: Retorna estado + factores limitantes
-const evaluateCondition = (windKph, humidity, temp, rainProb = 0) => {
+const evaluateCondition = (windKph, windGustKph, humidity, temp, rainProb = 0) => {
     const factors = [];
     
-    // 1. VIENTO (Factor Crítico - Actualizado)
-    // Rojo: > 20 km/h
-    // Ideal: 5 - 12 km/h
-    // Precaución: < 5 o 12-20
-    
-    if (windKph > 20) factors.push('wind'); // PROHIBIDO
+    // 1. VIENTO (Factor Crítico - Actualizado con Ráfagas)
+    // Se considera el VIENTO MÁXIMO (Ráfaga o sostenido)
+    const maxWind = Math.max(windKph, windGustKph);
+
+    // Rojo: > 20 km/h (Ya sea sostenido o ráfaga)
+    if (maxWind > 20) factors.push('wind'); // PROHIBIDO
     
     // 2. HUMEDAD
     if (humidity < 40 || humidity > 90) factors.push('humidity');
@@ -31,26 +31,23 @@ const evaluateCondition = (windKph, humidity, temp, rainProb = 0) => {
 
     // Evaluación Final
     
-    // Si hay viento crítico o lluvia, es ROJO directo
     if (factors.includes('wind') || factors.includes('rain')) {
          return { status: 'bad', color: 'bg-rose-500', text: 'text-rose-600', icon: 'red', factors };
     }
 
-    // Si hay multiples factores leves
     if (factors.length >= 2) {
         return { status: 'bad', color: 'bg-rose-500', text: 'text-rose-600', icon: 'red', factors };
     }
 
-    // Verificar rangos de Precaución (Amarillo) para Viento
-    // Si no es rojo (>20), miramos si está fuera del ideal (5-12)
-    const isWindCaution = windKph < 5 || (windKph >= 12 && windKph <= 20);
+    // Precaución: < 5 (inversión) o 12-20 (deriva moderada)
+    // Analizamos el viento sostenido para la inversión, y el máximo para la deriva
+    const isWindCaution = windKph < 5 || (maxWind >= 12 && maxWind <= 20);
     
     if (isWindCaution || factors.length > 0) {
         if (isWindCaution && !factors.includes('wind')) factors.push('wind'); 
         return { status: 'marginal', color: 'bg-amber-400', text: 'text-amber-500', icon: 'orange', factors };
     }
     
-    // Si todo limpio (Viento 5-12, Humedad 40-90, Temp 5-28)
     return { status: 'good', color: 'bg-emerald-500', text: 'text-emerald-600', icon: 'green', factors: [] };
 };
 
@@ -65,7 +62,7 @@ const lerp = (start, end, t) => start * (1 - t) + end * t;
 // === COMPONENTE PRINCIPAL
 // =======================================================================
 
-const SprayConditions = ({ apiKey, city }) => {
+const SprayConditions = ({ apiKey, city, lat, lon }) => {
     const [dailyData, setDailyData] = useState([]);
     const [selectedDayIndex, setSelectedDayIndex] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -75,9 +72,15 @@ const SprayConditions = ({ apiKey, city }) => {
         
         const fetchData = async () => {
             try {
-                const response = await fetch(
-                    `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric&lang=es`
-                );
+                let url = `https://api.openweathermap.org/data/2.5/forecast?appid=${apiKey}&units=metric&lang=es`;
+                // Priorizar coordenadas si existen
+                if (lat && lon) {
+                    url += `&lat=${lat}&lon=${lon}`;
+                } else {
+                    url += `&q=${city}`;
+                }
+
+                const response = await fetch(url);
                 const data = await response.json();
                 if (data.list) processData(data.list);
                 setLoading(false);
@@ -87,7 +90,7 @@ const SprayConditions = ({ apiKey, city }) => {
             }
         };
         fetchData();
-    }, [apiKey, city]);
+    }, [apiKey, city, lat, lon]);
 
     const processData = (list) => {
         const daysMap = {};
@@ -106,8 +109,9 @@ const SprayConditions = ({ apiKey, city }) => {
                 hour: date.getHours(),
                 temp: item.main.temp,
                 wind: item.wind.speed * 3.6,
+                gust: (item.wind.gust || item.wind.speed) * 3.6, // Capturamos ráfaga
                 humidity: item.main.humidity,
-                pop: item.pop || 0 // Probabilidad de precipitación
+                pop: item.pop || 0
             });
         });
 
@@ -116,7 +120,6 @@ const SprayConditions = ({ apiKey, city }) => {
             const hourlyItems = [];
             
             for (let h = 0; h < 24; h++) {
-                // Lógica de búsqueda clamps (mismo que versión anterior)
                 let prev = day.rawItems.find(i => i.hour <= h && i.hour > h - 4);
                 let next = day.rawItems.find(i => i.hour > h);
                 if (!prev && day.rawItems.length > 0) prev = day.rawItems[0];
@@ -128,16 +131,18 @@ const SprayConditions = ({ apiKey, city }) => {
                 t = Math.max(0, Math.min(1, t));
 
                 const wind = lerp(prev.wind, next.wind, t);
+                const gust = lerp(prev.gust, next.gust, t); // Interpolamos ráfaga
                 const hum = lerp(prev.humidity, next.humidity, t);
                 const temp = lerp(prev.temp, next.temp, t);
                 const pop = lerp(prev.pop, next.pop, t);
 
-                const condition = evaluateCondition(wind, hum, temp, pop);
+                const condition = evaluateCondition(wind, gust, hum, temp, pop);
                 const isDay = isDaytime(h);
 
                 hourlyItems.push({
                     hour: h,
                     wind: Math.round(wind),
+                    gust: Math.round(gust),
                     humidity: Math.round(hum),
                     temp: Math.round(temp),
                     pop,
@@ -146,7 +151,7 @@ const SprayConditions = ({ apiKey, city }) => {
                 });
             }
 
-            // Estadísticas Avanzadas (Contadores)
+            // Estadísticas Avanzadas
             const stats = {
                 goodDay: hourlyItems.filter(i => i.isDay && i.condition.status === 'good').length,
                 goodNight: hourlyItems.filter(i => !i.isDay && i.condition.status === 'good').length,

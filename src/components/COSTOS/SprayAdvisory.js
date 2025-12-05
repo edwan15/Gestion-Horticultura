@@ -22,7 +22,7 @@ const getSprayAdvice = (windSpeed_kph, humidity_perc) => {
 };
 
 // --- Componente React Principal ---
-const SprayAdvisory = ({ apiKey, city }) => {
+const SprayAdvisory = ({ apiKey, city, lat, lon }) => {
     const [forecast, setForecast] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -36,9 +36,15 @@ const SprayAdvisory = ({ apiKey, city }) => {
 
             try {
                 // Fetch de 5 días / 3 horas de OpenWeatherMap
-                const response = await fetch(
-                    `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric&lang=es`
-                );
+                let url = `https://api.openweathermap.org/data/2.5/forecast?appid=${apiKey}&units=metric&lang=es`;
+                
+                if (lat && lon) {
+                    url += `&lat=${lat}&lon=${lon}`;
+                } else {
+                    url += `&q=${city}`;
+                }
+
+                const response = await fetch(url);
                 
                 if (!response.ok) {
                    throw new Error("Error en la respuesta de la API");
@@ -79,7 +85,7 @@ const SprayAdvisory = ({ apiKey, city }) => {
         };
 
         fetchWeather();
-    }, [apiKey, city]);
+    }, [apiKey, city, lat, lon]);
 
     // --- Estados de Carga y Error ---
     if (loading) {

@@ -2,7 +2,7 @@ import { RxDashboard } from "react-icons/rx";
 import { AiFillFileAdd } from "react-icons/ai";
 import { MdManageAccounts, MdOutlineSupportAgent, MdPeopleOutline, MdLocalShipping, MdOutlineGrass } from "react-icons/md";
 import { SiAdafruit } from "react-icons/si";
-import { WiHumidity } from "react-icons/wi";
+import { WiDaySunny, WiHumidity } from "react-icons/wi";
 import { GiFarmTractor } from "react-icons/gi"; 
 import { IoIosListBox } from "react-icons/io"; 
 import { FaUsersCog, FaChessKing, FaExchangeAlt, FaFileContract, FaCommentDollar, FaTractor } from "react-icons/fa";
@@ -114,6 +114,12 @@ const Menu = [
       },
     ],
   },
+
+  {
+  title: "Clima y Fitosanidad",
+  icon: <WiDaySunny />, 
+  path: "/clima",
+},
     
   // ----------------------------------------------------
   // 5. 👑 SUPERADMINISTRADOR (NUEVA SECCIÓN)

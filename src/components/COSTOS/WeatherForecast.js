@@ -55,7 +55,7 @@ const formatDate = (dateStr, options = {}) => {
 // === COMPONENT
 // =======================================================================
 
-const WeatherForecast = ({ city = "Balsicas,es", apiKey }) => {
+const WeatherForecast = ({ city = "Balsicas,es", apiKey, lat, lon }) => {
   const [forecastList, setForecastList] = useState([]);
   const [selectedDayIndex, setSelectedDayIndex] = useState(0); // 0 es hoy, 1 mañana, etc.
   const [loading, setLoading] = useState(true);
@@ -72,9 +72,14 @@ const WeatherForecast = ({ city = "Balsicas,es", apiKey }) => {
     const fetchForecast = async () => {
       setLoading(true);
       try {
-        const response = await fetch(
-          `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric&lang=es`
-        );
+        let url = `https://api.openweathermap.org/data/2.5/forecast?appid=${apiKey}&units=metric&lang=es`;
+        if (lat && lon) {
+            url += `&lat=${lat}&lon=${lon}`;
+        } else {
+            url += `&q=${city}`;
+        }
+
+        const response = await fetch(url);
         const data = await response.json();
 
         if (response.ok) {
@@ -90,7 +95,7 @@ const WeatherForecast = ({ city = "Balsicas,es", apiKey }) => {
     };
 
     fetchForecast();
-  }, [city, apiKey]);
+  }, [city, apiKey, lat, lon]);
 
   // Procesar datos para agrupar por días
   const processForecastData = (list) => {

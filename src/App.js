@@ -44,6 +44,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 // Componentes de Producción
 import ProduccionPage from './ProduccionPimientos/ProduccionPage' 
+import WeatherPage from './Pages/Weather/WeatherPage';
 import Tarea from "./components/Carga/Tarea";
 import HoraTrabajador from "./components/HoraTrabajadores/HoraTrabajador";
 import ProductivityAnalyzer from "./Pages/ProductividadTrabajador/ProductivityAnalyzer";
@@ -216,6 +217,10 @@ function App() {
                     <Route
                         path="/order-product"
                         element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><OrdenFumigacionSimulador /></ProtectedLayout></RoleRoute>}
+                    />
+                    <Route
+                        path="/clima"
+                        element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><WeatherPage /></ProtectedLayout></RoleRoute>}
                     />
                     <Route
                         path="/edit-product/:id"

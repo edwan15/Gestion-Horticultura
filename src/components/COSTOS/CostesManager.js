@@ -11,6 +11,7 @@ import {
     FaUsers, FaTools, FaBuilding, FaClock, FaChevronLeft, FaChevronRight
 } from 'react-icons/fa';
 import { MdFilterList } from 'react-icons/md';
+import { GiFarmer } from 'react-icons/gi';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -773,14 +774,41 @@ const CostesManager = () => {
                                                 <td className="px-2 py-3 whitespace-nowrap font-bold text-right text-emerald-800">
                                                     {cost.toFixed(2)} €
                                                 </td>
-                                                <td className="px-2 py-3 whitespace-nowrap text-gray-500 max-w-[150px]">
-                                                    <div className="flex flex-col truncate">
-                                                        <span className="font-medium text-gray-700 truncate text-xs" title={item.editedBy || 'Sistema'}>{item.editedBy || 'Sistema'}</span>
-                                                        {item.updatedAt && (
-                                                            <span className="text-[10px] text-gray-400">
-                                                                {new Date(item.updatedAt.seconds * 1000).toLocaleDateString()}
+                                                <td className="px-2 py-3 whitespace-nowrap text-gray-500 max-w-[200px]">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="p-1.5 rounded bg-orange-50 border border-orange-100 flex-shrink-0">
+                                                            <GiFarmer className="text-lg text-orange-500" />
+                                                        </div>
+                                                        <div className="flex flex-col truncate">
+                                                            <span className="font-bold text-gray-700 truncate text-xs" title={item.editedBy || 'Sistema'}>
+                                                                {item.editedBy || 'Sistema'}
                                                             </span>
-                                                        )}
+                                                            {(item.updatedAt || item.createdAt) && (
+                                                                <span className="text-[11px] text-gray-400 font-medium">
+                                                                    {(() => {
+                                                                        const timestamp = item.updatedAt || item.createdAt;
+                                                                        // Manejar si es Timestamp de Firestore o fecha string/JS
+                                                                        let date;
+                                                                        if (timestamp.seconds) {
+                                                                            date = new Date(timestamp.seconds * 1000);
+                                                                        } else if (timestamp instanceof Date) {
+                                                                            date = timestamp;
+                                                                        } else {
+                                                                            date = new Date(timestamp); // Intento de parsear string
+                                                                        }
+
+                                                                        return !isNaN(date) ? date.toLocaleString('es-ES', {
+                                                                            year: 'numeric', 
+                                                                            month: '2-digit', 
+                                                                            day: '2-digit',
+                                                                            hour: '2-digit', 
+                                                                            minute: '2-digit',
+                                                                            hour12: false
+                                                                        }) : '';
+                                                                    })()}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-2 py-3 whitespace-nowrap text-right text-sm font-medium">
