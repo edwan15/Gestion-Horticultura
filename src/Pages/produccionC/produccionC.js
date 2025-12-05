@@ -30,6 +30,8 @@ import CalendarGrid from "../../components/CalendarGrid";
 import ProductItemForm from "../../components/ProductItemForm";
 import DayProductsGrid from "../../components/DayProductsGrid";
 import DatosEstadisticosCard from "./DatosEstadisticosCard";
+import ExportReportModal from "../../components/export/ExportReportModal";
+import ReportPreviewModal from "../../components/export/ReportPreviewModal";
 import GreenhouseSelector from "../../components/GreenhouseSelector"; // Nuevo Componente
 import HomeContent from "../../components/HomeContent.js/HomeContent";
 // ­ƒöÑ REEMPLAZA ESTO CON TU CONFIGURACI├ôN REAL DE FIREBASE ­ƒöÑ
@@ -808,6 +810,10 @@ const App = () => {
   const [selectedDate, setSelectedDate] = useState(formatDate(new Date()));
   const [view, setView] = useState("calendar"); // calendar, day_view, edit_products, edit_costs
   const [greenhouseConfig, setGreenhouseConfig] = useState({});
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [exportConfig, setExportConfig] = useState(null);
+  const [previewData, setPreviewData] = useState(null);
 
   // NUEVOS ESTADOS para el manejo de invernaderos
   const [selectedGreenhouse, setSelectedGreenhouse] = useState(null);
@@ -1696,6 +1702,85 @@ const sanitizeForFirestore = (data) => {
 
 
 
+    const handleOpenExport = () => setIsExportModalOpen(true);
+
+  const handlePreview = (config) => {
+    setExportConfig(config);
+    setIsExportModalOpen(false);
+
+    // Filter Logic
+    const allItems = [];
+    let totalKg = 0;
+    let totalCost = 0;
+    
+    // Config has config.dateRange (e.g., 'last_year', 'today', 'yesterday')
+    const now = new Date();
+    const todayStr = formatDate(now);
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = formatDate(yesterday);
+
+    const getStartDate = (range) => {
+        const d = new Date();
+        if (range === 'today') return d;
+        if (range === 'yesterday') return yesterday; // Special case handled by string check usually
+        if (range === 'last_week') d.setDate(d.getDate() - 7);
+        if (range === 'last_month') d.setMonth(d.getMonth() - 1);
+        if (range === 'last_year') d.setFullYear(d.getFullYear() - 1);
+        if (range === 'all') return new Date('2000-01-01');
+        return new Date('2000-01-01'); // Default to all if unknown
+    };
+
+    const startDate = getStartDate(config.dateRange);
+
+    Object.keys(dailyData).forEach(date => {
+        // Date Check
+        let isValidDate = false;
+        
+        if (config.dateRange === 'all') isValidDate = true;
+        else if (config.dateRange === 'today') isValidDate = (date === todayStr);
+        else if (config.dateRange === 'yesterday') isValidDate = (date === yesterdayStr);
+        else {
+             // range check
+             const currentDate = new Date(date);
+             // Verify valid date object
+             if (!isNaN(currentDate.getTime())) {
+                isValidDate = currentDate >= startDate && currentDate <= now;
+             }
+        }
+
+        if (isValidDate) {
+            const day = dailyData[date];
+            if(day.items) {
+                day.items.forEach(item => {
+                    const kg = parseFloat(item.factorA || 0);
+                    const cost = parseFloat(item.result || 0);
+                    allItems.push({
+                        date,
+                        product: item.productName,
+                        kg: formatNumber(kg),
+                        cost: formatNumber(cost)
+                    });
+                    totalKg += kg;
+                    totalCost += cost;
+                });
+            }
+        }
+    });
+
+    setPreviewData({
+        farm: greenhouseName || config.farm,
+        productionItems: allItems,
+        totals: {
+            kg: totalKg,
+            cost: totalCost,
+            efficiency: totalCost > 0 ? (totalKg/totalCost).toFixed(2) : 0
+        }
+    });
+    
+    setIsPreviewModalOpen(true);
+  };
+
   const renderContent = () => {
 switch(view){
 case"home":
@@ -1869,12 +1954,32 @@ Vista no encontrada.
               <FaFileDownload className="mr-2 text-emerald-400" size={16} />
               Exportar Datos Globales
             </button>
+            <button
+              className="flex items-center px-5 py-2.5 bg-emerald-600 text-white font-bold rounded-xl shadow-lg hover:bg-emerald-700 hover:shadow-emerald-500/30 transition-all duration-200 -translate-y-0.5 transform text-sm"
+              onClick={handleOpenExport}
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              Exportar Informe
+            </button>
           </div>
         )}
 
         {/* Contenido Principal */}
         <div className="animate-fade-in">
              {renderContent()}
+        <ExportReportModal 
+          isOpen={isExportModalOpen} 
+          onClose={() => setIsExportModalOpen(false)} 
+          onPreview={handlePreview}
+        />
+        <ReportPreviewModal
+          isOpen={isPreviewModalOpen}
+          onClose={() => setIsPreviewModalOpen(false)}
+          config={exportConfig}
+          data={previewData}
+        />
         </div>
       </div>
     </div>

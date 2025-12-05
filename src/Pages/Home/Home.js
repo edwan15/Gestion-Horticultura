@@ -1,13 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FiLogIn, FiUserPlus, FiGrid, FiArrowRight, FiCheckCircle, FiActivity, FiLayers } from "react-icons/fi";
-import { FaSeedling, FaTractor, FaCloudUploadAlt, FaChartLine, FaLeaf } from "react-icons/fa"; 
+import { FiLogIn, FiUserPlus, FiGrid, FiArrowRight, FiCheckCircle, FiActivity, FiLayers, FiZap } from "react-icons/fi";
+import { FaSeedling, FaTractor, FaCloudUploadAlt, FaChartLine, FaLeaf, FaCrown } from "react-icons/fa"; 
 import { AiFillGithub } from "react-icons/ai"; 
 
 import IMAGE from "../../asset/inventary.png"; 
 import LOGO from "../../asset/LOGOS.svg"; 
 import { ShowOnLogout, ShowOnLogin } from "../../protect/HiddenLiks";
+import SubscriptionPlans from "../../components/Subscription/SubscriptionPlans";
 
 // --- VARIANTS DE ANIMACIÓN (PROFESIONALES Y ELEGANTES) ---
 const fadeInUp = {
@@ -41,6 +42,8 @@ const imageReveal = {
 };
 
 const Home = () => {
+    const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+
     return (
         <div className="min-h-screen bg-white text-gray-800 font-sans selection:bg-emerald-100 selection:text-emerald-900 overflow-x-hidden">
             
@@ -132,16 +135,20 @@ const Home = () => {
                             <ShowOnLogout>
                                 <Link to="/register" className="w-full sm:w-auto">
                                     <button className="w-full sm:w-auto px-8 py-4 bg-emerald-600 text-white font-bold rounded-xl shadow-xl shadow-emerald-500/20 hover:bg-emerald-700 hover:shadow-2xl transition-all duration-300 flex items-center justify-center gap-2 group">
-                                        Comenzar Gratis
+                                        Prueba 7 Días Gratis
                                         <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
                                     </button>
+                                    <p className="text-xs text-gray-500 text-center mt-2">Sin tarjeta de crédito • Cancela cuando quieras</p>
                                 </Link>
-                                <Link to="/login" className="w-full sm:w-auto">
-                                    <button className="w-full sm:w-auto px-8 py-4 bg-white text-gray-700 font-bold rounded-xl border border-gray-200 hover:border-emerald-200 hover:bg-emerald-50/50 transition-all duration-300 flex items-center justify-center gap-2">
-                                        <FiActivity />
-                                        Ver Demo
-                                    </button>
-                                </Link>
+                                <button 
+                                    onClick={() => setShowSubscriptionModal(true)}
+                                    className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-xl shadow-xl shadow-purple-500/30 hover:shadow-2xl transition-all duration-300 flex items-center justify-center gap-2 group relative overflow-hidden"
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-r from-purple-700 to-pink-700 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                    <FaCrown className="relative z-10" />
+                                    <span className="relative z-10">Ver Planes</span>
+                                    <FiZap className="relative z-10 text-yellow-300 group-hover:animate-pulse" />
+                                </button>
                             </ShowOnLogout>
                         </motion.div>
 
@@ -239,6 +246,12 @@ const Home = () => {
                     </div>
                 </div>
             </footer>
+
+            {/* Modal de Suscripciones */}
+            <SubscriptionPlans 
+                isOpen={showSubscriptionModal} 
+                onClose={() => setShowSubscriptionModal(false)} 
+            />
         </div>
     );
 };
