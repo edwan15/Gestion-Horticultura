@@ -10,6 +10,8 @@ import { calculateCosts } from "../../Util/costCalculations"; // calculateCosts 
 import { InlineMath } from "react-katex"; // 👈 ¡NECESARIO!
 import "katex/dist/katex.min.css";
 import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
+import { selectUserId } from "../../features/auth/authSlice/authSlice";
 
 import {
   getAuth,
@@ -4183,7 +4185,8 @@ const AuthForm = ({
 const Tarea = () => {
   // --- Estado de la Aplicación ---
   const [dailyData, setDailyData] = useState({});
-  const [user, setUser] = useState(null);
+  // const [user, setUser] = useState(null); // REMOVED: Managed by Redux
+  const userId = useSelector(selectUserId); // ADDED: Use Redux selector
   const [selectedGreenhouseId, setSelectedGreenhouseId] = useState(
     localStorage.getItem("selectedGreenhouseId") || null
   );
@@ -4199,8 +4202,9 @@ const Tarea = () => {
   const [authError, setAuthError] = useState(null);
   const [isLoadingAuth, setIsLoadingAuth] = useState(false);
   // Estados clave para el rendimiento y la lógica
-  const [userId, setUserId] = useState(null);
-  const [isAuthReady, setIsAuthReady] = useState(false);
+  // const [userId, setUserId] = useState(null); // REMOVED: Managed by Redux
+  const isAuthReady = true; // ADDED: Assumed ready as App.js handles it
+  // const [isAuthReady, setIsAuthReady] = useState(false); // REMOVED
   const [currentView, setCurrentView] = useState("calendar");
   const [calendars, setCalendars] = useState([]);
   const [selectedCalendarId, setSelectedCalendarId] = useState(null);
@@ -4240,6 +4244,8 @@ const [statsData, setStatsData] = useState({});
     return (parseFloat(formValueA) || 0) * (parseFloat(formValueB) || 0);
   }, [formValueA, formValueB]);
 
+  // REMOVED: onAuthStateChanged listener is no longer needed here as App.js handles it and we use Redux.
+  /*
   useEffect(() => {
     if (!auth) return;
 
@@ -4268,6 +4274,7 @@ const [statsData, setStatsData] = useState({});
 
     return () => unsubscribe(); // Limpiar la suscripción al desmontar
   }, [auth]); // Asegúrate de que 'auth' sea una dependencia
+  */
 
   // --- Inicialización y Autenticación de Firebase ---
 
