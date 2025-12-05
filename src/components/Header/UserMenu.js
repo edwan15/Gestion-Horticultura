@@ -45,8 +45,20 @@ const UserMenu = () => {
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center gap-2 hover:bg-gray-50 p-1.5 rounded-lg transition-colors"
             >
-                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold border border-green-200">
-                    {name ? name.charAt(0).toUpperCase() : <MdPerson />}
+                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold border border-green-200 overflow-hidden">
+                    {user?.photo ? (
+                        <img 
+                            src={user.photo} 
+                            alt={name || 'Usuario'} 
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.parentElement.innerHTML = name ? name.charAt(0).toUpperCase() : '<svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+                            }}
+                        />
+                    ) : (
+                        name ? name.charAt(0).toUpperCase() : <MdPerson />
+                    )}
                 </div>
                 <div className="hidden md:block text-left">
                     <p className="text-sm font-semibold text-gray-700 leading-none">{name || 'Usuario'}</p>

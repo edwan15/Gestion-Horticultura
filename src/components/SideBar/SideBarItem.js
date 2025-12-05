@@ -3,7 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { MdKeyboardArrowRight } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion"; 
 
-const SideBarItem = ({ isOpen, product }) => {
+const SideBarItem = ({ isOpen, product, isMobile }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const location = useLocation();
 
@@ -14,7 +14,12 @@ const SideBarItem = ({ isOpen, product }) => {
     const activeText = "text-white"; 
     
     // 2. Clases para un elemento inactivo
-    const inactiveText = "text-gray-300"; // Gris muy claro, visible sobre azul-900
+    // Si es Móvil (fondo claro): Texto Negro -> Hover Blanco
+    // Si es Desktop (fondo oscuro): Texto Claro -> Hover Blanco
+    const inactiveText = isMobile 
+        ? "text-gray-900 hover:text-white" 
+        : "text-gray-300 hover:text-white";
+        
     const hoverBg = "hover:bg-green-800"; // Fondo verde oscuro un poco más claro para hover
     
     // 3. Color de acento para Íconos y Flechas (siempre visible)

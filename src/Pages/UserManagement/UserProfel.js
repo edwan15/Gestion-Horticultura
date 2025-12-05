@@ -1,707 +1,262 @@
 import React, { useState, useEffect } from "react";
-import {
-    UserPen,
-    LoaderCircle,
-    Mail,
-    User,
-    Shield,
-    Lock,
-    ArrowLeft,
-    Calendar,
-    Info,
-    Clock,
-    View,
-    CheckCircle,
-    XCircle,
-    AlertTriangle,
-} from "lucide-react";
-// 🛑 Eliminada la dependencia de SERVER_URL y axios (fetch)
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../../firebaseConfig";
+import { FaUser, FaBuilding, FaCheckCircle, FaTimesCircle, FaCircle } from "react-icons/fa";
+import { MdSettings, MdPerson, MdBusiness, MdPeople } from "react-icons/md";
 
-// 🛑 Importaciones de Firebase Firestore
-import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
-
-// ASUME QUE LA CONFIGURACIÓN DE FIREBASE ESTÁ AQUÍ
-// Debes importar tu instancia de Firestore (db) desde tu archivo de configuración
-import { db } from "../../firebaseConfig"; // 🚨 ¡Asegúrate de que esta ruta sea correcta!
-import DashBoard from "../DashBoard/DashBoard";
-
-// =========================================================================
-// MOCK DATA Y SIMULADOR DE ROL (Inicio) - Se mantiene la simulación de rol
-// =========================================================================
-
-const allowedRoles = ["admin", "usuario", "invitado"];
-
-const useAuthSimulator = () => {
-    return {
-        role: "admin", // ROL SIMULADO: Cámbialo a "usuario" para probar la restricción de permisos.
-    };
-};
-
-// =========================================================================
-// 1. COMPONENTES DE VISTA SIMULADA DEL USUARIO (Dashboard, Products, Settings) - Se mantienen
-// =========================================================================
-
-const ProductsView = ({ user }) => (
-    <div className="p-4 bg-gray-100 rounded-lg border border-gray-200">
-        <h5 className="text-xl font-bold mb-3 text-green-700">
-            Tus Productos ({user.savedProducts?.length || 0})
-        </h5>
-        {user.savedProducts && user.savedProducts.length > 0 ? (
-            <ul className="space-y-2">
-                {user.savedProducts.map((p) => (
-                    <li
-                        key={p.id}
-                        className="text-gray-700 p-2 bg-white rounded-md flex justify-between items-center shadow-sm"
-                    >
-                        <span>{p.name}</span>
-                        <span className="text-xs font-semibold text-gray-500">
-                            ID: {p.id}
-                        </span>
-                    </li>
-                ))}
-            </ul>
-        ) : (
-            <p className="text-gray-500 italic">
-                No tienes productos activos. ¡Visita nuestra tienda!
-            </p>
-        )}
-    </div>
-);
-
-const SettingsView = ({ user }) => (
-    <div className="p-4 bg-gray-100 rounded-lg border border-gray-200">
-        <h5 className="text-xl font-bold mb-3 text-purple-700">
-            Configuración de la Cuenta
-        </h5>
-        <div className="space-y-3">
-            <div className="p-3 bg-white rounded-md shadow-sm">
-                <p className="font-semibold text-gray-800">Email de Contacto:</p>
-                <p className="text-gray-600">{user.email}</p>
-            </div>
-            <div className="p-3 bg-white rounded-md shadow-sm">
-                <p className="font-semibold text-gray-800">Permisos de Notificación:</p>
-                <p className="text-gray-600">Activos (Email y SMS)</p>
-            </div>
-            <div className="p-3 bg-red-100 rounded-md shadow-sm border border-red-300">
-                <p className="font-semibold text-red-800">Acceso a DB:</p>
-                <p className="text-sm text-red-600">
-                    {user.databaseAccess?.db} - {user.databaseAccess?.level}
-                </p>
-            </div>
-        </div>
-    </div>
-);
-
-// =========================================================================
-// 2. COMPONENTE AUXILIAR: Vista de Tarjeta (Solo Móviles)
-// =========================================================================
-const UserCard = ({
-    user,
-    startEdit,
-    editingUserId,
-    selectedRole,
-    setSelectedRole,
-    handleRoleUpdate,
-    setEditingUserId,
-    userRole,
-    viewDetails,
-}) => {
-    const canEdit = userRole === "admin";
-
-    return (
-        <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4 shadow-md sm:hidden">
-            <div className="flex justify-between items-start mb-2 border-b pb-2">
-                <h3
-                    className="text-lg font-bold text-gray-800 flex items-center cursor-pointer hover:text-indigo-600 transition duration-150"
-                    onClick={() => viewDetails(user)}
-                >
-                    <User className="w-5 h-5 mr-2 text-indigo-500" />
-                    {user.name || "Sin Nombre"}
-                </h3>
-                {canEdit && (
-                    <div className="flex items-center space-x-2">
-                        {/* 🛑 CAMBIO: Usar user.id */}
-                        {editingUserId === user.id ? (
-                            <div className="flex space-x-2">
-                                <button
-                                    // 🛑 CAMBIO: Usar user.id
-                                    onClick={() => handleRoleUpdate(user.id)}
-                                    className="text-white bg-green-600 hover:bg-green-700 font-bold py-1 px-2 rounded-lg text-xs transition shadow-md"
-                                >
-                                    Guardar
-                                </button>
-                                <button
-                                    onClick={() => setEditingUserId(null)}
-                                    className="text-gray-700 bg-gray-200 hover:bg-gray-300 font-bold py-1 px-2 rounded-lg text-xs transition shadow-md"
-                                >
-                                    Cancelar
-                                </button>
-                            </div>
-                        ) : (
-                            <button
-                                onClick={() => startEdit(user)}
-                                className="text-blue-600 hover:text-blue-900 transition p-1 rounded-full hover:bg-blue-50"
-                                title="Editar Rol"
-                            >
-                                <UserPen className="w-5 h-5" />
-                            </button>
-                        )}
-                    </div>
-                )}
-            </div>
-            <p className="flex items-center text-sm text-gray-600 mb-1">
-                <Mail className="w-4 h-4 mr-2 text-blue-500" />
-                <span className="font-medium text-gray-900">Email:</span> {user.email}
-            </p>
-            <div className="flex flex-col">
-                <span className="font-medium text-gray-900 mb-1">Rol Actual:</span>
-                <span
-                    className={`px-2 py-1 text-sm leading-5 font-semibold rounded-full w-fit ${
-                        user.role === "admin"
-                            ? "bg-red-100 text-red-800"
-                            : user.role === "invitado"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-green-100 text-green-800"
-                    }`}
-                >
-                    {user.role}
-                </span>
-            </div>
-        </div>
-    );
-};
-
-// =========================================================================
-// 3. COMPONENTE AUXILIAR: Vista de Detalle (UserDetails) - Se mantiene el uso de user.id
-// =========================================================================
-const UserDetails = ({ user, setView }) => {
-    const [userView, setUserView] = useState("dashboard");
-
-    if (!user) {
-        return (
-            <div className="text-center py-10 text-gray-500">
-                Error: Usuario no encontrado.
-            </div>
-        );
-    }
-
-    const formatDate = (dateString) => {
-        try {
-            const date = new Date(dateString);
-            return date.toLocaleDateString("es-ES", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-            });
-        } catch {
-            return dateString;
-        }
-    };
-
-    const renderUserView = () => {
-        switch (userView) {
-            case "products":
-                return <ProductsView user={user} />;
-            case "settings":
-                return <SettingsView user={user} />;
-            case "panel":
-            default:
-                // Asumiendo que DashBoard acepta el objeto user
-                return <DashBoard user={user} />; 
-        }
-    };
-
-    const tabClasses = (tab) =>
-        `px-4 py-2 font-semibold transition duration-150 rounded-t-lg flex items-center ${
-            userView === tab
-                ? "bg-indigo-600 text-white shadow-lg"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-        }`;
-
-    return (
-        <div className="p-4 sm:p-6 bg-white rounded-lg shadow-inner">
-            <button
-                onClick={() => setView("list")}
-                className="flex items-center text-indigo-600 hover:text-indigo-800 font-medium mb-6 transition duration-150"
-            >
-                <ArrowLeft className="w-5 h-5 mr-2" />
-                Volver a la Lista de Usuarios
-            </button>
-
-            <h3 className="text-3xl font-extrabold text-gray-900 mb-6 border-b pb-2">
-                Perfil Detallado: {user.name}
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <p className="flex items-center text-lg font-semibold text-gray-700 mb-1">
-                        <Mail className="w-5 h-5 mr-3 text-blue-500" />
-                        Email:{" "}
-                        <span className="font-normal ml-2 text-gray-900">{user.email}</span>
-                    </p>
-                    <p className="flex items-center text-lg font-semibold text-gray-700">
-                        <Shield className="w-5 h-5 mr-3 text-red-500" />
-                        Rol:
-                        <span
-                            className={`font-bold ml-2 px-2 py-0.5 rounded-full text-sm ${
-                                user.role === "admin"
-                                    ? "bg-red-200 text-red-900"
-                                    : user.role === "usuario"
-                                    ? "bg-green-200 text-green-900"
-                                    : "bg-yellow-200 text-yellow-900"
-                            }`}
-                        >
-                            {user.role.toUpperCase()}
-                        </span>
-                    </p>
-                </div>
-
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <p className="flex items-center text-lg font-semibold text-gray-700 mb-1">
-                        <Calendar className="w-5 h-5 mr-3 text-gray-500" />
-                        Registrado:{" "}
-                        <span className="font-normal ml-2 text-gray-900">
-                            {user.registrationDate}
-                        </span>
-                    </p>
-                    <p className="flex items-center text-lg font-semibold text-gray-700">
-                        <Clock className="w-5 h-5 mr-3 text-indigo-500" />
-                        Último Acceso:{" "}
-                        <span className="font-normal ml-2 text-gray-900">
-                            {formatDate(user.lastLogin)}
-                        </span>
-                    </p>
-                </div>
-            </div>
-
-            <h4 className="text-2xl font-bold text-gray-800 mb-4 mt-8 flex items-center">
-                <View className="w-6 h-6 mr-2 text-blue-600" /> Simulación de Navegación
-                del Usuario
-            </h4>
-
-            <div className="flex border-b border-gray-300 mb-4 overflow-x-auto">
-                <button
-                    className={tabClasses("dashboard")}
-                    onClick={() => setUserView("dashboard")}
-                >
-                    Dashboard
-                </button>
-                <button
-                    className={tabClasses("products")}
-                    onClick={() => setUserView("products")}
-                >
-                    Productos
-                </button>
-                <button
-                    className={tabClasses("settings")}
-                    onClick={() => setUserView("settings")}
-                >
-                    Ajustes
-                </button>
-            </div>
-
-            <div className="mb-8 p-4 border border-indigo-400 rounded-lg bg-indigo-50 shadow-md">
-                <p className="text-sm font-medium text-indigo-800 mb-3">
-                    Vista actual como {user.name} en la ruta:{" "}
-                    <span className="font-mono bg-indigo-200 px-2 py-0.5 rounded text-indigo-900">
-                        /{userView}
-                    </span>
-                </p>
-                {renderUserView()}
-            </div>
-
-            <h4 className="text-xl font-bold text-gray-800 mb-4 mt-8 flex items-center border-b pb-1">
-                <Info className="w-5 h-5 mr-2 text-yellow-600" /> Registros de Actividad
-                ({user.activityLog?.length || 0})
-            </h4>
-            <div className="bg-white p-4 rounded-lg border border-gray-300 max-h-80 overflow-y-auto shadow-sm">
-                {user.activityLog && user.activityLog.length > 0 ? (
-                    <ul className="space-y-2">
-                        {user.activityLog.map((log, index) => (
-                            <li
-                                key={index}
-                                className="flex items-start text-sm text-gray-700"
-                            >
-                                <span className="text-indigo-500 mr-2">•</span> {log}
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p className="text-gray-500 italic">
-                        No hay registros de actividad recientes.
-                    </p>
-                )}
-            </div>
-        </div>
-    );
-};
-
-// =========================================================================
-// 4. COMPONENTE PRINCIPAL (UserManagement)
-// =========================================================================
-const UserManagement = () => {
+const TeamView = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [editingUserId, setEditingUserId] = useState(null);
-    const [selectedRole, setSelectedRole] = useState("");
+    const [activeTab, setActiveTab] = useState("equipo");
 
-    const [view, setView] = useState("list");
-    const [selectedUser, setSelectedUser] = useState(null);
-
-    const [statusMessage, setStatusMessage] = useState({ message: "", type: "" });
-
-    const { role: loggedInRole } = useAuthSimulator();
-
-    const isAdmin = loggedInRole === "admin";
-    const canView =
-        isAdmin || loggedInRole === "invitado" || loggedInRole === "usuario";
-    const userAccessLevel = loggedInRole
-        ? loggedInRole.toUpperCase()
-        : "Desconocido";
-
-    // -------------------------------------------------------------------------
-    // FETCH USERS (Adaptado a Firebase Firestore)
-    // -------------------------------------------------------------------------
+    // Fetch users from Firebase
     useEffect(() => {
         const fetchUsers = async () => {
-            if (!canView) {
-                setLoading(false);
-                return;
-            }
-
             setLoading(true);
-            setStatusMessage({
-                message: "Cargando datos de usuarios desde Firebase...",
-                type: "pending",
-            });
-
             try {
-                // 🛑 REFERENCIA A LA COLECCIÓN 'users'
                 const usersCollectionRef = collection(db, "users");
-
-                // 🛑 OBTENER DOCUMENTOS
                 const userSnapshot = await getDocs(usersCollectionRef);
-
                 const usersList = userSnapshot.docs.map(doc => ({ 
-                    // 🛑 CAMBIO: Usar doc.id y doc.data()
                     id: doc.id, 
                     ...doc.data() 
                 }));
-
                 setUsers(usersList);
-                setStatusMessage({
-                    message: "Usuarios cargados correctamente desde Firebase.",
-                    type: "success",
-                });
             } catch (error) {
                 console.error("Error al cargar usuarios desde Firestore:", error);
-                setStatusMessage({
-                    message: `Error de Firebase al cargar usuarios: ${error.message}.`,
-                    type: "error",
-                });
             } finally {
                 setLoading(false);
             }
         };
 
         fetchUsers();
-    }, [canView]);
+    }, []);
 
-    // -------------------------------------------------------------------------
-    // UPDATE USER ROLE (Adaptado a Firebase Firestore)
-    // -------------------------------------------------------------------------
-
-    const handleRoleUpdate = async (userId) => {
-        if (!isAdmin || !selectedRole || !editingUserId) return;
-
-        setStatusMessage({
-            message: `Actualizando rol de ${userId} a ${selectedRole} en Firebase...`,
-            type: "pending",
-        });
-        
-        // 🛑 CAMBIO: Buscar por 'id'
-        const oldRole = users.find((u) => u.id === userId)?.role; 
-
-        // 1. Actualización optimista
-        setUsers((prevUsers) =>
-            prevUsers.map((user) =>
-                // 🛑 CAMBIO: Comparar user.id con userId
-                user.id === userId ? { ...user, role: selectedRole } : user
-            )
-        );
-        setEditingUserId(null); 
-
-        try {
-            // 🛑 REFERENCIA AL DOCUMENTO
-            const userDocRef = doc(db, "users", userId);
-            
-            // 🛑 ACTUALIZAR DOCUMENTO
-            await updateDoc(userDocRef, {
-                role: selectedRole,
-            });
-
-            setStatusMessage({
-                message: `Rol de ${userId} actualizado a ${selectedRole} con éxito en Firebase.`,
-                type: "success",
-            });
-        } catch (error) {
-            console.error("Error al actualizar rol en Firestore:", error);
-
-            // 2. Reversión si la actualización de Firebase falla
-            setUsers((prevUsers) =>
-                prevUsers.map((user) =>
-                    // 🛑 CAMBIO: Comparar user.id con userId
-                    user.id === userId ? { ...user, role: oldRole } : user
-                )
-            );
-            setStatusMessage({
-                message: `Error al actualizar el rol en Firebase. El rol ha sido revertido a ${oldRole}. (Detalle: ${error.message})`,
-                type: "error",
-            });
-        } finally {
-            setSelectedRole("");
+    // Simulate permissions based on role
+    const getPermissions = (role) => {
+        if (role === "admin") {
+            return {
+                editarEmpresa: true,
+                editarCatalogo: true,
+                verCatalogo: true,
+                verContactos: true,
+                accederBD: true
+            };
+        } else if (role === "usuario") {
+            return {
+                editarEmpresa: false,
+                editarCatalogo: true,
+                verCatalogo: true,
+                verContactos: true,
+                accederBD: true
+            };
+        } else {
+            return {
+                editarEmpresa: false,
+                editarCatalogo: false,
+                verCatalogo: false,
+                verContactos: false,
+                accederBD: false
+            };
         }
     };
 
-    const startEdit = (user) => {
-        if (!isAdmin) return;
-        // 🛑 CAMBIO: Usar user.id
-        setEditingUserId(user.id); 
-        setSelectedRole(user.role);
-    };
+    const tabs = [
+        { id: "configuracion", label: "Configuración", icon: <MdSettings /> },
+        { id: "perfil", label: "Perfil", icon: <MdPerson /> },
+        { id: "empresa", label: "Empresa", icon: <MdBusiness /> },
+        { id: "equipo", label: "Equipo", icon: <MdPeople /> }
+    ];
 
-    const viewDetails = (user) => {
-        setSelectedUser(user);
-        setView("details");
-    };
-
-    // -------------------------------------------------------------------------
-    // RENDERIZADO DEL MENSAJE DE ESTADO (Se mantiene)
-    // -------------------------------------------------------------------------
-    const renderStatusMessage = () => {
-        if (!statusMessage.message || view !== "list") return null;
-
-        const baseClasses =
-            "flex items-center p-4 rounded-lg text-sm font-semibold mb-6 shadow-md";
-        let icon, styleClasses;
-
-        switch (statusMessage.type) {
-            case "pending":
-                icon = <LoaderCircle className="animate-spin w-5 h-5 mr-3" />;
-                styleClasses = "bg-blue-100 text-blue-800 border border-blue-300";
-                break;
-            case "success":
-                icon = <CheckCircle className="w-5 h-5 mr-3" />;
-                styleClasses = "bg-green-100 text-green-800 border border-green-300";
-                break;
-            case "error":
-            default:
-                icon = <AlertTriangle className="w-5 h-5 mr-3" />;
-                styleClasses = "bg-red-100 text-red-800 border border-red-300";
-        }
-
+    if (loading) {
         return (
-            <div className={`${baseClasses} ${styleClasses}`}>
-                {icon}
-                <p className="flex-1">{statusMessage.message}</p>
-                <button
-                    onClick={() => setStatusMessage({ message: "", type: "" })}
-                    className="ml-4 p-1 rounded-full hover:bg-opacity-50 transition"
-                    title="Cerrar mensaje"
-                >
-                    <XCircle className="w-4 h-4" />
-                </button>
-            </div>
-        );
-    };
-
-    // Renderizado principal basado en el estado 'view'
-    if (view === "details") {
-        return <UserDetails user={selectedUser} setView={setView} />;
-    }
-
-    if (!canView) {
-        return (
-            <div className="p-8 bg-white shadow-xl rounded-lg text-center mt-10 max-w-lg mx-auto border-t-4 border-red-500">
-                <Lock className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold text-gray-800 mb-3">
-                    Acceso Denegado
-                </h2>
-                <p className="text-gray-600">
-                    Lo sentimos, tu rol de {userAccessLevel} no tiene permisos para
-                    acceder a la gestión de usuarios.
-                </p>
+            <div className="flex justify-center items-center min-h-screen bg-gray-50">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
             </div>
         );
     }
 
-    // Vista de la lista de usuarios
     return (
-        <div className="p-4 sm:p-8 bg-gray-50 min-h-screen">
-            <h1 className="text-3xl font-extrabold text-gray-900 mb-2 flex items-center">
-                <UserPen className="w-8 h-8 mr-3 text-indigo-600" />
-                Panel de Gestión de Usuarios (Firebase)
-            </h1>
-            <p className="text-lg text-gray-600 mb-6 border-b pb-4">
-                Nivel de Acceso Actual:{" "}
-                <span className="font-bold text-indigo-700">{userAccessLevel}</span>
-            </p>
+        <div className="min-h-screen bg-gray-50 p-2 md:p-4">
+            <div className="w-full mx-auto">
+                {/* Header */}
+                <div className="bg-white rounded-t-xl shadow-sm border-b border-gray-200 p-4">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="p-3 bg-green-100 rounded-lg">
+                            <FaBuilding className="text-2xl text-green-600" />
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-bold text-gray-900">HORTICULTURA</h1>
+                            <p className="text-sm text-gray-500">Sistema Empresarial</p>
+                        </div>
+                    </div>
 
-            {renderStatusMessage()}
-
-            {loading ? (
-                <div className="flex justify-center items-center h-64 bg-white rounded-lg shadow-lg">
-                    <LoaderCircle className="w-10 h-10 animate-spin text-indigo-600 mr-3" />
-                    <span className="text-xl font-medium text-gray-700">
-                        Cargando usuarios...
-                    </span>
-                </div>
-            ) : (
-                <>
-                    {/* Vista de Tarjetas (Móvil) */}
-                    <div className="sm:hidden">
-                        <h2 className="text-xl font-bold mb-4 text-gray-800 border-b pb-2">
-                            Lista de Usuarios ({users.length})
-                        </h2>
-                        {users.map((user) => (
-                            <UserCard
-                                // 🛑 CAMBIO: Usar user.id
-                                key={user.id} 
-                                user={user}
-                                startEdit={startEdit}
-                                editingUserId={editingUserId}
-                                selectedRole={selectedRole}
-                                setSelectedRole={setSelectedRole}
-                                handleRoleUpdate={handleRoleUpdate}
-                                setEditingUserId={setEditingUserId}
-                                userRole={loggedInRole}
-                                viewDetails={viewDetails}
-                            />
+                    {/* Navigation Tabs */}
+                    <div className="flex gap-2 overflow-x-auto">
+                        {tabs.map(tab => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all whitespace-nowrap ${
+                                    activeTab === tab.id
+                                        ? "bg-green-600 text-white shadow-md"
+                                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                }`}
+                            >
+                                {tab.icon}
+                                {tab.label}
+                            </button>
                         ))}
                     </div>
+                </div>
 
-                    {/* Tabla (Escritorio/Tablet) */}
-                    <div className="hidden sm:block overflow-x-auto bg-white rounded-lg shadow-lg">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-100">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Nombre
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Email
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Rol
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Último Login
-                                    </th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Acciones
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {users.map((user) => (
-                                    <tr
-                                        // 🛑 CAMBIO: Usar user.id
-                                        key={user.id} 
-                                        className="hover:bg-indigo-50 transition duration-150"
-                                    >
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            <button
-                                                onClick={() => viewDetails(user)}
-                                                className="text-indigo-600 hover:text-indigo-900 font-bold"
-                                            >
-                                                {user.name || "N/A"}
-                                            </button>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {user.email}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                            {/* 🛑 CAMBIO: Usar user.id */}
-                                            {editingUserId === user.id && isAdmin ? (
-                                                <select
-                                                    value={selectedRole}
-                                                    onChange={(e) => setSelectedRole(e.target.value)}
-                                                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                                >
-                                                    {allowedRoles.map((role) => (
-                                                        <option key={role} value={role}>
-                                                            {role.toUpperCase()}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            ) : (
-                                                <span
-                                                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                                        user.role === "admin"
-                                                            ? "bg-red-100 text-red-800"
-                                                            : user.role === "invitado"
-                                                            ? "bg-yellow-100 text-yellow-800"
-                                                            : "bg-green-100 text-green-800"
-                                                    }`}
-                                                >
-                                                    {user.role.toUpperCase()}
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {new Date(user.lastLogin).toLocaleDateString("es-ES")}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            {/* 🛑 CAMBIO: Usar user.id */}
-                                            {editingUserId === user.id && isAdmin ? (
-                                                <div className="flex justify-end space-x-2">
-                                                    <button
-                                                        // 🛑 CAMBIO: Usar user.id
-                                                        onClick={() => handleRoleUpdate(user.id)}
-                                                        className="text-white bg-green-600 hover:bg-green-700 font-bold py-1 px-3 rounded-md text-xs transition shadow-md"
-                                                    >
-                                                        <CheckCircle className="w-4 h-4 inline mr-1" />{" "}
-                                                        Guardar
-                                                    </button>
-                                                    <button
-                                                        onClick={() => setEditingUserId(null)}
-                                                        className="text-gray-700 bg-gray-200 hover:bg-gray-300 font-bold py-1 px-3 rounded-md text-xs transition shadow-md"
-                                                    >
-                                                        <XCircle className="w-4 h-4 inline mr-1" /> Cancelar
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <div className="flex justify-end space-x-2">
-                                                    <button
-                                                        onClick={() => viewDetails(user)}
-                                                        className="text-gray-500 hover:text-indigo-600 transition p-1 rounded-full hover:bg-indigo-50"
-                                                        title="Ver Detalles"
-                                                    >
-                                                        <View className="w-5 h-5" />
-                                                    </button>
-                                                    {isAdmin && (
-                                                        <button
-                                                            onClick={() => startEdit(user)}
-                                                            className="text-blue-600 hover:text-blue-900 transition p-1 rounded-full hover:bg-blue-50"
-                                                            title="Editar Rol"
-                                                        >
-                                                            <UserPen className="w-5 h-5" />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </td>
+                {/* Content Area */}
+                {activeTab === "equipo" && (
+                    <div className="bg-white rounded-b-xl shadow-lg">
+                        {/* Section Header */}
+                        <div className="px-6 py-4 border-b border-gray-200">
+                            <h2 className="text-lg font-bold text-gray-700 uppercase tracking-wide">
+                                Permisos
+                            </h2>
+                        </div>
+
+                        {/* Permissions Table */}
+                        <div className="overflow-x-auto">
+                            <table className="w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase tracking-wide">
+                                            Nombre
+                                        </th>
+                                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-600 uppercase tracking-wide">
+                                            Empresa
+                                        </th>
+                                        <th className="px-2 py-2 text-center text-[10px] font-semibold text-gray-600 uppercase tracking-wide">
+                                            Editar empresa
+                                        </th>
+                                        <th className="px-2 py-2 text-center text-[10px] font-semibold text-gray-600 uppercase tracking-wide">
+                                            Editar catálogo
+                                        </th>
+                                        <th className="px-2 py-2 text-center text-[10px] font-semibold text-gray-600 uppercase tracking-wide">
+                                            Ver catálogo
+                                        </th>
+                                        <th className="px-2 py-2 text-center text-[10px] font-semibold text-gray-600 uppercase tracking-wide">
+                                            Ver contactos
+                                        </th>
+                                        <th className="px-2 py-2 text-center text-[10px] font-semibold text-gray-600 uppercase tracking-wide">
+                                            Acceso a BD
+                                        </th>
+                                        <th className="px-2 py-2 text-center text-[10px] font-semibold text-gray-600 uppercase tracking-wide">
+                                            Estado
+                                        </th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {users.map((user) => {
+                                        const permissions = getPermissions(user.role);
+                                        return (
+                                            <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                                                {/* Name Column */}
+                                                <td className="px-3 py-3 whitespace-nowrap">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="p-1.5 bg-orange-100 rounded-full flex-shrink-0">
+                                                            <FaUser className="text-orange-600 text-xs" />
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <p className="text-xs font-semibold text-gray-900 truncate">
+                                                                {user.name || "Sin nombre"}
+                                                            </p>
+                                                            <p className="text-[10px] text-gray-500 truncate">{user.email}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+
+                                                {/* Company Column */}
+                                                <td className="px-3 py-3 whitespace-nowrap">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="p-1 bg-green-100 rounded flex-shrink-0">
+                                                            <FaBuilding className="text-green-600 text-[10px]" />
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <p className="text-xs font-medium text-gray-900 truncate">
+                                                                Horticultura Del Sureste SL
+                                                            </p>
+                                                            <p className="text-[10px] text-gray-500 truncate">
+                                                                {user.role === "admin" ? "Gerente agrícola" : "Productor agrícola"}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+
+                                                {/* Permission Columns */}
+                                                <td className="px-2 py-3 text-center">
+                                                    {permissions.editarEmpresa ? (
+                                                        <FaCheckCircle className="inline text-green-500 text-base" />
+                                                    ) : (
+                                                        <FaTimesCircle className="inline text-red-500 text-base" />
+                                                    )}
+                                                </td>
+                                                <td className="px-2 py-3 text-center">
+                                                    {permissions.editarCatalogo ? (
+                                                        <FaCheckCircle className="inline text-green-500 text-base" />
+                                                    ) : (
+                                                        <FaTimesCircle className="inline text-red-500 text-base" />
+                                                    )}
+                                                </td>
+                                                <td className="px-2 py-3 text-center">
+                                                    {permissions.verCatalogo ? (
+                                                        <FaCheckCircle className="inline text-green-500 text-base" />
+                                                    ) : (
+                                                        <FaTimesCircle className="inline text-red-500 text-base" />
+                                                    )}
+                                                </td>
+                                                <td className="px-2 py-3 text-center">
+                                                    {permissions.verContactos ? (
+                                                        <FaCheckCircle className="inline text-green-500 text-base" />
+                                                    ) : (
+                                                        <FaTimesCircle className="inline text-red-500 text-base" />
+                                                    )}
+                                                </td>
+                                                <td className="px-2 py-3 text-center">
+                                                    {permissions.accederBD ? (
+                                                        <FaCheckCircle className="inline text-green-500 text-base" />
+                                                    ) : (
+                                                        <FaTimesCircle className="inline text-red-500 text-base" />
+                                                    )}
+                                                </td>
+
+                                                {/* Status Column */}
+                                                <td className="px-2 py-3 text-center">
+                                                    <div className="flex items-center justify-center gap-1.5">
+                                                        <FaCircle className="text-green-500 text-[8px]" />
+                                                        <span className="text-xs font-medium text-gray-700">Activo</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </>
-            )}
+                )}
+
+                {/* Placeholder for other tabs */}
+                {activeTab !== "equipo" && (
+                    <div className="bg-white rounded-b-xl shadow-lg p-12 text-center">
+                        <div className="text-gray-400 mb-4">
+                            <MdSettings className="text-6xl mx-auto" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-700 mb-2">
+                            Sección en desarrollo
+                        </h3>
+                        <p className="text-gray-500">
+                            La pestaña "{tabs.find(t => t.id === activeTab)?.label}" estará disponible próximamente.
+                        </p>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
 
-export default UserManagement;
+export default TeamView;
