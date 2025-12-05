@@ -1,6 +1,9 @@
+
+// src/components/ProductItemForm.js
 import React from 'react'
 import {PRODUCT_CATALOG} from '../Util/util'
 import InputField from './InputField';
+import { FaTrash, FaImage, FaTimesCircle, FaBoxOpen, FaWeightHanging, FaCalculator } from 'react-icons/fa';
 
 const ProductItemForm = React.memo(
   ({ item, index, handleItemChange, handleItemBlur, deleteItem }) => {
@@ -30,173 +33,140 @@ const ProductItemForm = React.memo(
       item.imageUrl && item.imageUrl.startsWith("data:image");
 
     return (
-      <div className="border border-indigo-200 bg-indigo-50 p-6 rounded-xl shadow-md space-y-4">
-        <div className="flex justify-between items-center pb-2 border-b border-indigo-200">
-          <h4 className="text-xl font-bold text-indigo-700">
-            Producto #{index + 1}
-          </h4>
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 transition-all hover:shadow-md hover:border-emerald-200 group relative">
+        {/* Header del Producto */}
+        <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+             <div className="bg-emerald-100 text-emerald-600 p-2 rounded-lg font-bold text-sm">
+                #{index + 1}
+             </div>
+             <h4 className="text-lg font-bold text-slate-700">
+                Detalle de Cosecha
+             </h4>
+          </div>
           <button
             type="button"
             onClick={() => deleteItem(item.id)}
-            className="p-2 bg-red-100 rounded-full text-red-600 hover:bg-red-200 transition"
-            aria-label="Eliminar producto"
+            className="p-2 bg-rose-50 rounded-xl text-rose-500 hover:bg-rose-100 hover:text-rose-600 transition-colors"
+            title="Eliminar registro"
           >
-            {/* Icono de papelera */}
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-              ></path>
-            </svg>
+            <FaTrash className="w-4 h-4" />
           </button>
         </div>
 
-        {/* 1. CAMPO NOMBRE DEL PRODUCTO (SELECT) */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Nombre del Producto
-          </label>
-          <select
-            value={item.productName || ""}
-            onChange={handleProductNameChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-inner transition bg-white"
-          >
-            <option value="" disabled>
-              Selecciona un producto
-            </option>
-            {Object.keys(PRODUCT_CATALOG).map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <div className="space-y-6">
+            {/* 1. SELECCI├ôN DE PRODUCTO */}
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                Variedad / Producto
+              </label>
+              <div className="relative">
+                  <select
+                    value={item.productName || ""}
+                    onChange={handleProductNameChange}
+                    className="w-full p-3 pl-4 pr-10 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all appearance-none cursor-pointer hover:bg-emerald-50/30"
+                  >
+                    <option value="" disabled>Seleccionar cultivo...</option>
+                    {Object.keys(PRODUCT_CATALOG).map((name) => (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-400">
+                    <FaBoxOpen />
+                  </div>
+              </div>
+            </div>
 
-        {/* 2. CAMPOS DE CÁLCULO */}
-        <div className="grid grid-cols-2 gap-4">
-          {/* Factor A: SÓLO LECTURA */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Peso(kg) (Automático)
-            </label>
-            <input
-              type="text"
-              value={factorAValue}
-              readOnly
-              placeholder="0"
-              className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 shadow-inner"
-            />
-          </div>
+            {/* 2. C├üLCULOS (PESO Y CAJAS) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {/* Peso Autom├ítico */}
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-1">
+                   <FaWeightHanging /> Peso Unitario (Kg)
+                </label>
+                <div className="w-full p-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 font-mono font-semibold">
+                    {factorAValue || "0.00"}
+                </div>
+              </div>
 
-          {/* Factor B: INPUT NORMAL */}
-          <InputField
-            label="Cajas (Ingresar)"
-            value={item.factorB}
-            field="factorB"
-            type="number"
-            placeholder="0"
-            item={item}
-            handleItemChange={handleItemChange}
-            handleItemBlur={handleItemBlur}
-          />
-        </div>
-
-        {/* 3. CAMPO DE SUBIDA DE IMAGEN LOCAL */}
-        <div className="border border-indigo-300 rounded-lg p-3 bg-white">
-          <label
-            htmlFor={`image-upload-${item.id}`}
-            className="block text-sm font-medium text-indigo-700 mb-2"
-          >
-            Documentación Visual (Imagen)
-          </label>
-          <input
-            type="file"
-            id={`image-upload-${item.id}`}
-            accept="image/*"
-            onChange={(e) => handleImageChange(e)}
-            className="hidden"
-          />
-          <div className="flex items-center space-x-3">
-            <button
-              type="button"
-              onClick={() =>
-                document.getElementById(`image-upload-${item.id}`).click()
-              }
-              className="py-2 px-4 bg-indigo-500 text-white rounded-lg shadow-md hover:bg-indigo-600 transition flex items-center text-sm"
-            >
-              {/* Icono de subida */}
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0l-4 4m4-4v12"
-                ></path>
-              </svg>
-              Seleccionar Imagen
-            </button>
-
-            {item.imageUrl && (
-              <button
-                type="button"
-                onClick={() => handleItemChange(item.id, "imageUrl", "")}
-                className="text-red-500 text-sm hover:text-red-700 transition"
-              >
-                Quitar Imagen
-              </button>
-            )}
-          </div>
-
-          {item.imageUrl && (
-            <div className="mt-3 p-2 border border-gray-200 rounded-lg text-center bg-gray-50">
-              <p className="text-xs text-gray-600 mb-1 font-semibold">
-                Previsualización (Máx 200px):
-              </p>
-              <img
-                src={item.imageUrl}
-                alt={`Imagen de ${item.productName || "Producto"}`}
-                style={{ maxHeight: "200px", width: "auto" }}
-                className="mx-auto rounded-md shadow-lg"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = "";
-                  e.target.style.display = "none";
-                  console.error(
-                    "Error al cargar la imagen. Puede que sea un Base64 corrupto o no válido."
-                  );
-                }}
+              {/* Input Cajas (Factor B) */}
+              <InputField
+                label="Cantidad de Cajas"
+                value={item.factorB}
+                field="factorB"
+                type="number"
+                placeholder="0"
+                item={item}
+                handleItemChange={handleItemChange}
+                handleItemBlur={handleItemBlur}
               />
-              {isBase64Image && (
-                <p className="text-xs text-amber-600 font-bold mt-2">
-                  La imagen se subirá al guardar.
-                </p>
+            </div>
+            
+            {/* 3. RESULTADO CALCULADO */}
+             <div className="p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-100/50 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-emerald-700">
+                    <FaCalculator />
+                    <span className="text-sm font-bold">Total Calculado</span>
+                </div>
+                <div className="text-right">
+                    <span className="block text-2xl font-black text-emerald-700 leading-none">
+                        {item.result || "0.00"}
+                    </span>
+                    <span className="text-xs font-bold text-emerald-500 uppercase">Kilogramos</span>
+                </div>
+             </div>
+
+            {/* 4. IMAGEN (DOCUMENTACI├ôN VISUAL) */}
+            <div className="border-t border-slate-100 pt-4">
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-3">
+                Evidencia Visual
+              </label>
+              
+              {!item.imageUrl ? (
+                  <div className="relative group">
+                      <input
+                        type="file"
+                        id={`image-upload-${item.id}`}
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
+                      <label 
+                        htmlFor={`image-upload-${item.id}`}
+                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/30 transition-all"
+                      >
+                           <FaImage className="w-8 h-8 text-slate-300 group-hover:text-emerald-500 mb-2 transition-colors" />
+                           <span className="text-sm text-slate-500 font-medium group-hover:text-emerald-600">Subir foto de evidencia</span>
+                      </label>
+                  </div>
+              ) : (
+                  <div className="relative rounded-xl overflow-hidden border border-slate-200 shadow-sm group">
+                      <img
+                        src={item.imageUrl}
+                        alt="Evidencia"
+                        className="w-full h-48 object-cover object-center"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                           <button
+                             type="button"
+                             onClick={() => handleItemChange(item.id, "imageUrl", "")}
+                             className="p-2 bg-white rounded-full text-rose-500 hover:text-rose-600 shadow-lg transform hover:scale-110 transition-all"
+                             title="Eliminar imagen"
+                           >
+                               <FaTimesCircle className="w-6 h-6" />
+                           </button>
+                      </div>
+                      {isBase64Image && (
+                          <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/60 backdrop-blur-sm rounded text-[10px] text-white font-bold uppercase tracking-wider">
+                              Pendiente de guardar
+                          </div>
+                      )}
+                  </div>
               )}
             </div>
-          )}
-        </div>
-
-        {/* 4. RESULTADO */}
-        <div className="p-3 bg-indigo-100 rounded-lg border border-indigo-300">
-          <p className="text-sm font-medium text-indigo-800">Resultado (Kg):</p>
-          <p className="text-xl font-bold text-indigo-900 mt-1">
-            {parseFloat(factorAValue || 0)} * {parseFloat(item.factorB || 0)} ={" "}
-            <span className="text-green-700">{item.result || "0.00"}</span>
-            Kg
-          </p>
         </div>
       </div>
     );

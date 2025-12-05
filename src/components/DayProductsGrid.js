@@ -1,37 +1,30 @@
 
 
+// 🚨 CORRECCIÓN CLAVE: Se establece dailyData = {} como valor por defecto
+// src/components/DayProductsGrid.js
 import React from 'react';
 import ProductCard from './ProductCard'; 
-// Asume que ProductCard y el archivo de utilidades existen.
-// import { formatDate } from '../Util/util'; 
+import { FaChevronLeft, FaEdit, FaFilePdf, FaCalculator } from 'react-icons/fa';
 
-// 🚨 CORRECCIÓN CLAVE: Se establece dailyData = {} como valor por defecto
 const DayProductsGrid = ({
     dateKey, 
-    dailyData = {}, // <--- SOLUCIÓN AL "Uncaught TypeError: Cannot read properties of undefined"
+    dailyData = {}, 
     handleDayClick, 
     generatePDF, 
-    exportToCsv, // Aunque no se usa, lo mantengo en la desestructuración
+    exportToCsv,
     formatNumber,
-    REPORT_CONFIG // Si usas esto para el PDF, asegúrate de pasarlo
+    REPORT_CONFIG 
 }) => {
     
-    // Acceso seguro: si dailyData es {}, esto devuelve un objeto vacío {}
     const dayData = dailyData[dateKey] ?? {};
-    
     const productionItems = dayData.items || [];
-    // Aseguramos que costData exista o sea un objeto vacío
     const costDetails = dayData.costData ?? {}; 
     
     const finalProductionCost = parseFloat(dayData.finalProductionCost) || 0;
     const productionCostVariable = parseFloat(dayData.productionCostVariable) || 0;
-    
-    // Acceso seguro a los detalles de coste
     const numWorkers = parseFloat(costDetails.numWorkers) || 0;
     const hoursWorked = parseFloat(costDetails.hoursWorked) || 0;
-    
     const hasCostData = numWorkers > 0 || hoursWorked > 0 || productionCostVariable > 0;
-    
     const dailyTotal = productionItems.reduce((sum, item) => sum + parseFloat(item.result || 0), 0);
     
     const dateDisplay = new Date(dateKey + "T00:00:00").toLocaleDateString("es-ES", {
@@ -42,126 +35,125 @@ const DayProductsGrid = ({
     });
 
     return (
-        <div id={`day-report-${dateKey}`} className="p-4 md:p-8 max-w-6xl mx-auto bg-gray-50 rounded-xl shadow-2xl">
+        <div id={`day-report-${dateKey}`} className="max-w-7xl mx-auto space-y-6">
             
-            {/* Botón Volver al Calendario */}
-            <button 
-                onClick={() => handleDayClick(null, "calendar")} 
-                className="text-indigo-600 hover:text-indigo-800 flex items-center mb-6 transition font-semibold"
-            >
-                <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                </svg>
-                Volver al Calendario
-            </button>
-            
-            {/* Encabezado y Total */}
-            <div className="flex justify-between items-center mb-6 border-b border-gray-300 pb-3">
+            {/* Header de Navegación */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/80 backdrop-blur-sm p-6 rounded-3xl shadow-sm border border-slate-100">
                 <div>
-                    <h2 className="text-3xl font-extrabold text-gray-900">
-                        Detalle de Producción
-                    </h2>
-                    <p className="text-xl text-indigo-600 font-semibold">{dateDisplay}</p>
-                </div>
-                <div className="text-right p-3 bg-white border border-gray-200 rounded-lg shadow-sm">
-                    <p className="text-sm font-medium text-gray-600">Total Producido:</p>
-                    <p className="text-3xl font-extrabold text-green-700">
-                        {formatNumber(dailyTotal)} Kg
-                    </p>
-                </div>
-            </div>
-            
-            {/* Tarjeta de Coste por Kg */}
-            <div className="mb-6 p-4 bg-teal-100 rounded-xl border border-teal-300 shadow-inner">
-                <div className="flex justify-between items-center">
-                    <h3 className="text-xl font-bold text-teal-800">
-                        Coste/Kg de Producción:
-                    </h3>
-                    <div className="flex items-baseline space-x-2">
-                        <p className="text-4xl font-extrabold text-blue-700">
-                            {formatNumber(finalProductionCost, 4)}
-                        </p>
-                        <span className="text-lg font-semibold text-blue-600">€/Kg</span>
-                    </div>
-                </div>
-                {hasCostData && (
-                    <div className="mt-2 text-sm text-teal-700 border-t border-teal-300 pt-2">
-                        <p>
-                            Trabajadores: <span className="font-bold">{numWorkers}</span>,
-                            Horas: <span className="font-bold">{hoursWorked}</span>
-                        </p>
-                        <p>
-                            Coste Laboral Diario:{" "}
-                            <span className="font-bold">
-                                {formatNumber(productionCostVariable)} €
-                            </span>
-                        </p>
-                    </div>
-                )}
-            </div>
-            
-            {/* Listado de Productos */}
-            {productionItems.length === 0 ? (
-                <p className="text-center text-gray-500 p-8 border-2 border-dashed border-gray-300 rounded-lg">
-                    No hay productos guardados para este día.
-                </p>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {productionItems.map((item, index) => (
-                        <ProductCard key={index} item={item} />
-                    ))}
-                </div>
-            )}
-            
-            {/* Botones de Acción (Editar, Exportar) */}
-            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:space-x-4">
-                
-                {/* Botón Editar Productos */}
-                <button 
-                    // 🟢 CORRECCIÓN DE VISTA: Usar "edit_products"
-                    onClick={() => handleDayClick(dateKey, "edit_products")} 
-                    className="flex justify-center w-full sm:w-auto px-4 py-3 sm:px-6 sm:py-3 border border-transparent text-base font-bold rounded-full shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition transform hover:scale-[1.05]"
-                >
-                    <svg className="w-5 h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
-                    </svg>
-                    <span className="items-center">Editar Productos</span>
-                </button>
-                
-                {/* Botón Editar Costes */}
-                <button 
-                    // 🟢 CORRECCIÓN DE VISTA: Usar "edit_costs"
-                    onClick={() => handleDayClick(dateKey, "edit_costs")} 
-                    className="flex justify-center w-full sm:w-auto px-4 py-3 sm:px-6 sm:py-3 border border-transparent text-base font-bold rounded-full shadow-lg text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition transform hover:scale-[1.05]"
-                >
-                    <svg className="w-5 h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V9m0 3v2m0 4v3m0-13v3"></path>
-                    </svg>
-                    <span className="items-center">Editar Costes</span>
-                </button>
-
-                {/* Botón Exportar PDF */}
-                <button
-                    onClick={() => generatePDF(dateKey)}
-                    className=" flex justify-center w-full sm:w-auto px-4 py-3 sm:px-6 sm:py-3 border border-transparent text-base font-bold rounded-full shadow-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition transform hover:scale-[1.05]"
-                >
-                    <svg
-                        className="w-5 h-5 sm:mr-2"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
+                   <button 
+                        onClick={() => handleDayClick(null, "calendar")} 
+                        className="group flex items-center text-slate-500 hover:text-emerald-600 transition-colors font-semibold mb-2"
                     >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M12 10v6m0 0l3-3m-3 3l-3-3m-3 8h12a2 2 0 002-2V7a2 2 0 00-2-2h-3.328A3 3 0 0012 3m0 18H5a2 2 0 01-2-2v-7a2 2 0 012-2h12a2 2 0 012 2v7a2 2 0 01-2 2z"
-                        ></path>
-                    </svg>
-                    <span className="items-center">Exportar PDF</span>
-                </button>
+                        <FaChevronLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
+                        Volver al Calendario
+                    </button>
+                    <h2 className="text-3xl font-black text-slate-900 capitalize tracking-tight">
+                        {dateDisplay}
+                    </h2>
+                    <p className="text-slate-500 font-medium">Detalle de Producción y Costes</p>
+                </div>
                 
+                <div className="w-full md:w-auto flex flex-col sm:flex-row gap-4 text-right">
+                    <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                        <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">Total Producido</p>
+                        <p className="text-3xl font-black text-emerald-700 leading-none">
+                            {formatNumber(dailyTotal)} <span className="text-lg text-emerald-500 font-bold">Kg</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Panel Central: Lista de Productos (2/3 ancho) */}
+                <div className="lg:col-span-2 space-y-6">
+                     {productionItems.length === 0 ? (
+                        <div className="bg-white p-12 rounded-3xl shadow-sm border border-slate-200 border-dashed text-center">
+                            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-bold text-slate-700">Sin producción registrada</h3>
+                             <p className="text-slate-500 mb-6">No hay registros de cosecha para este día.</p>
+                             <button 
+                                onClick={() => handleDayClick(dateKey, "edit_products")} 
+                                className="px-6 py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 shadow-md transition-all"
+                            >
+                                Registrar Producción
+                             </button>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {productionItems.map((item, index) => (
+                                <ProductCard key={index} item={item} />
+                            ))}
+                        </div>
+                    )}
+                </div>
+                
+                {/* Panel Lateral: Costes y Acciones (1/3 ancho) */}
+                <div className="space-y-6">
+                     {/* Tarjeta de Costes */}
+                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                         <div className="flex items-center gap-3 mb-4">
+                             <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                                 <FaCalculator />
+                             </div>
+                             <h3 className="text-lg font-bold text-slate-800">Métricas Financieras</h3>
+                         </div>
+                         
+                         <div className="space-y-4">
+                             <div>
+                                 <p className="text-sm text-slate-500 font-medium">Coste Final</p>
+                                 <div className="flex items-baseline gap-1">
+                                    <span className="text-3xl font-black text-slate-800">{formatNumber(finalProductionCost, 4)}</span>
+                                    <span className="text-base font-bold text-slate-400">€/Kg</span>
+                                 </div>
+                             </div>
+                             
+                             <div className="h-px bg-slate-100 w-full"></div>
+                             
+                             <div className="grid grid-cols-2 gap-4">
+                                 <div>
+                                     <p className="text-xs font-bold text-slate-400 uppercase">Personal</p>
+                                     <p className="text-lg font-bold text-slate-700">{numWorkers}</p>
+                                 </div>
+                                  <div>
+                                     <p className="text-xs font-bold text-slate-400 uppercase">Horas</p>
+                                     <p className="text-lg font-bold text-slate-700">{hoursWorked}</p>
+                                 </div>
+                             </div>
+                              <div>
+                                 <p className="text-xs font-bold text-slate-400 uppercase">Coste Laboral Total</p>
+                                 <p className="text-lg font-bold text-red-600">{formatNumber(productionCostVariable)} €</p>
+                             </div>
+                         </div>
+                    </div>
+
+                    {/* Acciones */}
+                    <div className="flex flex-col gap-3">
+                         <button 
+                            onClick={() => handleDayClick(dateKey, "edit_products")} 
+                            className="w-full flex items-center justify-center px-4 py-3 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 hover:border-emerald-200 hover:text-emerald-700 transition-all shadow-sm"
+                        >
+                            <FaEdit className="mr-2" /> Editar Productos
+                        </button>
+                        
+                         <button 
+                            onClick={() => handleDayClick(dateKey, "edit_costs")} 
+                            className="w-full flex items-center justify-center px-4 py-3 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 hover:border-blue-200 hover:text-blue-700 transition-all shadow-sm"
+                        >
+                            <FaCalculator className="mr-2" /> Editar Costes
+                        </button>
+                        
+                         <button
+                            onClick={() => generatePDF(dateKey)}
+                            className="w-full flex items-center justify-center px-4 py-3 bg-red-50 border border-red-100 text-red-600 font-bold rounded-xl hover:bg-red-100 hover:shadow-md transition-all"
+                        >
+                            <FaFilePdf className="mr-2" /> Exportar PDF
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     );

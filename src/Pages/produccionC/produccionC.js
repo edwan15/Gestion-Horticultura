@@ -89,9 +89,9 @@ const PRODUCT_CATALOG = {
   "IFCO 6410": 10,
   "IFCO 4312": 5,
   CARTON: 8,
-  "NARANJA 2┬░": 16,
-  "SAMPER 1┬░": 12,
-  "SAMPER 2┬░": 15,
+  "NARANJA 2": 16,
+  "SAMPER 1": 12,
+  "SAMPER 2": 15,
 };
 
 // --- FUNCIONES DE UTILIDAD ---
@@ -135,7 +135,7 @@ const calculateCosts = (dailyTotal, numWorkers, hoursWorked) => {
 const exportToCsv = (dailyData, dateKeyToExport = null) => {
   // Si no se proporciona una clave, no podemos exportar.
   if (!dateKeyToExport || !dailyData[dateKeyToExport]) {
-    toast.error("Selecciona un d├¡a con datos para exportar.");
+    toast.error("Selecciona un dia con datos para exportar.");
     return;
   }
 
@@ -149,7 +149,7 @@ const exportToCsv = (dailyData, dateKeyToExport = null) => {
     "Peso (kg)",
     "Cajas",
     "Produccion Total (kg)",
-    "Costo Final (Ôé¼/kg)",
+    "Costo Final (€/kg)",
   ].join(";"); // Usamos el punto y coma (;) como separador para compatibilidad
 
   // 2. Mapear los datos de los productos
@@ -188,7 +188,7 @@ const exportToCsv = (dailyData, dateKeyToExport = null) => {
   link.click();
   document.body.removeChild(link);
 
-  toast.success(`Datos de ${dateDisplay} exportados correctamente a CSV. ­ƒôÑ`);
+  toast.success(`Datos de ${dateDisplay} exportados correctamente a CSV`);
 };
 
 const exportAllToCsv = (dailyData) => {
@@ -214,8 +214,8 @@ const exportAllToCsv = (dailyData) => {
     "Peso (kg)",
     "Cajas",
     "Produccion Total Producto (kg)",
-    "Coste Final Diario (Ôé¼/kg)",
-    "Coste Laboral Diario (Ôé¼)",
+    "Coste Final Diario (€/kg)",
+    "Coste Laboral Diario (€/kg)",
     "Total Produccion Dia (kg)",
   ].join(";");
 
@@ -387,7 +387,7 @@ const getDocRef = (dbInstance, userId, greenhouseId) => {
   );
 };
 
-// Ruta a la configuraci├│n/meta global de un invernadero
+// Ruta a la configuración/meta global de un invernadero
 const getGoalRef = (dbInstance, userId, greenhouseId) => {
   return doc(
     dbInstance,
@@ -409,29 +409,45 @@ const InlineGoalInput = ({ globalGoal, updateGoal, formatNumber }) => {
     updateGoal(goal, deadline);
   };
   return (
-    <div className="p-6 bg-white rounded-xl shadow-lg">
-      <h3 className="text-xl font-bold text-indigo-700 mb-4">
-        Establecer Meta Global (Kg)
-      </h3>
-      <div className="space-y-3">
-        <input
-          type="number"
-          value={goal}
-          onChange={(e) => setGoal(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500"
-          placeholder="Ej: 50000"
-        />
-        <input
-          type="date"
-          value={deadline}
-          onChange={(e) => setDeadline(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500"
-        />
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-emerald-100/50 p-6 h-full transition-all hover:shadow-md">
+      <div className="flex items-center gap-2 mb-6">
+        <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+        </div>
+        <h3 className="text-lg font-bold text-slate-800">
+          Configurar Meta Global
+        </h3>
+      </div>
+      
+      <div className="space-y-4">
+        <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Objetivo (Kg)</label>
+            <input
+            type="number"
+            value={goal}
+            onChange={(e) => setGoal(e.target.value)}
+            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all font-mono text-slate-700"
+            placeholder="Ej: 50000"
+            />
+        </div>
+        
+        <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Fecha Límite</label>
+            <input
+            type="date"
+            value={deadline}
+            onChange={(e) => setDeadline(e.target.value)}
+            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-slate-700"
+            />
+        </div>
+        
         <button
           onClick={handleSave}
-          className="w-full py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition"
+          className="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 mt-2"
         >
-          Guardar Meta
+          Guardar Configuración
         </button>
       </div>
     </div>
@@ -453,169 +469,70 @@ const InlineGlobalGoalTracker = ({
     ? new Date(globalGoal.deadline)
     : null;
   const isPastDeadline = deadlineDate && deadlineDate < new Date();
-  // Clase para el color de la barra de progreso
-  const progressColor = safePercentage >= 100 ? "bg-green-500" : "bg-teal-500";
-
-  // Icono din├ímico para el estado
-  const StatusIcon = ({ isComplete, isNegative }) => {
-    if (isComplete) {
-      return (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-8 h-8 text-white"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      );
-    }
-    if (isNegative) {
-      return (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-8 h-8 text-white"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-          />
-        </svg>
-      );
-    }
-    return (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="w-8 h-8 text-white"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={2}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M13 10V3L4 14h7v7l9-11h-7z"
-        />
-      </svg>
-    );
-  };
-
+  
+  // Enterprise Color Logic
+  const isComplete = remaining <= 0;
+  const progressColor = isComplete ? "bg-emerald-500" : "bg-teal-500";
+  const statusColor = isComplete ? "text-emerald-600" : "text-teal-600";
+  const borderColor = isComplete ? "border-emerald-500" : "border-teal-500";
+  const iconBg = isComplete ? "bg-emerald-100" : "bg-teal-100";
+  const iconColor = isComplete ? "text-emerald-600" : "text-teal-600";
+  
   return (
-    <div className="p-6 rounded-xl shadow-xl border-l-4 border-teal-500 bg-white hover:shadow-2xl transition duration-300 ease-in-out">
+    <div className={`h-full p-6 rounded-2xl bg-white/80 backdrop-blur-sm shadow-sm border-l-4 ${borderColor} border-y border-r border-slate-100 transition-all hover:shadow-md flex flex-col justify-between`}>
       {/* HEADER Y META */}
-      <div className="flex items-center justify-between border-b pb-3 mb-4">
-        <h3 className="text-xl font-bold text-teal-700 flex items-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-6 h-6 mr-2 text-teal-500 animate-pulse-slow"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-            />
-          </svg>
-          Seguimiento de Meta
-        </h3>
-        <span className="text-2xl font-extrabold text-teal-600">
-          {formatNumber(target)} Kg
-        </span>
+      <div className="flex items-start justify-between mb-6">
+        <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${iconBg} ${iconColor}`}>
+             <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0h6" />
+            </svg>
+            </div>
+            <div>
+                 <h3 className="text-sm uppercase tracking-wider font-bold text-slate-500">
+                  Progreso General
+                </h3>
+                 <span className={`text-2xl font-extrabold ${statusColor}`}>
+                  {formatNumber(target)} <span className="text-sm text-slate-400 font-normal">Kg (Meta)</span>
+                </span>
+            </div>
+        </div>
+        
+        {globalGoal.deadline && (
+             <div className="text-right">
+                 <p className="text-xs font-semibold text-slate-400 uppercase">Fecha Limite</p>
+                 <p className={`text-sm font-bold ${isPastDeadline ? "text-rose-500" : "text-slate-600"}`}>
+                    {globalGoal.deadline}
+                 </p>
+             </div>
+        )}
       </div>
 
-      {/* DETALLE DE FECHA L├ìMITE */}
-      {globalGoal.deadline && (
-        <div className="flex justify-between items-center text-sm font-medium mb-4">
-          <p className="text-gray-500 flex items-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-4 h-4 mr-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-            Fecha L├¡mite:
-          </p>
-          <p
-            className={`${
-              isPastDeadline ? "text-red-600 font-bold" : "text-gray-700"
-            }`}
-          >
-            {globalGoal.deadline} {isPastDeadline && "(Vencida)"}
-          </p>
-        </div>
-      )}
+      {/* METRICAS PRINCIPALES */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+           <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+               <p className="text-xs text-slate-400 font-semibold mb-1">Recolectado</p>
+               <p className="text-lg font-bold text-slate-700">{formatNumber(progress)} Kg</p>
+           </div>
+            <div className={`p-3 rounded-xl border ${isComplete ? 'bg-emerald-50 border-emerald-100' : 'bg-orange-50 border-orange-100'}`}>
+               <p className={`text-xs font-semibold mb-1 ${isComplete ? 'text-emerald-500' : 'text-orange-500'}`}>{isComplete ? 'Excedente' : 'Faltante'}</p>
+               <p className={`text-lg font-bold ${isComplete ? 'text-emerald-700' : 'text-orange-700'}`}>{formatNumber(Math.abs(remaining))} Kg</p>
+           </div>
+      </div>
 
       {/* BARRA DE PROGRESO */}
-      <div className="mt-4">
-        <div className="flex justify-between mb-1">
-          <span className="text-sm font-semibold text-gray-700">Progreso:</span>
-
-          <span
-            className={`text-sm font-bold ${
-              safePercentage >= 100 ? "text-green-600" : "text-teal-600"
-            }`}
-          >
+      <div>
+        <div className="flex justify-between mb-2">
+          <span className="text-xs font-bold text-slate-500 uppercase">Avance Real</span>
+          <span className={`text-xs font-bold ${statusColor}`}>
             {formatNumber(safePercentage)}%
           </span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+        <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
           <div
-            className={`h-3 rounded-full transition-all duration-1000 ease-out ${progressColor}`}
+            className={`h-2.5 rounded-full transition-all duration-1000 ease-out shadow-sm ${progressColor}`}
             style={{ width: `${safePercentage}%` }}
           ></div>
-        </div>
-      </div>
-
-      {/* RESULTADO (Diferencia) - Usando Grid para Responsividad */}
-      <div
-        className={`mt-6 p-4 rounded-xl flex items-center justify-between space-x-4
-            ${
-              remaining <= 0
-                ? "bg-green-100 border border-green-300"
-                : "bg-orange-100 border border-orange-300"
-            }`}
-      >
-        {/* ├ìcono de Estado */}
-        <div
-          className={`flex-shrink-0 p-2 rounded-full shadow-lg ${
-            remaining <= 0 ? "bg-green-500" : "bg-orange-500"
-          }`}
-        >
-          <StatusIcon isComplete={remaining <= 0} isNegative={remaining > 0} />
-        </div>
-
-        {/* Texto de Estado */}
-        <div className="flex-grow min-w-0">
-          <p className="font-bold text-base md:text-lg truncate">
-            {remaining <= 0 ? "┬íMeta Superada!" : "Producci├│n Restante:"}
-          </p>
-          <p className="text-2xl font-extrabold">
-            {formatNumber(Math.abs(remaining))}
-            <span className="text-lg font-normal ml-1">Kg</span>
-          </p>
         </div>
       </div>
     </div>
@@ -641,20 +558,20 @@ const AuthScreen = ({ app }) => {
         await createUserWithEmailAndPassword(auth, email, password);
       }
     } catch (err) {
-      console.error("Error de autenticaci├│n:", err);
-      let errorMessage = "Ocurri├│ un error. Verifica tu correo/contrase├▒a.";
+      console.error("Error de autenticacion:", err);
+      let errorMessage = "Ocurrio un error. Verifica tu correo/contraseña.";
       if (
         err.code === "auth/user-not-found" ||
         err.code === "auth/wrong-password" ||
         err.code === "auth/invalid-credential"
       ) {
-        errorMessage = "Correo o contrase├▒a inv├ílidos.";
+        errorMessage = "Correo o contraseña invalidos.";
       } else if (err.code === "auth/email-already-in-use") {
-        errorMessage = "El correo ya est├í registrado.";
+        errorMessage = "El correo ya esta registrado.";
       } else if (err.code === "auth/weak-password") {
-        errorMessage = "La contrase├▒a debe tener al menos 6 caracteres.";
+        errorMessage = "La contraseña debe tener al menos 6 caracteres.";
       } else if (err.code === "auth/invalid-email") {
-        errorMessage = "El formato del correo electr├│nico es inv├ílido.";
+        errorMessage = "El formato del correo electronico es invalido.";
       }
       setError(errorMessage);
     } finally {
@@ -715,8 +632,8 @@ const AuthScreen = ({ app }) => {
           className="text-sm text-indigo-500 hover:text-indigo-700 font-medium transition"
         >
           {isLogin
-            ? "┬┐No tienes cuenta? Reg├¡strate aqu├¡."
-            : "┬┐Ya tienes cuenta? Inicia sesi├│n aqu├¡."}
+            ? "¿No tienes cuenta? Registrate aqui."
+            : "¿Ya tienes cuenta? Inicia sesion aqui."}
         </button>
       </div>
     </div>
@@ -758,11 +675,11 @@ const DayEditForm = ({
   const handleSaveLocal = async () => {
     setIsSaving(true);
 
-    // Identificar im├ígenes Base64 para subir
+    // Identificar imágenes Base64 para subir
     const imagesToUpload = items.filter(
       (item) => item.imageUrl && item.imageUrl.startsWith("data:image")
     );
-    console.log("Im├ígenes a subir:", imagesToUpload);
+    console.log("Imágenes a subir:", imagesToUpload);
 
     if (imagesToUpload.length > 0) {
       setUploading(true);
@@ -782,8 +699,8 @@ const DayEditForm = ({
 
         await handleSave(dateKey, updatedItems);
       } catch (error) {
-        console.error("Error al subir im├ígenes o guardar:", error);
-        toast.error("Error al guardar: Las im├ígenes no se pudieron subir.");
+        console.error("Error al subir imágenes o guardar:", error);
+        toast.error("Error al guardar: Las imágenes no se pudieron subir.");
       } finally {
         setUploading(false);
       }
@@ -815,16 +732,16 @@ const DayEditForm = ({
             d="M10 19l-7-7m0 0l7-7m-7 7h18"
           ></path>
         </svg>
-        Volver a la vista del d├¡a
+        Volver a la vista del día
       </button>
       <h2 className="text-3xl font-extrabold text-indigo-700 border-b pb-3">
-        Editar Productos del D├¡a: {dateKey}
+        Editar Productos del Día: {dateKey}
       </h2>
 
       {/* Total Actualizado */}
       <div className="p-4 bg-green-50 rounded-xl border border-green-300 shadow-md flex justify-between items-center">
         <p className="text-xl font-semibold text-green-800">
-          Total Producci├│n (Kg) Actual:
+          Total Producción (Kg) Actual:
         </p>
         <p className="text-3xl font-extrabold text-green-700">
           {formatNumber(dailyTotal)} Kg
@@ -865,16 +782,16 @@ const DayEditForm = ({
               d="M12 6v6m0 0v6m0-6h6m-6 0H6"
             ></path>
           </svg>
-          A├▒adir Producto
+          Añadir Producto
         </button>
         <button
           onClick={handleSaveLocal}
           className="flex-grow py-3 px-4 bg-indigo-600 text-white font-bold rounded-lg shadow-xl hover:bg-indigo-700 transition disabled:bg-indigo-400"
-          disabled={isSaving} // Deshabilitar si ya est├í guardando
+          disabled={isSaving} // Deshabilitar si ya está guardando
         >
           {isSaving || uploading
-            ? `Guardando... (${uploading ? "Subiendo im├ígenes" : "Datos"})`
-            : "Guardar Datos del D├¡a"}
+            ? `Guardando... (${uploading ? "Subiendo imágenes" : "Datos"})`
+            : "Guardar Datos del Día"}
         </button>
       </div>
     </div>
@@ -998,7 +915,7 @@ const sanitizeForFirestore = (data) => {
       });
 
       // --- 2.1. Header HTML ---
-      // ­ƒÉø Correcci├│n: Usamos una URL de logo condicional para evitar fallos si es vac├¡a
+      // ­ƒÉø Corrección: Usamos una URL de logo condicional para evitar fallos si es vacío
       const logoUrl =
         REPORT_CONFIG.LOGO_URL ||
         "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
@@ -1019,7 +936,7 @@ const sanitizeForFirestore = (data) => {
                     }</p>
                 </div>
                 <div style="flex: 1; text-align: right;">
-                    <p style="font-size: 11px; margin: 0; color: #9CA3AF;">Fecha de Impresi├│n:</p>
+                    <p style="font-size: 11px; margin: 0; color: #9CA3AF;">Fecha de Impresión:</p>
                     <p style="font-size: 13px; font-weight: 600; margin: 2px 0 0 0; color: #4B5563;">${formatDate(
                       new Date()
                     )}</p>
@@ -1042,7 +959,7 @@ const sanitizeForFirestore = (data) => {
         dailyDataEntry.items.forEach((item) => {
           const result = parseFloat(item.result || 0);
 
-          // ­ƒÉø Correcci├│n: Usamos una imagen de placeholder si la URL es Base64
+          // ­ƒÉø Corrección: Usamos una imagen de placeholder si la URL es Base64
           // (html2canvas a veces falla con Base64 muy grandes o mal formados)
           const itemImageUrl =
             item.imageUrl && item.imageUrl.startsWith("data:image")
@@ -1062,10 +979,10 @@ const sanitizeForFirestore = (data) => {
                         ${
                           itemImageUrl
                             ? `<img
-                                        src="${itemImageUrl}"
-                                        alt="Evidencia"
-                                        style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 15px; flex-shrink: 0; border: 2px solid #D1E5F7;"
-                                    >`
+                                    src="${itemImageUrl}"
+                                    alt="Evidencia"
+                                    style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 15px; flex-shrink: 0; border: 2px solid #D1E5F7;"
+                                >`
                             : `<div style="width: 60px; height: 60px; background-color: #E0E7FF; border-radius: 8px; margin-right: 15px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #1E3A8A; font-weight: 700; flex-shrink: 0;">
                                         EVIDENCIA
                                     </div>`
@@ -1156,9 +1073,9 @@ const sanitizeForFirestore = (data) => {
 
         const canvas = await html2canvas(pdfContent, {
           scale: 2,
-          // Usar CORS es CR├ìTICO para im├ígenes externas (como el logo)
+          // Usar CORS es CRítico para imágenes externas (como el logo)
           useCORS: true,
-          // scrollY: -window.scrollY // Descomentar solo si el elemento est├í en la parte visible
+          // scrollY: -window.scrollY // Descomentar solo si el elemento está en la parte visible
         });
 
         const imgData = canvas.toDataURL("image/jpeg", 1.0);
@@ -1166,17 +1083,17 @@ const sanitizeForFirestore = (data) => {
         const imgWidth = 210; // Ancho A4 en mm
         const pageHeight = 295; // Alto A4 en mm
 
-        // Calcula la altura de la imagen renderizada manteniendo la proporci├│n A4
+        // Calcula la altura de la imagen renderizada manteniendo la proporción A4
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
         let heightLeft = imgHeight;
 
         let position = 0;
-
+        
         // Primer renderizado
         pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
 
-        // Manejo de p├íginas m├║ltiples (si el contenido es muy largo)
+        // Manejo de páginas múltiples (si el contenido es muy largo)
         while (heightLeft >= 0) {
           position = heightLeft - imgHeight;
           pdf.addPage();
@@ -1205,7 +1122,7 @@ const sanitizeForFirestore = (data) => {
   );
 
   const getConfigRef = (dbInstance, userId, greenhouseId) => {
-    // Si tienes un documento de configuraci├│n separado, usa esa ruta.
+    // Si tienes un documento de configuración separado, usa esa ruta.
     // Si la config de datos se guarda con la meta global, usa getGoalRef.
     return doc(
       dbInstance,
@@ -1246,7 +1163,7 @@ const sanitizeForFirestore = (data) => {
         const list = data.list || [];
         setGreenhouses(list);
 
-        // L├ôGICA DE SELECCI├ôN INICIAL (solo si el ID actual no est├í establecido)
+        // Lógica de selección inicial (solo si el ID actual no está establecido)
         if (list.length > 0) {
             
             const storedId = localStorage.getItem(GREENHOUSE_STORAGE_KEY);
@@ -1325,7 +1242,7 @@ const sanitizeForFirestore = (data) => {
 }, [userId, greenhouseId]); // Dependencia clave: [userId, greenhouseId]
 
   // =======================================================================
-  // === L├ôGICA DE MANEJO DE INVERNADEROS (NUEVO)
+  // === Lógica de manejo de invernaderos (NUEVO)
   // =======================================================================
 
   const updateGreenhouseConfig = async (newConfig) => {
@@ -1346,13 +1263,13 @@ const sanitizeForFirestore = (data) => {
         // Aunque el onSnapshot deber├¡a actualizarlo, esto asegura una respuesta inmediata.
         setGreenhouseConfig(prev => ({
             ...prev,
-            ...newConfig // Fusionar la nueva configuraci├│n
+            ...newConfig // Fusionar la nueva configuración
         }));
 
-        toast.success("Ô£à Configuraci├│n del invernadero guardada en Firebase.");
+        toast.success("Configuración del invernadero guardada en Firebase.");
     } catch (error) {
-        console.error("Error al guardar la configuraci├│n del invernadero:", error);
-        toast.error("ÔØî Error al guardar la configuraci├│n. Int├®ntalo de nuevo.");
+        console.error("Error al guardar la configuración del invernadero:", error);
+        toast.error("Error al guardar la configuración. Inténtalo de nuevo.");
     }
 };
 
@@ -1363,11 +1280,11 @@ const sanitizeForFirestore = (data) => {
     const newGreenhouse = { id: newId, name: name };
 
     try {
-      // 1. A├▒adir a la lista de invernaderos
+      // 1. Añadir a la lista de invernaderos
       await updateDoc(listRef, {
         list: arrayUnion(newGreenhouse),
       }).catch(async (error) => {
-        // Si el documento no existe (primera vez), cr├®alo
+        // Si el documento no existe (primera vez), créalo
         if (error.code === "not-found") {
           await setDoc(listRef, { list: [newGreenhouse] });
         } else {
@@ -1378,7 +1295,7 @@ const sanitizeForFirestore = (data) => {
       // 2. Establecer como el invernadero seleccionado
       setGreenhouseId(newId);
       setGreenhouseName(name);
-      toast.success(`Invernadero "${name}" creado con ├®xito.`);
+      toast.success(`Invernadero "${name}" creado con exito.`);
     } catch (error) {
       console.error("Error creating greenhouse:", error);
       toast.error("Error al crear el invernadero.");
@@ -1414,7 +1331,7 @@ const sanitizeForFirestore = (data) => {
       await deleteDoc(dailyRef);
       await deleteDoc(goalRef);
 
-      // 3. Reajustar la selecci├│n
+      // 3. Reajustar la selección
       if (greenhouseId === id) {
         const remaining = greenhouses.filter((g) => g.id !== id);
         if (remaining.length > 0) {
@@ -1440,7 +1357,7 @@ const sanitizeForFirestore = (data) => {
   };
 
   // =======================================================================
-  // === L├ôGICA DE MANEJO DE DATOS DIARIOS
+  // === Lógica de manejo de datos diarios
   // =======================================================================
 
   // Calculo de suma total para el tracker (MEMO)
@@ -1459,7 +1376,7 @@ const sanitizeForFirestore = (data) => {
     setCurrentDate(newDate);
   }, []);
 
-  // Maneja click en un d├¡a del calendario
+  // Maneja click en un día del calendario
   const handleDayClick = useCallback((dateKey, newView) => {
     setSelectedDate(dateKey);
     setView(newView);
@@ -1505,7 +1422,7 @@ const sanitizeForFirestore = (data) => {
     [selectedDate] // Depende de selectedDate
   );
 
-  // A├▒adir un nuevo producto al d├¡a (local)
+  // Añadir un nuevo producto al día (local)
   const addItem = useCallback(() => {
     setSelectedDate((dateKey) => {
       setDailyData((prev) => {
@@ -1587,9 +1504,9 @@ const sanitizeForFirestore = (data) => {
         costData: existingDayData.costData || {},
       };
 
-      // 2. Procesar la actualizaci├│n de PRODUCTOS (si se pasan 'items')
+      // 2. Procesar la actualización de PRODUCTOS (si se pasan 'items')
       if (items) {
-        // Recalcular el resultado para cada ├¡tem (por si DayEditForm no lo hizo)
+        // Recalcular el resultado para cada item (por si DayEditForm no lo hizo)
         const itemsToSave = items.map((item) => ({
           ...item,
           result: calculateResult(item.productName, item.factorB),
@@ -1598,9 +1515,9 @@ const sanitizeForFirestore = (data) => {
         const dailyTotal = itemsToSave.reduce(
           (sum, item) => sum + parseFloat(item.result || 0),
           0
-        );
+          );
 
-        // Actualizar el objeto con los nuevos ├¡tems y el total
+        // Actualizar el objeto con los nuevos items y el total
         newDayData.items = itemsToSave;
         newDayData.dailyTotal = dailyTotal.toFixed(2);
 
@@ -1624,12 +1541,12 @@ const sanitizeForFirestore = (data) => {
         };
       }
 
-      // 3. Procesar la actualizaci├│n de COSTES (si se pasa 'costData')
+      // 3. Procesar la actualización de COSTES (si se pasa 'costData')
       if (costData) {
         // Actualizar solo los datos de costes
         newDayData.costData = costData;
 
-        // Recalcular los costes con el total de producci├│n existente
+        // Recalcular los costes con el total de producción existente
         const dailyTotal = parseFloat(newDayData.dailyTotal || 0);
         const newNumWorkers = parseFloat(costData.numWorkers || 0);
         const newHoursWorked = parseFloat(costData.hoursWorked || 0);
@@ -1639,7 +1556,7 @@ const sanitizeForFirestore = (data) => {
         newDayData = {
           ...newDayData,
           ...costs,
-        };
+         };
       }
 
       // 4. Guardar en Firestore y cambiar de vista
@@ -1652,7 +1569,7 @@ const sanitizeForFirestore = (data) => {
           { merge: true }
         );
 
-        // ­ƒÜÇ CORRECCI├ôN CLAVE: Volver a la vista de detalle del d├¡a para ver el resultado
+        // CORRECCI├ôN CLAVE: Volver a la vista de detalle del d├¡a para ver el resultado
         toast.success(`Datos guardados para ${dateKey}.`);
         handleDayClick(dateKey, "day_view");
       } catch (error) {
@@ -1685,13 +1602,13 @@ const sanitizeForFirestore = (data) => {
         // setDoc con { merge: true } actualiza solo los campos proporcionados
         await setDoc(configRef, newConfig, { merge: true });
 
-        // Actualizaci├│n local de la configuraci├│n (para UI inmediata)
+        // Actualización local de la configuración (para UI inmediata)
         setGreenhouseConfig(prev => ({
             ...prev,
             ...newConfig 
         }));
 
-        toast.success("Ô£à Configuraci├│n del invernadero (Meta/Config) guardada con ├®xito.");
+        toast.success("Configuración del invernadero (Meta/Config) guardada con éxito.");
     } catch (error) {
         console.error("Error al guardar la configuración del invernadero:", error);
         toast.error("✖ Error al guardar la configuración.");
@@ -1745,24 +1662,24 @@ const sanitizeForFirestore = (data) => {
       <div className="min-h-screen bg-gray-100 p-8">
         <header className="flex justify-between items-center py-4 border-b border-indigo-200 mb-6">
           <h1 className="text-3xl font-extrabold text-indigo-700">
-            Horticultura App ­ƒ¬┤
+            Horticultura App ­
           </h1>
           <button
             onClick={() => signOut(auth)}
             className="py-2 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
           >
-            Cerrar Sesi├│n
+            Cerrar Sesión
           </button>
         </header>
         <div className="max-w-xl mx-auto p-10 bg-white rounded-xl shadow-2xl text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            ┬íBienvenido!
+            Bienvenido!
           </h2>
           <p className="mb-6 text-gray-600">
-            A├║n no tienes invernaderos registrados. Comienza creando uno para
+            Aún no tienes invernaderos registrados. Comienza creando uno para
             gestionar tus inventarios.
           </p>
-          <GreenhouseSelector // Usamos el selector para la creaci├│n
+          <GreenhouseSelector // Usamos el selector para la creación
             greenhouses={greenhouses}
             greenhouseId={greenhouseId}
             handleSelectGreenhouse={handleSelectGreenhouse}
@@ -1785,28 +1702,66 @@ case"home":
 return(
 <HomeContent dailyData={dailyData} greenhouses={greenhouses} selectedGreenhouseId={greenhouseId} setSelectedGreenhouseId={setGreenhouseId} updateGreenhouseConfig={saveGreenhouseConfig}/>
 );
-case"calendar":
-return(
-// 1. Contenedor principal del calendario y estad├¡sticas (Gap reducido para m├│vil)
-<div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-<div className="lg:col-span-2">
-<h2 className="text-xl sm:text-2xl font-extrabold text-indigo-700 mb-4 border-b pb-2">
-Producci├│n - {greenhouseName} ­ƒôà
-</h2>
-{/* ­ƒöæ CLAVE: Reducimos el padding A├ÜN M├üS en m├│vil (p-1) para que el CalendarGrid tenga m├íxima amplitud. 
-     Asume que CalendarGrid es solo la rejilla de d├¡as sin su propio padding exterior.
-*/}
-<div className="p-1 sm:p-2">
-<CalendarGrid currentDate={currentDate} dailyData={dailyData} selectedDate={selectedDate} handleMonthChange={handleMonthChange} handleDayClick={handleDayClick} formatNumber={formatNumber} setSelectedDate={setSelectedDate}/>
-</div>
-</div>
-<div className="space-y-4 pt-4 lg:pt-0">
-<DatosEstadisticosCard dailyData={dailyData} formatNumber={formatNumber} initialConfig={greenhouseConfig} onSaveConfig={saveGreenhouseConfig}/>
-<InlineGlobalGoalTracker globalGoal={globalGoal} dailyTotalSum={dailyTotalSum} formatNumber={formatNumber}/>
-<InlineGoalInput globalGoal={globalGoal} updateGoal={updateGoal} formatNumber={formatNumber}/>
-</div>
-</div>
-);
+      case "calendar":
+        return (
+          // 1. Contenedor principal del calendario y estadisticas
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* COLUMNA IZQUIERDA: CALENDARIO (8 columnas) */}
+            <div className="lg:col-span-8 flex flex-col gap-6">
+              <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+                <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                  <h2 className="text-lg font-bold text-slate-700 flex items-center gap-2">
+                    <span className="text-xl">📅</span> Calendario de Cosecha
+                  </h2>
+                   <div className="px-3 py-1 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-500 shadow-sm">
+                      {greenhouseName || "General"}
+                   </div>
+                </div>
+                
+                <div className="p-2 sm:p-4">
+                  <CalendarGrid
+                    currentDate={currentDate}
+                    dailyData={dailyData}
+                    selectedDate={selectedDate}
+                    handleMonthChange={handleMonthChange}
+                    handleDayClick={handleDayClick}
+                    formatNumber={formatNumber}
+                    setSelectedDate={setSelectedDate}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* COLUMNA DERECHA: WIDGETS (4 columnas) */}
+            <div className="lg:col-span-4 flex flex-col gap-6 h-full">
+              {/* Widget Estadisticas */}
+              <DatosEstadisticosCard
+                dailyData={dailyData}
+                formatNumber={formatNumber}
+                initialConfig={greenhouseConfig}
+                onSaveConfig={saveGreenhouseConfig}
+              />
+              
+              {/* Widget Meta Global */}
+              <div className="flex-1 min-h-[200px]">
+                 <InlineGlobalGoalTracker
+                    globalGoal={globalGoal}
+                    dailyTotalSum={dailyTotalSum}
+                    formatNumber={formatNumber}
+                  />
+              </div>
+
+               {/* Widget Configuracion */}
+               <div>
+                  <InlineGoalInput
+                    globalGoal={globalGoal}
+                    updateGoal={updateGoal}
+                    formatNumber={formatNumber}
+                  />
+               </div>
+            </div>
+          </div>
+        );
 case"day_view":
 return(
 <DayProductsGrid dateKey={selectedDate} dailyData={dailyData} handleDayClick={handleDayClick} formatNumber={formatNumber} calculateCosts={calculateCosts} generatePDF={generatePDF} REPORT_CONFIG={REPORT_CONFIG}/>
@@ -1830,46 +1785,100 @@ Vista no encontrada.
 
 
 
-return(
-<div className="min-h-screen bg-gray-100 p-1 sm:p-4 md:p-6 lg:p-10">
-<header className="bg-white p-4 rounded-xl shadow-2xl mb-6 border-t-4 border-indigo-600">
-<div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-<h1 className="text-2xl md:text-3xl font-extrabold text-indigo-700 flex items-center">
-<svg className="w-7 h-7 md:w-8 md:h-8 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 14v6m-3-3h6m-3-6h.01M5 14h.01M12 20h.01M12 10h.01M3 20h.01M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"></path>
-</svg>
-Gesti├│n de Inventario ­ƒÑ¼
-</h1>
-<div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4 w-full md:w-auto justify-end">
-<div className="w-full sm:w-auto">
-<GreenhouseSelector greenhouses={greenhouses} greenhouseId={greenhouseId} handleSelectGreenhouse={handleSelectGreenhouse} handleCreateGreenhouse={handleCreateGreenhouse} handleDeleteGreenhouse={handleDeleteGreenhouse} showManagementButtons={view==="calendar"}/>
-</div>
-<button onClick={()=>signOut(auth)} className="w-full sm:w-auto py-3 px-4 bg-red-500 text-white rounded-lg font-semibold shadow-md hover:bg-red-600 transition flex items-center justify-center text-sm md:text-base">
-<svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-</svg>
-Cerrar Sesi├│n
-</button>
-</div>
-</div>
-</header>
-{view==="calendar"&&(
-<div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-6 px-1">
-<button className="w-full sm:w-auto flex items-center justify-center px-6 py-3 bg-green-600 text-white text-base rounded-lg font-semibold shadow-md hover:bg-green-500 transition duration-300 disabled:bg-gray-400 disabled:shadow-none disabled:cursor-not-allowed" onClick={()=>exportToCsv(dailyData,selectedDate)} disabled={!dailyData[selectedDate]||dailyData[selectedDate].items.length===0} title={`Descargar datos de producci├│n del d├¡a ${selectedDate} en formato CSV`}>
-<FaFileCsv size={16} className="mr-2"/>
-Exportar D├¡a ({selectedDate})
-</button>
-<button className="w-full sm:w-auto flex items-center justify-center px-6 py-3 bg-indigo-600 text-white text-base rounded-lg font-semibold shadow-md hover:bg-indigo-500 transition duration-300 disabled:bg-gray-400 disabled:shadow-none disabled:cursor-not-allowed" onClick={()=>exportAllToCsv(dailyData)} disabled={!hasGlobalData} title="Descargar todos los datos hist├│ricos de producci├│n en un solo archivo CSV">
-<FaFileDownload size={16} className="mr-2"/>
-Exportar Datos Globales (CSV)
-</button>
-</div>
-)}
-<div className="bg-white p-3 md:p-8 rounded-xl shadow-2xl">
-{renderContent()}
-</div>
-</div>
-);
+  return (
+    <div className="min-h-screen bg-slate-50 relative font-sans text-slate-800 selection:bg-emerald-100 selection:text-emerald-800">
+      {/* Fondo Decorativo Sutil */}
+      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 pointer-events-none"></div>
+
+      <div className="relative z-10 container mx-auto px-4 py-6 md:py-8 lg:px-8 max-w-7xl">
+        {/* Header Moderno con Glassmorphism */}
+        <header className="bg-white/80 backdrop-blur-md rounded-3xl shadow-sm border border-white/60 p-5 md:p-6 mb-8 flex flex-col md:flex-row justify-between items-center gap-6 transition-all hover:shadow-md">
+          <div className="flex items-center gap-5 w-full md:w-auto">
+            <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-3.5 rounded-2xl shadow-lg shadow-emerald-200/50 transform transition hover:scale-105 duration-300">
+              {/* Icono de Planta/Produccion */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-8 w-8 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                />
+              </svg>
+            </div>
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-extrabold text-slate-800 tracking-tight leading-tight">
+                Gestión de Producción
+              </h1>
+              <p className="text-sm font-medium text-slate-500 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Control de Cultivos en Tiempo Real
+              </p>
+            </div>
+          </div>
+
+          {/* Selector y Logout */}
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+             <div className="w-full sm:w-auto">
+                <GreenhouseSelector
+                  greenhouses={greenhouses}
+                  greenhouseId={greenhouseId}
+                  handleSelectGreenhouse={handleSelectGreenhouse}
+                  handleCreateGreenhouse={handleCreateGreenhouse}
+                  handleDeleteGreenhouse={handleDeleteGreenhouse}
+                  showManagementButtons={view === "calendar"}
+                />
+             </div>
+             
+             <button
+              onClick={() => signOut(auth)}
+              className="group flex items-center justify-center p-3 bg-white border border-slate-200 text-slate-500 rounded-xl hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all duration-200 shadow-sm"
+              title="Cerrar Sesi├│n"
+             >
+                <svg className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                </svg>
+             </button>
+          </div>
+        </header>
+
+        {/* Acciones Globales (Solo en calendario) */}
+        {view === "calendar" && (
+          <div className="flex flex-wrap items-center justify-end gap-3 mb-8 animate-fade-in-up">
+            <button
+              className="flex items-center px-5 py-2.5 bg-white text-slate-600 font-bold rounded-xl shadow-sm border border-slate-200 hover:bg-slate-50 hover:text-emerald-600 hover:border-emerald-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm group"
+              onClick={() => exportToCsv(dailyData, selectedDate)}
+              disabled={
+                !dailyData[selectedDate] ||
+                dailyData[selectedDate].items.length === 0
+              }
+            >
+              <FaFileCsv className="mr-2 text-slate-400 group-hover:text-emerald-500 transition-colors" size={16} />
+              Exportar Día ({selectedDate})
+            </button>
+            <button
+              className="flex items-center px-5 py-2.5 bg-slate-800 text-white font-bold rounded-xl shadow-lg hover:bg-slate-700 hover:shadow-xl transition-all duration-200 -translate-y-0.5 transform disabled:opacity-50 disabled:translate-y-0 text-sm"
+              onClick={() => exportAllToCsv(dailyData)}
+              disabled={!hasGlobalData}
+            >
+              <FaFileDownload className="mr-2 text-emerald-400" size={16} />
+              Exportar Datos Globales
+            </button>
+          </div>
+        )}
+
+        {/* Contenido Principal */}
+        <div className="animate-fade-in">
+             {renderContent()}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 

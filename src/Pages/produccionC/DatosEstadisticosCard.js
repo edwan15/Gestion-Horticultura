@@ -261,26 +261,16 @@
 //   );
 // };
 
-// export default DatosEstadisticosCard;
-
-
-
-
-
+// src/components/DatosEstadisticosCard.js (MODIFICADO)
 import React, { useEffect, useState } from "react";
-import DatosCultivoModal from "./DatosEstadisticosModal"; // Asegúrate de que esta ruta sea correcta
-
-// --- Importación de Iconos ---
+import DatosCultivoModal from "./DatosEstadisticosModal"; 
 import {
   FaSeedling,
   FaIndustry,
   FaShieldAlt,
-  FaChartBar,
+  FaChartPie,
   FaEdit,
 } from "react-icons/fa";
-
-// --- Iconos y Estructura (Para la visualización del resumen) ---
-const CardIcon = <FaChartBar className="w-6 h-6 mr-2 text-indigo-500" />;
 
 const DatosEstadisticosCard = ({
   initialConfig,
@@ -288,103 +278,102 @@ const DatosEstadisticosCard = ({
   dailyData,
   formatNumber,
 }) => {
-  // 1. Estado para controlar la visibilidad del modal
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  // 2. Estado local para el formulario.
-  // 🔑 CORRECCIÓN CRÍTICA: Inicialización segura. Usa {} si initialConfig es undefined/null.
   const [formData, setFormData] = useState(initialConfig || {});
 
-  // 3. Handlers de estado
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
   const handleSave = (newFormData) => {
-    // Actualiza el estado local inmediatamente
     setFormData(newFormData);
-    // Llama al handler del padre para guardar en Firebase
     onSaveConfig(newFormData); 
     closeModal();
   };
 
-  // 4. Sincronización: Actualiza el estado local cuando la prop initialConfig (del padre/Firebase) cambie.
   useEffect(() => {
-    // Si la prop entrante es válida, actualiza. 
-    // Usamos el mismo patrón de protección para evitar problemas.
     setFormData(initialConfig || {}); 
-    // NOTA: Gracias a la 'key' en el padre, este useEffect se dispara de forma limpia.
   }, [initialConfig]);
 
-  // 5. Datos de resumen usando el estado local (formData)
-  // La protección '|| "Sin definir"' es un fallback de seguridad.
   const estadisticasResumen = {
     nombreCultivo: formData.cropName || "Sin nombre",
     modoProduccion: formData.productionMode || "Sin definir",
     tipoProteccion: formData.protectionType || "Sin definir",
   };
 
-  // --- Componente de Fila de Resumen ---
   const ResumenItem = ({ Icon, label, value }) => (
-    <p className="flex items-center text-sm text-gray-700">
-      <Icon className="w-4 h-4 mr-2 text-indigo-400 flex-shrink-0" />
-      <span className="font-medium text-gray-800 mr-2">{label}:</span>
-      <span className="truncate">{value}</span>
-    </p>
+    <div className="flex items-start p-2 rounded-lg hover:bg-slate-50 transition-colors group">
+      <div className="mt-0.5 p-1.5 rounded-md bg-white border border-slate-100 text-emerald-500 shadow-sm group-hover:border-emerald-200 transition-colors">
+         <Icon className="w-3.5 h-3.5" />
+      </div>
+      <div className="ml-3">
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{label}</p>
+        <p className="text-sm font-bold text-slate-700 truncate">{value}</p>
+      </div>
+    </div>
   );
 
   return (
     <>
       <div
-        className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-indigo-500 cursor-pointer 
-                   hover:shadow-2xl hover:border-indigo-600 transition duration-300 ease-in-out relative"
-        onClick={openModal} // Abre el modal al hacer clic
+        className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-slate-100 relative group overflow-hidden transition-all hover:shadow-md"
       >
-        {/* Botón de Edición flotante */}
-        <FaEdit
-          className="absolute top-4 right-4 text-gray-400 hover:text-indigo-500 transition cursor-pointer"
-          title="Editar Datos"
-        />
+        {/* Decoracion de fondo */}
+        <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-full -mr-10 -mt-10 opacity-50 pointer-events-none transition-transform group-hover:scale-110"></div>
+
+        {/* Boton Editar */}
+        <button 
+            onClick={openModal}
+            className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-sm text-slate-400 hover:text-emerald-600 hover:shadow-md transition-all z-10"
+            title="Editar Datos"
+        >
+            <FaEdit className="w-4 h-4" />
+        </button>
 
         {/* Encabezado */}
-        <div className="flex items-center border-b pb-3 mb-4">
-          <h3 className="text-xl font-extrabold text-indigo-700 flex items-center">
-            {CardIcon}
-            Datos Estadísticos
-          </h3>
+        <div className="flex items-center gap-3 mb-6 relative z-10">
+            <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                 <FaChartPie className="w-6 h-6" />
+            </div>
+            <div>
+                 <h3 className="text-lg font-bold text-slate-800 leading-none">
+                    Resumen del Cultivo
+                 </h3>
+                 <p className="text-xs text-slate-500 font-medium mt-1">Configuraci├│n Actual</p>
+            </div>
         </div>
 
-        {/* Contenido del Resumen */}
-        <div className="space-y-3">
+        {/* Contenido */}
+        <div className="space-y-1 relative z-10 bg-white/50 rounded-xl p-1 border border-slate-50">
           <ResumenItem
             Icon={FaSeedling}
-            label="Cultivo"
+            label="Variedad"
             value={estadisticasResumen.nombreCultivo}
           />
+          <div className="w-full h-px bg-slate-100 my-1"></div>
           <ResumenItem
             Icon={FaIndustry}
-            label="Modo Producción"
+            label="Modo"
             value={estadisticasResumen.modoProduccion}
           />
+           <div className="w-full h-px bg-slate-100 my-1"></div>
           <ResumenItem
             Icon={FaShieldAlt}
-            label="Tipo Protección"
+            label="Protecci├│n"
             value={estadisticasResumen.tipoProteccion}
           />
-
-          {/* Texto de información adicional */}
-          {dailyData && (
-            <p className="pt-2 text-xs text-gray-500 italic border-t mt-4">
-              Haga clic para ver/editar todos los datos.
-            </p>
-          )}
+        </div>
+        
+        <div className="mt-4 pt-3 border-t border-slate-100 text-center">
+            <span  onClick={openModal} className="text-xs font-semibold text-indigo-500 cursor-pointer hover:underline hover:text-indigo-600">
+                Ver detalles completos
+            </span>
         </div>
       </div>
 
-      {/* MODAL */}
       <DatosCultivoModal
         isOpen={isModalOpen}
         closeModal={closeModal}
-        initialData={formData} // Pasa el estado local actual para edición
+        initialData={formData} 
         onSave={handleSave}
       />
     </>
