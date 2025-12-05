@@ -21,8 +21,10 @@ import {
 } from "firebase/firestore";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
+import { selectUserId } from "../../features/auth/authSlice/authSlice";
 
-// ­ƒÄ» IMPORTACI├ôN DE COMPONENTES EXTERNOS
+// IMPORTACION DE COMPONENTES EXTERNOS
 import CostEditForm from "../../components/CostEditForm";
 import CalendarGrid from "../../components/CalendarGrid";
 import ProductItemForm from "../../components/ProductItemForm";
@@ -67,9 +69,9 @@ const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${cloud_name}/ima
 const REPORT_CONFIG = {
   COMPANY_NAME: "REPORTE DE INVENTARIO DIARIO",
   REPORT_TITLE: "Finca Balsicas Producci├│n S.A.",
-  LOGO_URL:"  " ,
+  LOGO_URL:
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAScAAACrCAMAAAATgapkAAABL1BMVEX///9bW1uowUFcXFxYWFj8/PxQUFD///1bWmDEw8lOTk7FxcWYmJhVVVX5+fnx8fGysrKdnZ2SkpKPnE3X19f///q9vb2kpKT///TDw8OKiorg4OBlZWWowEbPz89vb2+Uk5l/f3/q6upTUlhzcnjMy9CWlJ++zXi/y39qamq2tra4t72Rj5t4eHihoaGPnUX//++muUWPmlX//+mmulw/Pz/2/MmovjSltkjb2uDU3pyHkk66xYCNl1ry+tiwr7bh5crm7rro7sW0xGGvxjjK05uyv27HxtLc5a/E0oft8tDj5N/X3bPL06DIzayorozl6NTO0bq1vI+mrn2YoGqfpn6yylC/0G23vZeptWqxuYWptWzL15CFkz+bpWiHjmKcon7S1MPf56Xd6Zy/0WNeZ0L2AAAVeklEQVR4nO2dC3vaSLKGBVJLY0AtkCUQCGRbux7HzjGBQAI2MbGd2HGu48lkdjPZTM7Z7P7/33CqqltI3HwZnDi29T0zRKBWq/tVdXX1BawoqVKlSpUqVapUqVKlSpUqVapUqW6JDANfrrsUP74Mz6D/U52j1J4uKHbdBbgZMrxW2uzOkYGY9vc7rpG2vTNkuIy1Drr9A9dlrnfdpfmBZTDvsJvtPXsMwNzUoOaJGe7wuNF73t7oACf3uovzw8rwOp/bjWy23T9qGak9zZPRah12n2ezjUaje+Cl5jRPjD1+1u5lSRtDCA5YGkrNEvM+9xsCU69/4jGWcpopd9htS07PG8dDxoyU05QAibfbBt8k7KnX3/U4fJiSmhDjSgdCp3abOMHr8dDg/LpL9eMITYbxMFgKvZN2NrInOGifGGHeCVk6MJb9GQvXl5bKL/hwAyMC2e7Aou55PF9derFjpZxQO0AJtKM87jZGnLDldYduUK4u3V/asa67oNcsoAQNjnQ/9Hb7MadGtg0NzwureQGR3+1YygqqVQLxYol3Nhoxp3av3ei97PAlcXqp6t/hro/t5KsRp3Vj2M0m7anR6HWHylJecqoGIbubAz7GhWMSnBzlVTRkGak/VNaXInur5l+7rnHnUBmKVS0nOPnKm/YEpmz7leJIg3rxYqlcdgzXvWtTwkyxwtDJV8vSAYXu7qiri9R4Y4RL65LTuhOGnPE7ZlFgGST+WvZ3lvsyO2VQb92QTq5DDIW25Ll3rdfz3v3y8d2vrz3PcPkOcfI2elOcjlwLIoZ1iyuu1zr99f37X15fd8G/qxhz3//5YLA3+PDx15ZrcH8pz93jnvDjieDgScvCIBMYvfttb7C8vLx3qtylIV9oGR+Xlx8+hP8Hex/3Wy73uTfNKXuvw0PD67wBSA+XHzwgTuHdaXq8GirvwDqA04MHYFbv9z2PtY4j7x0P8jY6HCh9eIiIBKeWEvh3JjR3yr6yv/xAWBT8+3Dv/SvFO25Mc2p5+78NEBGlfLj8pcPy+fC6y/+d5JergXKKnLDuYCxw9DtvHUeh+D/+EbW7J97p3p/LCX1q8XK1ejdclLV0f2ldaX0AI4kB7J26UX/X/ueznhjp9Y6MV4NlaXaowTvsAJd27sBQjynOfagq9z4uj3MyPkecNjYkp+yRcbicSLS8t++KIOK6a/EdFMrwe3/wIEFgsG/sZmU0sHFP+KhG+8R9k+T08EPHpfB8/Q7Yk4i/qeElOb01DmWY2Xj5uS049Q+9t38mje5jyxLDHP+6q/HN5cvBL/fePhCg/vgDTeWTG80XNHaPYk5fyJ7+JTm98uTl67fdlbNoLsVXTvdkj/fkC7D40uo8E5zaJyftbAMX8o5bHUzwryeibxz80nLjy2+zmPROoICzjw9Iy3snnwbLD195LwWn/sEJrrY0etnPyulgefDb0d4yxU/QJ4ZLL6LLr7su31KM7UScyqFCfT61p4P3g+U3xklfcjpo0PJU/8R993Dw6fDDHsaiy4NPnitnN5fy5VsdbDJrNDFXzkNoMMCRC/Zjh0eDj+6rruB0eIj+qdfottx//flx+AWHdpBqcGi8LkfTwHnnVg9epDlBBLVe3WGt3z58efgnwBp8GL7931ZngxpeFziBd+o1MBo/6vy2TKPlDx/eeTwI8tUR5tvKyTAUI8DuyvEtzpmh0NRb6/TN2y8PB//XefPvzlexevDqsN9oZ3v9g86/33V+Hwy+fHqz3/I8F8kYBrdCJ6iWq5aBuu5KXb0Mz2NWNe9bDA87Q1Kn1Wq58G7/l4+dltfp9hrt3rPOsJvt97JPOu7r1sff3516LvLsiEs68A74vg4cZuDhdVfrimXQpK0VKm6rMzw8+rzxrEs6vvfy5BArD6ddbzcLYxfi1AAvDh+ensKpFlywcSzSd589eftmOGyhdbFbyAkaDGNgAZ3Dk402NCoRAvRo30W7v/F16HmQYAgj4PazVqfbzraPh4yjGR1+Pu7j6nBjNOPS7nc/Hw5bLge2t44TdHZu6/HXe90+bkqRU3I94tVot9vdJwedltH62gZOXue43QZzMjrDg8/HXZpkwZee5AQDv37/+Oiwc7vsSXhbw/CGu8+oI+uJaDualBOf9frHJ0Nv+AyicK91DCY2dDsHG9328+fPe1kxcSdnEejweaP7x5NTNCjjtnx1weu4uHAw3O1OLqckRPV/dtI66DeOvc5Gv//YPd1oJ/evTCUHq3p52OngwuetMCsDMLmdr+BlJtfFJysOIdNwt/3S8O513w6Puo3s2ZwavXb3pCOM9boreRWCjml41G7PrPBExbPH//nvEXOfbDy+1+5lG+dwgvT9e/idoVvACXo53nq80Z9b5UTF++1er/3fXeZ+/U8XMPXPaXc4Vu71jg86t6HbA8/UOjzOPj/LmKKag38HULvc2+3Cv4355iST92hWoX/SuQWbM7DRvX2y8c+Nke6RNubp+NBz39xLaOL81Jknn/Y7N/87HhRdetAtxXIx9D5DXGkNMQmmm5HSjSTeQmjObsFkFFNoSDL1wNl84RUXy1vqdoSbBm2DM0YSxmDMl5uwmemUk2cwKrgVnBRClXhzzoQIfTc4ocm8Js7cos2IhnGm/UxKXHJRubcIVKpUqVKl+jHF7swWwB9AEvXNBh5W8yCsA1OCfL6ad+hjGFExp1LbXisF0Zd4mUiKcnwe1TvIJ1XNBzjYwITRwjckg4zW7Io/QkVJQ8rToTxHuVdlqfz8RLb4pU869ClLvxp9aI0XarxuZXH1VayYlh/pei4jOK3l4LhJH3PFr+V0M6Pl9M2Avj4PGCEpCZJtFi1Ra7wmVi63jZxM+PBRXmLyt3XT1DTdXJN7UNgmnnbopI23rGNOVSqILFXlkT6WrYkItvGyLTpfxMQa7rpzEoWqQ6GSrLZk2fwr4JTXMxltU9S5BlxMwUlx1JyqqpqqZkx9SyHzcSCpkAr8NsWThWsS0rQ1bGZ4qOejGwAkkAr/C1tVVuB0ziH2JbilSpywIGY94jSeq0qc1jS4rCw46fCh4KSPymRqufrYdqCSyCUXXAGnag5yksWDOqt6BRsds1QtLqcumkOgJwuvb5M5j3NSgRPUXo04AdxEPppKbZGtYIWduCqbESdNlaUqjuUKijjpZcq1+LefQPihkxsr1GZyZ+e2yEUvLo5pJic0Ex3vYdIrFJ/u7oxxqosmUCNriawpY45zUqwVHd5oMiO9dlFOejJXLaNdkJOaq8RVY6p42Kb9jThhE4MWZ5qlMtVDzW1hawJOcN86VtuEFgnVgw8L9c3N+qaJplSv1zfrNXT6cbvD7FWz3tyq5Sgj8kqi3Z3JqY6ZYS1NzL++gg9qLTOPkwnPQgW0qqltRg6KKSF+jFr5ZpzA7gEFVsVBBJk1hRMnU1UtkL+m47PFL1hwnEcL8bGbDr7h2D1qI062ie4Pm1sRrVE87tmccjEnyAVysrYhH7OMj4gqP5sT4Q05FGobfZQZjgIQR1cJlPB/34STjUclCn3wMFOPiqSadE8L758LFFEBZkEaVfdpAhI/izmtyKqKQ3JfF+EkOlh5MeRIIdh8TtQsFQsMSoVCReFaWZdONncFe/Nm+qfYFXCwAzRqS7Q7KJJISn1PPsrEQqvRo74mYU+8HrsiMi1sAuzvUMez253IB8nq1dH7ESdlklNGeO/tDPU5ESebEmHJqsrCuiwn8y9zqn1zTmtJTvAW01BNrqDDO4cTizgpV8Np+5tygs4l5sTrmOY+1qlwBZz0eZxGIZ3gpIxzMuNI8jxOugi9axhInmFPuXM5zYsLRpygg4PbSk6hCUnqOzo9nYWH89+Bk0SyZRcKduX7cXL0n3762995DsMGvvAoHDlpESft4pwu3e7igi7c7uZxkn5cRlBbOoWYwE5LBAsLcdqUnM6yp4R/AiPGAEoPLsMpUf9vxknYk1TBJA++AqfNxUd4yElVi1tbW8Xiyln2lOSkhBjB6aO7/xicLIwrIV9Zqm2VTL6Gw57i4vZE4yNT13HyIzPFiYH5JjhBJIeFC9cwsDStK+V0vn+ax0mVhaKoMhoIc4zFH4VKJQdReu2KOMUDybM54cTJ2tp2HZ2/bis/CCfNrEGh0MRNrRalDmkgb0GDAXtaWbzdEScNB/WqOs1pqt3B6FgzNSpSPNfznTkpk+NgKBQOzbH4o0IFmB+Mt2iWQ114w4vkpOFTmWFPk5ximeU4k+vmNJJeHtn4lgiclBDLby48wiNO6trK9vbK9gXsKcZkJ5r8j8JJS/ghG2fDoJDkp3KBsqCQ0ygumO7vJsctKrn8jByBXIYTVorRhq+rHbdQf4ftDmejVyJOONkAZcWBHc7O6BVlQc0f383046pWLBZtTbjIy3BiLAT54bfglMlUoFDYXeesCJSFd9ZqxUpxxbyKKc1zOY3H4yrOq4Q5NRmNX4yTUsuBKV79OJg4cSzU2FDKp8knDe5JfdTCU5pLeMdLju/E6LZ0KU7nz6tcfHw33e6geEzLxHbDJhY9Fu/wLsYpM8aJiSpf1I/rF5unW5ATelfwtFGhJlZscot+f/0cTizixJLjYCpEoq89g1NmfD5zvN3R+p2s3AU5VROcrDFOGAjEhbJpaQPde+5KOrw5nLCti6XXrel2xyhCiGcwzuEkx8vj83Sm+LBwSU4yaqvM4ETuMxclx2vN7QKoVMdwZ9Epzfn2JPvSEi368LFxsEULdIULcsqJFU/sn+N2R/UXy8kX5pQZTeE2Z7Q7jvlrwkExTo1NXEs3rimLaTanSg6iEVq99bG3EBOCifmCNVy2XhlNKs3lRFNC2jZWKJBjQoRDnmS06i0WYfKJQI4ymeJEi+n1qFCq6MNiP44PV8WpNCyUT8YlSoQ2q44iqyvkBL2FqaoQjxSdCjpiucqamKcr0vrdyEHN50SeTF/LO3SFKvqGMo7x9e1yUKS+m6JB4qSqlUqlCf81m3yaU0BrpptbzpZKuTbHOIl7qbqYksvTAwhlYQFrfcGfSpptT8qmis1Nz+nR6HJ8vcXJaSOzPpOTj8PTumnquKsjo1JpOTRbDJZzOVx1xvmZiJOmgefVMbjGZzDBiXEMsVUVCgWfq6pYlUvYkw/30Mwt4iRsD484PHTM11/shxTncHJyajRm0lS51yfBycKBcxzkzuUE3eUoI6AkyDIwKC3OPidcTn5sQIt7USbtCYwkzivaSRDbE+M4jyHHnaNOQ8EIVBvrda6Sk7KVG22D0G0+yYk6RLFKfA4nxX4UBzEVhSrEWGUERYN4lV+MEy7nR7tftJwtLovtidM6gkaFoq0eplyO4lrcAfxllR/h3iS558vUTGk7MKDBDVC4G0MvSRxBDpLmxFMp0nFExtKT74ATWDpFLNQEcqYqJq62ovPoS7DN1TM5Myp/NaeJjVIk3QKam4All5i+AZgZaqqaHjFADwClJvx4J7gvBmaWpmc0uadMUaDda/qCHV6wVqvVbLGfrgiHNdG+4cUCH27qdTvaBaf4eLomoAV4uCb3KCoWnRm5dWbjSREgoV8raLpubhbCpOGHzU3TzK2URhc5tTFBzXkhziaSVVkB51UvjMJrH8q/VhNO2sG6rOF2xDBRPHhS+K600BIei/+J8mGjN4yH1uivYZxxm0kHOfaedmZYFmU0yoIOuMXj1PNzZxNHcBlmOVYqNjP9WEHSjcupUqVKdXd1+T+ZEqf3A5Dj0IiBBVIOY4ET8ES/FuaLWwHOWrMwCLA3d4IAhmCOSC7+ug1mtY7CoIk75a0qnbCiXPGC+A4T5fgrZf/2V8bfkA8KNqqEdefiGN4pvFmwE0NOSFUo2QVc9HdsG2PGil0L8BWnhmw7wL67CFeuooATL8IVdqEIMUNYKwhBKqsmblGoLFrnv6SweEnFfzIrsEsFqqyDnLA2uL2J8VKhECcKbVnVEMPNAnIqFgoBvQoEPi7pwIHkpJThCsiiAOGuLy4uISdOVOFlxCm4ZMnzC6DFbcyXkhW31PXV1cr9YpNKjrUoVsvlcl4BTnYc3t1fXX0ahpVCAUZpzurP94mTjZzgxNOnJXiFDDEVXl22KKe8BUjBKMOtchmJlYu+YgHF+/fpDkKXLDjni2wVu/TvTCSCWuC0BAZTwhph7WRjQ06xPTVXV9dhwAPNxZjitKMoO8CaE80dkT0mxQFGsVAT+3OagjrjwEkUdn6RZ3KIPlzoT4Eu0sqJE9bIDgUn8Z3GKU6+pVhOyBOcCiNOsvbAKRqKgSU1ERf++UAc6aB1UraYkn1fX3w1EvaU4CSLM8apAvakUBklJzaH0468AB1acuaRWrHkdDN/vP1CnJZWV5vixIU4gQ1BQ6sq8Z+BTXK6mT9GM9nuxD6LiXYXgkMukmuY0e6gF4HejNNO4GiySskXEJrMwFBKq/8zbk83DtYkJ+h6K+Gkf8LowS5i3aY5QeDl26UKo7gAe+6A/A80VWqrCl1U+jnm9PRpsRhel5v5y5psdyUKhiY5ASiIqqxZnJ7ef7paotBzi6IvW8xc8qcxqHFOqxBB3byfb5/khPHyDE5KHuJRADXNCVSiZgftroRXy2laCQrzmOQkwtKbpUlOMNbDwd4kJ0ZNb4vN5FSgAQ36pzJcHdkKgCqt+sKpJTmt78Adbhqm6fhJmeHHsYaYctWf5ATRpg9jlC1FxONiyx2TlxQhMJ22pxvnwknTcSb9pNoYJ/nvEg5Ppjj5il8r0Wqb5MRGk91WiXzdBKcbHD9NxuOSk0zCrDz+7oMSgifiE/FTwXboMrg4ip8Qk5MvY5cGloYDuVtjT9wo2sk4k2GcWeDy5/oUq2Y3OWcWVXJnxMkhqwKDqRAzYU/CliSgvJhbmOAkvw57syQ4+dChc2lPNCineRUuOfEKeWpI2mTI6WdL8UWTEpzy5KCQ07pBcxc0ZIZMyNwmOYU4i3fj/mrC+mqhVGligCnmVZqlZrNZJE6VEog8cx6nSaoQJkETZRBpl4pwumQxyQmoNGncUirh5cDaghyLQRGiMVwAxXh8VXIqrWKuheJN4xQUqNwYRDIuZ90KFeJEonVcq2LThGaJ9lUDIjyLU7eCk2Wjg4I4s0TCY4cm50q23FYwGt8VStEdbpgCnF6EwMfC2T457Ws34ylgsd5t4ZxurRhSO/TBWOwSfRutYtvokpo0CVyUs5427l1yMOYsVGWMULBrtCWc24XoDjdMOLtpRd7CkoJnHx1Gq/Ch44dRT8XD6BivVURiRsvqpCiRPwoBuPwwyvbm+afZmjVrOLlB4FzxW7UZYFZVpuvHxvZfXGQljLHFJmlTpUqVKlWqVKlSpUqVKlWqVKlSpUqVKlWqVKlSpUp1w/X/PzXHgvAg93MAAAAASUVORK5CYII=",
 };
-    
 const isProduction = process.env.NODE_ENV === "production";
 const LOCAL_URL = "http://localhost:4500/api/upload/image";
 const PRODUCTION_URL =
@@ -881,7 +883,7 @@ const DayEditForm = ({
 
 
 const App = () => {
-  const [user, setUser] = useState(null);
+  const userId = useSelector(selectUserId);
   const [dailyData, setDailyData] = useState({});
   const [globalGoal, setGlobalGoal] = useState({});
   const [loading, setLoading] = useState(true);
@@ -1214,36 +1216,30 @@ const sanitizeForFirestore = (data) => {
 
 
 
-useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-        setUser(currentUser);
-        setLoading(false);
-        if (!currentUser) {
-            // Limpieza completa al cerrar sesi├│n
-            setGreenhouses([]);
-            setGreenhouseId(null);
-            setGreenhouseName("");
-            setDailyData({});
-            setGlobalGoal({});
-            setGreenhouseConfig({});
-            localStorage.removeItem(GREENHOUSE_STORAGE_KEY);
-        }
-    });
+  useEffect(() => {
+    setLoading(false);
+    if (!userId) {
+      // Limpieza completa al cerrar sesión
+      setGreenhouses([]);
+      setGreenhouseId(null);
+      setGreenhouseName("");
+      setDailyData({});
+      setGlobalGoal({});
+      setGreenhouseConfig({});
+      localStorage.removeItem(GREENHOUSE_STORAGE_KEY);
+    }
+  }, [userId]);
 
-    // NO necesitas [greenhouseId] aqu├¡.
-    return () => unsubscribe(); 
-}, [auth]);
-
-// --- CARGA Y SELECCI├ôN DE INVERNADEROS ---
-useEffect(() => {
-    if (!user) {
-        setGreenhouses([]);
-        setGreenhouseId(null);
-        setGreenhouseName("Inicia sesi├│n para ver los datos");
-        return;
+// --- CARGA Y SELECCIÓN DE INVERNADEROS ---
+  useEffect(() => {
+    if (!userId) {
+      setGreenhouses([]);
+      setGreenhouseId(null);
+      setGreenhouseName("Inicia sesión para ver los datos");
+      return;
     }
 
-    const listRef = getGreenhousesListRef(db, user.uid);
+    const listRef = getGreenhousesListRef(db, userId);
 
     const unsubscribeList = onSnapshot(listRef, (docSnap) => {
         const data = docSnap.data() || { list: [] };
@@ -1282,33 +1278,33 @@ useEffect(() => {
     });
 
     return () => unsubscribeList();
-}, [user]); // Dependencia clave: [user]
+  }, [userId]); // Dependencia clave: [userId]
 
 
 
-// --- SINCRONIZACI├ôN DE DATOS DIARIOS, METAS Y CONFIGURACI├ôN ---
-useEffect(() => {
-    if (!user || !greenhouseId) {
-        setDailyData({});
-        setGlobalGoal({});
-        setGreenhouseConfig({});
-        return;
+// --- SINCRONIZACIÓN DE DATOS DIARIOS, METAS Y CONFIGURACIÓN ---
+  useEffect(() => {
+    if (!userId || !greenhouseId) {
+      setDailyData({});
+      setGlobalGoal({});
+      setGreenhouseConfig({});
+      return;
     }
 
     // 1. Sincronizar datos diarios
-    const dailyRef = getDocRef(db, user.uid, greenhouseId);
+    const dailyRef = getDocRef(db, userId, greenhouseId);
     const unsubscribeDaily = onSnapshot(dailyRef, (docSnap) => {
         setDailyData(docSnap.data() || {});
     });
 
     // 2. Sincronizar metas globales (goalRef)
-    const goalRef = getGoalRef(db, user.uid, greenhouseId);
+    const goalRef = getGoalRef(db, userId, greenhouseId);
     const unsubscribeGoal = onSnapshot(goalRef, (docSnap) => {
         setGlobalGoal(docSnap.data() || {});
     });
 
-    // 3. Sincronizar configuraci├│n (configRef)
-    const configRef = getGoalRef(db, user.uid, greenhouseId); // Asumo que goalRef y configRef apuntan al mismo documento si ambos usan getGoalRef
+    // 3. Sincronizar configuración (configRef)
+    const configRef = getGoalRef(db, userId, greenhouseId); // Asumo que goalRef y configRef apuntan al mismo documento si ambos usan getGoalRef
     const unsubscribeConfig = onSnapshot(configRef, (docSnap) => {
         if (docSnap.exists()) {
             setGreenhouseConfig(docSnap.data() || {});
@@ -1326,21 +1322,21 @@ useEffect(() => {
         unsubscribeGoal();
         unsubscribeConfig();
     };
-}, [user, greenhouseId]); // Dependencia clave: [user, greenhouseId]
+}, [userId, greenhouseId]); // Dependencia clave: [userId, greenhouseId]
 
   // =======================================================================
   // === L├ôGICA DE MANEJO DE INVERNADEROS (NUEVO)
   // =======================================================================
 
   const updateGreenhouseConfig = async (newConfig) => {
-    if (!user || !greenhouseId) {
+    if (!userId || !greenhouseId) {
         toast.error("Error: Usuario no autenticado o invernadero no seleccionado.");
         return;
     }
 
     try {
-        // Obtenemos la referencia al documento de configuraci├│n del invernadero actual
-        const goalRef = getGoalRef(db, user.uid, greenhouseId);
+        // Obtenemos la referencia al documento de configuracin del invernadero actual
+        const goalRef = getGoalRef(db, userId, greenhouseId);
 
         // La funci├│n 'setDoc' con { merge: true } actualiza campos existentes 
         // y a├▒ade nuevos sin sobrescribir el documento completo.
@@ -1361,9 +1357,9 @@ useEffect(() => {
 };
 
   const handleCreateGreenhouse = async (name) => {
-    if (!user) return;
+    if (!userId) return;
     const newId = uuidv4();
-    const listRef = getGreenhousesListRef(db, user.uid);
+    const listRef = getGreenhousesListRef(db, userId);
     const newGreenhouse = { id: newId, name: name };
 
     try {
@@ -1391,14 +1387,14 @@ useEffect(() => {
 
   const handleDeleteGreenhouse = async (id, name) => {
     if (
-      !user ||
+      !userId ||
       !window.confirm(
-        `┬┐Est├ís seguro de eliminar el invernadero "${name}" y TODOS sus datos? Esta acci├│n no se puede deshacer.`
+        `¿Estás seguro de eliminar el invernadero "${name}" y TODOS sus datos? Esta acción no se puede deshacer.`
       )
     )
       return;
 
-    const listRef = getGreenhousesListRef(db, user.uid);
+    const listRef = getGreenhousesListRef(db, userId);
     const greenhouseToDelete = greenhouses.find((g) => g.id === id);
 
     if (!greenhouseToDelete) {
@@ -1412,9 +1408,9 @@ useEffect(() => {
         list: arrayRemove(greenhouseToDelete),
       });
 
-      // 2. (OPCIONAL) Eliminar los documentos de datos y configuraci├│n
-      const dailyRef = getDocRef(db, user.uid, id);
-      const goalRef = getGoalRef(db, user.uid, id);
+      // 2. (OPCIONAL) Eliminar los documentos de datos y configuracion
+      const dailyRef = getDocRef(db, userId, id);
+      const goalRef = getGoalRef(db, userId, id);
       await deleteDoc(dailyRef);
       await deleteDoc(goalRef);
 
@@ -1575,10 +1571,10 @@ useEffect(() => {
   
   const handleSave = useCallback(
     async (dateKey, items = null, costData = null) => {
-      // Cl├íusulas de guardia
-      if (!user || !greenhouseId) return;
+      // Cláusulas de guardia
+      if (!userId || !greenhouseId) return;
 
-      const dailyRef = getDocRef(db, user.uid, greenhouseId);
+      const dailyRef = getDocRef(db, userId, greenhouseId);
       // Obtener los datos existentes (de Firestore o del estado 'dailyData')
       const existingDayData = dailyData[dateKey] || {};
 
@@ -1665,7 +1661,7 @@ useEffect(() => {
       }
     },
     [
-      user,
+      userId,
       greenhouseId,
       dailyData,
       calculateCosts,
@@ -1677,14 +1673,14 @@ useEffect(() => {
   );
 
   const saveGreenhouseConfig = useCallback(async (newConfig) => {
-    if (!user || !greenhouseId) {
+    if (!userId || !greenhouseId) {
         toast.error("Error: Usuario no autenticado o invernadero no seleccionado.");
         return;
     }
 
     try {
-        // Usa la referencia a la configuraci├│n del invernadero (definida con getGoalRef)
-        const configRef = getGoalRef(db, user.uid, greenhouseId);
+        // Usa la referencia a la configuración del invernadero (definida con getGoalRef)
+        const configRef = getGoalRef(db, userId, greenhouseId);
 
         // setDoc con { merge: true } actualiza solo los campos proporcionados
         await setDoc(configRef, newConfig, { merge: true });
@@ -1697,18 +1693,18 @@ useEffect(() => {
 
         toast.success("Ô£à Configuraci├│n del invernadero (Meta/Config) guardada con ├®xito.");
     } catch (error) {
-        console.error("Error al guardar la configuraci├│n del invernadero:", error);
-        toast.error("ÔØî Error al guardar la configuraci├│n.");
+        console.error("Error al guardar la configuración del invernadero:", error);
+        toast.error("✖ Error al guardar la configuración.");
     }
-}, [user, greenhouseId]); // Dependencias para useCallback
+}, [userId, greenhouseId]); // Dependencias para useCallback
 
   // Guardar meta global en Firebase
   const updateGoal = useCallback(
     async (goal, deadline) => {
-      if (!user || !greenhouseId) return;
+      if (!userId || !greenhouseId) return;
 
       try {
-        const goalRef = getGoalRef(db, user.uid, greenhouseId);
+        const goalRef = getGoalRef(db, userId, greenhouseId);
         await setDoc(
           goalRef,
           { goal: parseFloat(goal) || 0, deadline },
@@ -1720,7 +1716,7 @@ useEffect(() => {
         toast.error("Error al actualizar la meta.");
       }
     },
-    [user, greenhouseId]
+    [userId, greenhouseId]
   );
 
   // =======================================================================
@@ -1735,7 +1731,7 @@ useEffect(() => {
     );
   }
 
-  if (!user) {
+  if (!userId) {
     return (
       <div className="min-h-screen bg-gray-100 p-4">
         <AuthScreen app={app} />
@@ -1833,6 +1829,7 @@ Vista no encontrada.
 };
 
 
+
 return(
 <div className="min-h-screen bg-gray-100 p-1 sm:p-4 md:p-6 lg:p-10">
 <header className="bg-white p-4 rounded-xl shadow-2xl mb-6 border-t-4 border-indigo-600">
@@ -1877,3 +1874,7 @@ Exportar Datos Globales (CSV)
 
 
 export default App;
+
+
+
+
