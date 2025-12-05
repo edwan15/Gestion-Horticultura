@@ -29,52 +29,61 @@ const Contact = () => {
   };
 
   return (
-    <div className=" flex flex-col justify-center items-center md:grid md:grid-cols-10 p-4">
-      <div className="  md:col-start-2 md:col-span-3  max-w-md py-4 px-8  shadow-lg rounded-lg my-20 bg-cardOverlay">
-        <div className="flex justify-center   md:justify-end -mt-16 ">
+    <div className="flex flex-col justify-center items-center md:grid md:grid-cols-10 p-4 md:p-8 min-h-screen">
+      {/* Formulario de Contacto */}
+      <div className="w-full max-w-md md:col-start-2 md:col-span-3 py-6 px-6 md:px-8 shadow-lg rounded-lg my-8 md:my-20 bg-cardOverlay">
+        <div className="flex justify-center md:justify-end -mt-16">
           <img
-            className="w-20 h-20 object-cover rounded-full border-2 border-indigo-500"
+            className="w-20 h-20 object-cover rounded-full border-2 border-indigo-500 shadow-md"
             src="https://www.proexport.es/wp-content/uploads/2018/10/13317_006DFR.jpg"
             alt="property"
           />
         </div>
         <div>
-          <h2 className="text-gray-800 text-3xl font-semibold">
+          <h2 className="text-gray-800 text-2xl md:text-3xl font-semibold text-center md:text-left">
             Support Agrodolores
           </h2>
-          <div className=" grid mt-10  ">
-            <form className="" onSubmit={sendEmail}>
-              <div className="  flex flex-col  ">
-                <div className="flex gap-3 ">
-                  <label className="text-xl font-extrabold"> Subject : </label>
+          <div className="mt-6 md:mt-10">
+            <form onSubmit={sendEmail}>
+              <div className="flex flex-col space-y-4">
+                {/* Subject Field */}
+                <div className="flex flex-col">
+                  <label className="text-lg md:text-xl font-extrabold mb-2 text-gray-700">
+                    Subject:
+                  </label>
                   <input
                     type="text"
                     name="subject"
-                    placeholder="Titulo de la Consulta...!!"
+                    placeholder="Titulo de la Consulta..."
                     required
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
+                    className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:border-indigo-500 transition-colors"
                   />
                 </div>
-                <div className="flex gap-3 mt-6">
-                  <label className="flex text-xl font-extrabold">
-                    Message :{" "}
+                
+                {/* Message Field */}
+                <div className="flex flex-col">
+                  <label className="text-lg md:text-xl font-extrabold mb-2 text-gray-700">
+                    Message:
                   </label>
                   <textarea
-                    className="border-solid border-2 rounded-md border-gray-300"
-                    cols="20"
+                    className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:border-indigo-500 transition-colors resize-none"
                     rows="5"
                     name="message"
-                    placeholder="               Message...!!"
+                    placeholder="Escribe tu mensaje aquí..."
                     required
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                   ></textarea>
                 </div>
-                <div className="flexs justify-center items-start mt-10">
+                
+                {/* Submit Button */}
+                <div className="flex justify-center md:justify-start mt-4">
                   <motion.button
-                    whileTap={{ scale: 0.8 }}
-                    className="px-1 font-extrabold text-white p-2 rounded-md bg-blue-400 hover:bg-blue-300 "
+                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.02 }}
+                    className="w-full md:w-auto px-8 py-3 font-bold text-white rounded-md bg-indigo-500 hover:bg-indigo-600 transition-colors shadow-md"
                   >
                     Send Message
                   </motion.button>
@@ -83,30 +92,32 @@ const Contact = () => {
             </form>
           </div>
 
-          <p className=" text-gray-600 mt-10 font-extrabold text-lg">
+          <p className="text-gray-600 mt-6 md:mt-10 font-semibold text-base md:text-lg text-center md:text-left italic">
             "El problema no es el problema. El problema es tu actitud frente al
             problema"
           </p>
         </div>
-        <div className="flex justify-end mt-4">
+        <div className="flex justify-center md:justify-end mt-3">
           <a
             href="https://www.frasess.net/frases-de-jack-sparrow-564.html"
-            className="text-xl font-medium text-indigo-500"
+            className="text-lg md:text-xl font-medium text-indigo-500 hover:text-indigo-600 transition-colors"
           >
             Jack Sparrow
           </a>
         </div>
       </div>
 
-      <div className=" hidden  md:block col-start-5 col-span-1 justify-self-center items-center ">
-        <HiSwitchHorizontal className="text-7xl" />
+      {/* Icono separador */}
+      <div className="hidden md:block col-start-5 col-span-1 justify-self-center items-center">
+        <HiSwitchHorizontal className="text-7xl text-gray-400" />
       </div>
-      <div className="  md:hidden  col-start-5 col-span-1 justify-center items-center flex mb-4">
-        <HiSwitchVertical className="text-7xl" />
+      <div className="md:hidden flex justify-center items-center my-6">
+        <HiSwitchVertical className="text-6xl text-gray-400" />
       </div>
 
-      <div className=" col-start-6 col-span-3  ">
-        <div className="relative w-full group max-w-xl min-w-0 mx-auto mt-6 mb-6 break-words  border shadow-2xl dark:bg-gray-800 bg-cardOverlay dark:border-gray-700 md:max-w-sm rounded-xl">
+      {/* Tarjeta de Perfil */}
+      <div className="w-full max-w-md md:col-start-6 md:col-span-3 md:max-w-sm">
+        <div className="relative w-full group mx-auto mt-6 mb-6 md:mb-20 break-words border shadow-2xl dark:bg-gray-800 bg-cardOverlay dark:border-gray-700 rounded-xl">
           <div className="pb-6">
             <div className="flex flex-wrap justify-center">
               <div className="flex justify-center w-full">
@@ -220,32 +231,32 @@ const Contact = () => {
                 </div>
               </div>
             </div>
-            <div className="pt-6 mx-6 mt-6 text-center border-t border-gray-200 text-gray-700 dark:text-gray-300 dark:border-gray-700/50">
+            <div className="pt-6 px-4 md:px-6 mt-6 text-center border-t border-gray-200 text-gray-700 dark:text-gray-300 dark:border-gray-700/50">
               <div className="flex flex-wrap justify-center">
-                <div className="w-full px-6">
+                <div className="w-full">
                   <div className="details">
                     <div>
-                      <h3>Contacto de Informacion</h3>
-                      <p className="mt-3 text-md font-extrabold">
-                        Tambien puedes contactame atravez de mis redes sociales
+                      <h3 className="text-xl md:text-2xl font-bold mb-3">Contacto de Información</h3>
+                      <p className="mt-2 text-sm md:text-md font-medium text-gray-600 dark:text-gray-400">
+                        También puedes contactarme a través de mis redes sociales
                       </p>
                     </div>
                   </div>
 
-                  <div className="p-4 justify-center flex">
-                    <div className="flex flex-col">
-                      <span className=" flex gap-10 mt-2">
-                        <FaPhoneAlt className="mt-1 text-lg" />
-                        <p>+34631982876</p>
-                      </span>
-                      <span className="mt-4 flex gap-10">
-                        <FaEnvelope className="mt-1 text-lg" />
-                        <p>Edwan101@hotmail.com</p>
-                      </span>
-                      <span className="mt-4 flex gap-10">
-                        <GoLocation className="mt-1 text-lg" />
-                        <p>Murcia , Spain</p>
-                      </span>
+                  <div className="py-4 mt-2">
+                    <div className="flex flex-col space-y-3">
+                      <div className="flex items-center justify-center md:justify-start gap-4">
+                        <FaPhoneAlt className="text-lg text-indigo-500 flex-shrink-0" />
+                        <p className="text-sm md:text-base">+34631982876</p>
+                      </div>
+                      <div className="flex items-center justify-center md:justify-start gap-4">
+                        <FaEnvelope className="text-lg text-indigo-500 flex-shrink-0" />
+                        <p className="text-sm md:text-base break-all">Edwan101@hotmail.com</p>
+                      </div>
+                      <div className="flex items-center justify-center md:justify-start gap-4">
+                        <GoLocation className="text-lg text-indigo-500 flex-shrink-0" />
+                        <p className="text-sm md:text-base">Murcia, Spain</p>
+                      </div>
                     </div>
                   </div>
                 </div>

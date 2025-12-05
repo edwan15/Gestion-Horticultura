@@ -133,11 +133,11 @@ const CriticalStockModal = ({ visible, mensaje, onClose }) => {
 const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onAddRow, onDeleteRow, productOptions }) => { 
     const ordersArray = Array.isArray(ordenesCalculadas) ? ordenesCalculadas : [];
     
-    const cellStyle = "p-1 border border-gray-500 text-[10px] whitespace-nowrap overflow-hidden leading-tight"; 
-    const cellHeaderStyle = "p-1 border border-gray-500 bg-gray-200 text-center font-extrabold text-[10px] uppercase leading-tight";
+    const cellStyle = "p-1 border border-gray-800 text-[10px] whitespace-nowrap overflow-hidden leading-tight"; 
+    const cellHeaderStyle = "p-1 border border-gray-800 bg-gray-200 text-center font-extrabold text-[10px] uppercase leading-tight";
     const cellInputStyle = "w-full p-0 border-none text-[10px] focus:ring-0 bg-transparent";
 
-    const rightColStyle = "col-span-2 border-l border-gray-500";
+    const rightColStyle = "col-span-2 border-l-2 border-gray-800";
     
     const tableHeaderClasses = [
         "w-[6.5%]", "w-[4%]", "w-[14.5%]", "w-[12%]", "w-[6%]", "w-[3%]", "w-[6%]", "w-[6%]", 
@@ -145,7 +145,7 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
         "w-[2%]",
     ];
     
-    const tallCellStyle = "p-1 border border-gray-500 text-[10px] leading-tight flex flex-col justify-start h-12"; 
+    const tallCellStyle = "p-1 border border-gray-800 text-[10px] leading-tight flex flex-col justify-start h-12"; 
     
     const stockColumnClass = "stock-col";
     const hiddenInPrintClass = "print:hidden";
@@ -185,36 +185,36 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
 
 
     return (
-        <div className="bg-white border-4 border-black shadow-2xl max-w-6xl mx-auto font-sans text-gray-900 text-xs print:shadow-none print:border-none">
-            <div className="grid grid-cols-10 border-b border-black">
+        <div className="bg-white border-2 border-black shadow-2xl max-w-6xl mx-auto font-sans text-gray-900 text-xs print:shadow-none print:border-none">
+            <div className="grid grid-cols-10 border-b-2 border-black">
                 
-                <div className="col-span-8 border-r-2 border-gray-500">
+                <div className="col-span-8 border-r-2 border-gray-800">
                     <div className="grid grid-cols-8">
                         
-                        <div className="col-span-2 row-span-3 h-[70px] flex items-center justify-center bg-gray-50 border-r border-b border-gray-500 text-center font-bold text-gray-700">
+                        <div className="col-span-2 row-span-3 h-[70px] flex items-center justify-center bg-gray-50 border-r border-b border-gray-800 text-center font-bold text-gray-700">
                             <div className="py-1 px-1 text-center font-serif text-lg font-black text-green-700 border-b-2 border-green-700 leading-none">
                                 HORTICULTURA <br/><span className="text-[10px]">DEL SURESTE</span>
                             </div>
                         </div>
                         
-                        <div className="col-span-6 grid grid-cols-6 border-b border-gray-500">
+                        <div className="col-span-6 grid grid-cols-6 border-b border-gray-800">
                             <div className={`${cellStyle} col-span-6 bg-blue-600 text-white font-bold text-center text-sm`}>
                                 ORDEN FITOSANITARIOS
                             </div>
                         </div>
 
-                        <div className="col-span-6 grid grid-cols-6 border-b border-gray-500">
+                        <div className="col-span-6 grid grid-cols-6 border-b border-gray-800">
                             <div className={`${cellStyle} col-span-6 bg-blue-100 text-center font-extrabold text-sm`}>
                                 {plan.nombre}
                             </div>
                         </div>
                         
-                        <div className="col-span-6 grid grid-cols-6 border-b border-gray-500">
+                        <div className="col-span-6 grid grid-cols-6 border-b border-gray-800">
                             <div className={`${cellStyle} col-span-6 h-[10px] border-b-0`}></div>
                         </div>
 
 
-                        <div className="col-span-8 grid grid-cols-8 border-b border-gray-500">
+                        <div className="col-span-8 grid grid-cols-8 border-b border-gray-800">
                             <div className={`${tallCellStyle} col-span-2 font-bold justify-center`}>
                                 <label className="flex-shrink-0 mr-1">FECHA:</label>
                                 <input type="date" value={plan.date} onChange={(e) => handlePlanDataChange('date', e.target.value)} className={`${cellInputStyle} mt-0.5`} />
@@ -246,7 +246,7 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
                             </div>
                         </div>
 
-                        <div className="col-span-8 grid grid-cols-8 border-b border-gray-500">
+                        <div className="col-span-8 grid grid-cols-8 border-b border-gray-800">
                             <div className={`${cellStyle} col-span-3 font-bold flex items-center`}>
                                 CULTIVO UNIDAD: 
                                 <input type="text" value={plan.cultivo} onChange={(e) => handlePlanDataChange('cultivo', e.target.value)} className={`${cellInputStyle} ml-1`} />
@@ -263,7 +263,7 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
                             </div>
                         </div>
                         
-                        <div className="col-span-8 grid grid-cols-8 border-t border-gray-500">
+                        <div className="col-span-8 grid grid-cols-8 border-t border-gray-800">
                             <div className={`${cellStyle} col-span-2 font-bold flex justify-between items-center`}>
                                 CALDO HA: <span className="float-right text-blue-700 font-extrabold">{plan.caldoHa.toFixed(0)} lt</span>
                             </div>
@@ -304,7 +304,7 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
                             </div>
                         </div>
 
-                        <div className="col-span-8 grid grid-cols-8 border-t border-gray-500">
+                        <div className="col-span-8 grid grid-cols-8 border-t border-gray-800">
                             <div className={`${cellStyle} col-span-1 font-bold flex items-center justify-between`}>
                                 N° CUBAS:
                                 <select 
@@ -328,12 +328,12 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
                 <div className={rightColStyle}>
                     <div className="grid grid-cols-2 h-full">
                         
-                        <div className={`${cellStyle} col-span-2 text-center bg-yellow-100 font-bold border-b border-gray-500 h-[70px] flex flex-col justify-start`}>
+                        <div className={`${cellStyle} col-span-2 text-center bg-yellow-100 font-bold border-b border-gray-800 h-[70px] flex flex-col justify-start`}>
                             OBSERVACIONES:
                             <textarea className={`${cellInputStyle} bg-transparent h-full resize-none text-left font-normal text-xs mt-1`} rows="5" placeholder="Escribe aquí las observaciones..." />
                         </div>
                         
-                        <div className={`${cellStyle} col-span-2 text-center bg-yellow-100 font-bold border-b border-gray-500`}>NORMAS PARA EL USO EFICAZ Y SEGURO DE FITOSANITARIOS</div>
+                        <div className={`${cellStyle} col-span-2 text-center bg-yellow-100 font-bold border-b border-gray-800`}>NORMAS PARA EL USO EFICAZ Y SEGURO DE FITOSANITARIOS</div>
                         
                         <div className={`${cellStyle} col-span-2 text-[8px] h-full overflow-hidden text-justify`} style={{ lineHeight: '1.2' }}>
                              <ol className="list-decimal pl-3 space-y-0.5">
@@ -494,7 +494,7 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
             
             <div className="grid grid-cols-10 border-t-2 border-black">
                 
-                <div className="col-span-8 border-r border-gray-500">
+                <div className="col-span-8 border-r-2 border-gray-800">
                     <div className="grid grid-cols-8">
                         <div className={`${cellStyle} col-span-4 font-bold h-10`}>
                             RESPONSABLE TÉCNICO: ISMAEL BLAZQUEZ FERNANDEZ <br/> RaPe 143059911SA
@@ -502,7 +502,7 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
                         <div className={`${cellStyle} col-span-4 font-bold h-10`}>
                             APLICADOR: JOAQUIN CONESA EGEA <br/> 143020257SU/2
                         </div>
-                        <div className={`${cellStyle} col-span-8 font-bold text-[9px] bg-red-50 border-t border-gray-500`}>
+                        <div className={`${cellStyle} col-span-8 font-bold text-[9px] bg-red-50 border-t border-gray-800`}>
                             INSTRUCCIONES ESPECIALES: Uso obligatorio de EPIS (mascarilla con filtro, botas, guantes, mono y gafas). Limpiar la cuba tras la aplicación. Enjuagar tres veces e inutilizar el envase fitosanitario.
                         </div>
                     </div>
@@ -510,7 +510,7 @@ const OrdenFitosanitarioImpreso = ({ plan, ordenesCalculadas, onOrderChange, onA
 
                  <div className="col-span-2">
                     <div className="grid grid-cols-2">
-                        <div className={`${cellStyle} col-span-2 text-center bg-blue-100 font-bold border-b border-gray-500`}>
+                        <div className={`${cellStyle} col-span-2 text-center bg-blue-100 font-bold border-b border-gray-800`}>
                             CONFIRMACIÓN DEL TRATAMIENTO POR EL APLICADOR
                         </div>
                     </div>

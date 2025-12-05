@@ -100,10 +100,10 @@ const WeatherPage = () => {
                 {/* Could add date/time here */}
             </div>
 
-            {/* Grid Layout */}
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
+            {/* Grid Layout - Ajustado para mejor visualización */}
+            <div className="grid grid-cols-1 xl:grid-cols-5 gap-6 mb-8">
                 
-                {/* Left Column: Forecast (2/3 width on large screens) */}
+                {/* Left Column: Forecast (Reducido a ~40% width) */}
                 <div className="xl:col-span-2 flex flex-col gap-6">
                     {/* Main Forecast Card */}
                     <div className="h-full">
@@ -123,8 +123,8 @@ const WeatherPage = () => {
                     </div>
                 </div>
 
-                {/* Right Column: Advanced Details & Advisory (1/3 width) */}
-                <div className="flex flex-col gap-6">
+                {/* Right Column: Advanced Details & Advisory (Ampliado a ~60% width) */}
+                <div className="xl:col-span-3 flex flex-col gap-6">
                     {/* Advanced Current Weather (New Component) */}
                     <AdvancedWeather 
                         apiKey={OPENWEATHER_API_KEY} 
