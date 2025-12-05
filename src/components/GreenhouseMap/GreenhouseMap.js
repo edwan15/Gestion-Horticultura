@@ -1,125 +1,24 @@
-// src/components/GreenhouseMap/GreenhouseMap.jsx
-
-// import React, { useEffect } from 'react';
-// import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-// import 'leaflet/dist/leaflet.css';
-// import L from 'leaflet';
-
-// // =======================================================================
-// // === CONFIGURACIÓN DE ICONOS DE LEAFLET
-// // =======================================================================
-// // 🚨 IMPORTANTE: Esto corrige el problema común donde los iconos de marcador
-// // de Leaflet no se muestran debido a problemas con las rutas de Webpack.
-// delete L.Icon.Default.prototype._getIconUrl;
-
-// L.Icon.Default.mergeOptions({
-//     iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-//     iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-//     shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
-// });
-
-// // =======================================================================
-// // === COMPONENTE AUXILIAR PARA CONTROLAR LA VISTA
-// // =======================================================================
-// // Este hook se usa dentro de MapContainer para ajustar el zoom y el centro
-// // cada vez que la lista de invernaderos cambia.
-// const MapViewUpdater = ({ markers }) => {
-//     const map = useMap(); // Accede a la instancia del mapa
-
-//     useEffect(() => {
-//         if (markers.length > 0) {
-//             // Si solo hay un marcador, centramos el mapa en él
-//             if (markers.length === 1) {
-//                 map.setView([markers[0].lat, markers[0].lng], 12); // Nivel de zoom 12
-//             } else {
-//                 // Si hay varios, calculamos los límites para verlos todos
-//                 const bounds = L.latLngBounds(markers.map(m => [m.lat, m.lng]));
-//                 map.fitBounds(bounds, { padding: [50, 50] }); // Ajusta la vista con un margen
-//             }
-//         }
-//     }, [map, markers]);
-
-//     return null;
-// };
-
-// // =======================================================================
-// // === COMPONENTE PRINCIPAL: GreenhouseMap
-// // =======================================================================
-
-// const GreenhouseMap = ({ greenhouses, onGreenhouseSelect, selectedGreenhouseId }) => {
-    
-//     const defaultCenter = [40.4165, -3.70256]; // Madrid, España (Centro por defecto)
-//     const initialZoom = 6;
-
-//     // Prepara los datos de los marcadores, asegurándose de que la lat/lng sean números
-//     const markers = greenhouses
-//         .filter(g => g.latitude && g.longitude)
-//         .map(g => ({
-//             id: g.id,
-//             name: g.name,
-//             // Convertimos a número para Leaflet
-//             lat: parseFloat(g.latitude),
-//             lng: parseFloat(g.longitude),
-//         }));
-
-//     return (
-//         <div className="h-96 w-full rounded-xl shadow-lg overflow-hidden border border-gray-200">
-//             {/* MapContainer requiere una altura fija, definida por el div padre */}
-//             <MapContainer 
-//                 center={defaultCenter} 
-//                 zoom={initialZoom} 
-//                 scrollWheelZoom={true} // Permite el zoom con la rueda del ratón
-//                 style={{ height: "100%", width: "100%" }}
-//             >
-//                 {/* Capa base de OpenStreetMap */}
-//                 <TileLayer
-//                     attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-//                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-//                 />
-
-//                 {/* Usa el componente auxiliar para centrar/ajustar el mapa */}
-//                 <MapViewUpdater markers={markers} />
-
-//                 {/* Renderiza los marcadores para cada invernadero */}
-//                 {markers.map((marker) => (
-//                     <Marker
-//                         key={marker.id}
-//                         position={[marker.lat, marker.lng]}
-//                         eventHandlers={{
-//                             // Destacamos el invernadero seleccionado con una clase si usas un custom icon
-//                             // click: () => onGreenhouseSelect(marker.id),
-//                         }}
-//                     >
-//                         {/* Popup al hacer clic en el marcador */}
-//                         <Popup>
-//                             <div className='font-bold text-indigo-700 mb-1'>
-//                                 {marker.name}
-//                             </div>
-//                             <span className='text-xs text-gray-500'>
-//                                 Lat: {marker.lat.toFixed(4)}, Lng: {marker.lng.toFixed(4)}
-//                             </span>
-//                             <button
-//                                 onClick={() => onGreenhouseSelect(marker.id)}
-//                                 className='mt-2 text-sm text-white bg-teal-600 hover:bg-teal-700 px-3 py-1 rounded transition w-full'
-//                             >
-//                                 {marker.id === selectedGreenhouseId ? 'Invernadero Actual' : 'Seleccionar Datos'}
-//                             </button>
-//                         </Popup>
-//                     </Marker>
-//                 ))}
-//             </MapContainer>
-//         </div>
-//     );
-// };
-
-// export default GreenhouseMap;
-
-
-import React, { useEffect, useState, useCallback } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, Tooltip } from 'react-leaflet';
+import React, { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Tooltip, LayersControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { FaSeedling, FaTag, FaMapMarkerAlt } from 'react-icons/fa'; // Iconos para el Popup
+import { FaSeedling, FaMapMarkerAlt, FaRulerCombined } from 'react-icons/fa';
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, query, where, onSnapshot, getDocs } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { firebaseConfig } from '../../firebaseConfig';
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const getAppId = () => {
+    if (typeof window.__app_id !== "undefined") {
+        return window.__app_id;
+    }
+    return "default-calendar-app-id";
+};
 
 // =======================================================================
 // === CONFIGURACIÓN DE ICONOS DE LEAFLET
@@ -132,31 +31,30 @@ L.Icon.Default.mergeOptions({
     shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
-// =======================================================================
-// === DATOS DE LOS INVERNADEROS (HARDCODED)
-// =======================================================================
-const INITIAL_GREENHOUSES_DATA = [
-    { id: '1', name: 'Invernadero 1', latitude: 37.823898, longitude: -0.942473, crop: 'Tomate Raff' },
-    { id: '2', name: 'Invernadero 2', latitude: 37.824257, longitude: -0.941019, crop: 'Pimiento Lamuyo' },
-    { id: '3', name: 'Invernadero 3', latitude: 37.825147, longitude: -0.939871, crop: 'Calabacín' },
-    { id: '4', name: 'Invernadero 4', latitude: 37.827003, longitude: -0.940311, crop: 'Berenjena' },
-    { id: '5', name: 'Invernadero 5', latitude: 37.825550, longitude: -0.940879, crop: 'Vacío' },
-];
+// Custom Icon for Greenhouses
+const greenhouseIcon = new L.Icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+});
 
 // =======================================================================
 // === COMPONENTE AUXILIAR PARA CONTROLAR LA VISTA
 // =======================================================================
-const MapViewUpdater = ({ markers }) => {
-    const map = useMap(); // Accede a la instancia del mapa
+const MapViewUpdater = ({ markers, defaultCenter }) => {
+    const map = useMap();
 
     useEffect(() => {
         if (markers.length > 0) {
-            // Calculamos los límites para ver todos los marcadores
             const bounds = L.latLngBounds(markers.map(m => [m.lat, m.lng]));
-            // Ajusta la vista con un margen y un zoom razonable
-            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 }); 
+            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+        } else if (defaultCenter) {
+             map.setView(defaultCenter, 14);
         }
-    }, [map, markers]);
+    }, [map, markers, defaultCenter]);
 
     return null;
 };
@@ -164,97 +62,160 @@ const MapViewUpdater = ({ markers }) => {
 // =======================================================================
 // === COMPONENTE PRINCIPAL: GreenhouseMap
 // =======================================================================
+const GreenhouseMap = () => {
+    const [markers, setMarkers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [farmCenter, setFarmCenter] = useState([37.825, -0.941]); // Default fallback
+    const [hasFarmLocation, setHasFarmLocation] = useState(false);
 
-// Nota: He ignorado las props 'greenhouses', 'onGreenhouseSelect', 'selectedGreenhouseId'
-// por simplicidad y he usado los datos hardcodeados, si quieres integrarlos
-// con tu Firebase, usa 'greenhouses' en lugar de INITIAL_GREENHOUSES_DATA.
-const GreenhouseMap = ({ /* ...props */ }) => {
-    // 💡 Usamos un estado local para gestionar los datos de los invernaderos,
-    // incluyendo el campo editable 'crop'.
-    const [greenhouses, setGreenhouses] = useState(INITIAL_GREENHOUSES_DATA);
+    useEffect(() => {
+        const user = auth.currentUser;
+        if (!user) {
+            setLoading(false);
+            return;
+        }
 
-    const handleCropChange = useCallback((id, newCrop) => {
-        setGreenhouses(prev => 
-            prev.map(g => (g.id === id ? { ...g, crop: newCrop } : g))
-        );
-        // 🚨 Aquí podrías agregar la lógica para guardar el dato en Firebase 
-        // o llamando a una función pasada por props.
-        console.log(`Guardando Invernadero ${id}: ${newCrop}`);
+        const appId = getAppId();
+        const PARCELS_PATH = `artifacts/${appId}/public/data/parcels`;
+        const FARMS_PATH = `artifacts/${appId}/public/data/farms`;
+
+        // 1. Fetch Farm Location for Center
+        const fetchFarmContext = async () => {
+             try {
+                const qFarm = query(collection(db, FARMS_PATH), where("userId", "==", user.uid));
+                const farmSnap = await getDocs(qFarm);
+                if (!farmSnap.empty) {
+                    const farmData = farmSnap.docs[0].data();
+                    if (farmData.latitude && farmData.longitude) {
+                        setFarmCenter([parseFloat(farmData.latitude), parseFloat(farmData.longitude)]);
+                        setHasFarmLocation(true);
+                    }
+                }
+             } catch (error) {
+                 console.error("Error fetching farm location:", error);
+             }
+        };
+        fetchFarmContext();
+
+        // 2. Listen to Parcels for Markers
+        const qParcels = query(collection(db, PARCELS_PATH), where("userId", "==", user.uid));
+        
+        const unsubscribe = onSnapshot(qParcels, (snapshot) => {
+            const loadedMarkers = snapshot.docs
+                .map(doc => {
+                    const data = doc.data();
+                    if (data.latitude && data.longitude && data.visible !== false) {
+                        return {
+                            id: doc.id,
+                            name: data.name,
+                            area: data.area,
+                            soilType: data.soilType,
+                            crop: data.crop || 'Sin cultivo', // Assuming crop might be added later to parcel
+                            lat: parseFloat(data.latitude),
+                            lng: parseFloat(data.longitude),
+                        };
+                    }
+                    return null;
+                })
+                .filter(m => m !== null);
+            
+            setMarkers(loadedMarkers);
+            setLoading(false);
+        }, (error) => {
+            console.error("Error loading parcels map data:", error);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
     }, []);
 
-    // Prepara los datos de los marcadores con coordenadas numéricas
-    const markers = greenhouses
-        .filter(g => g.latitude && g.longitude)
-        .map(g => ({
-            id: g.id,
-            name: g.name,
-            crop: g.crop,
-            lat: parseFloat(g.latitude),
-            lng: parseFloat(g.longitude),
-        }));
+    if (loading) {
+        return (
+            <div className="h-96 w-full rounded-xl bg-gray-100 flex items-center justify-center animate-pulse">
+                <span className="text-gray-400 font-medium">Cargando mapa...</span>
+            </div>
+        );
+    }
 
     return (
-        <div className="h-96 w-full rounded-xl shadow-lg overflow-hidden border border-gray-200">
-            <MapContainer 
-                // Usamos el centro del primer invernadero como inicial antes del ajuste
-                center={[markers[0]?.lat || 37.825, markers[0]?.lng || -0.941]} 
-                zoom={12} // Un zoom inicial que será ajustado por MapViewUpdater
+        <div className="h-96 w-full rounded-xl shadow-lg request-fullscreen overflow-hidden border border-gray-200 relative z-0">
+             <MapContainer 
+                center={farmCenter} 
+                zoom={14} 
                 scrollWheelZoom={true}
                 style={{ height: "100%", width: "100%" }}
             >
-                <TileLayer
-                    attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
+                <LayersControl position="topright">
+                    <LayersControl.BaseLayer checked name="Mapa Normal">
+                        <TileLayer
+                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        />
+                    </LayersControl.BaseLayer>
+                    <LayersControl.BaseLayer name="Satélite (ESRI)">
+                        <TileLayer
+                            attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                        />
+                    </LayersControl.BaseLayer>
+                </LayersControl>
 
-                {/* Usa el componente auxiliar para centrar/ajustar el mapa a todos los marcadores */}
-                <MapViewUpdater markers={markers} />
+                <MapViewUpdater markers={markers} defaultCenter={farmCenter} />
 
-                {/* Renderiza los marcadores para cada invernadero */}
+                {/* Show Farm Center if no parcels yet, or just as context? Maybe just parcels for now to keep it clean like Wisecrop */}
+                
                 {markers.map((marker) => (
                     <Marker
                         key={marker.id}
                         position={[marker.lat, marker.lng]}
+                        icon={greenhouseIcon}
                     >
-                        {/* 💡 Tooltip: Muestra el nombre al pasar el cursor (hover) */}
                         <Tooltip 
                             direction="top" 
-                            offset={[0, -10]} 
-                            opacity={0.9} 
-                            permanent={false} // Desaparece al mover el cursor
+                            offset={[0, -40]} 
+                            opacity={1} 
+                            permanent={false}
+                            className="custom-tooltip font-bold text-gray-800"
                         >
-                            <div className='font-bold text-lg text-indigo-700 flex items-center'>
-                                <FaMapMarkerAlt className='mr-1 text-red-500'/> {marker.name}
-                            </div>
+                           {marker.name}
                         </Tooltip>
 
-                        {/* 💡 Popup: Muestra la información y el campo de edición al hacer clic */}
-                        <Popup>
-                            <div className='p-1'>
-                                <h3 className='font-extrabold text-xl text-green-700 border-b pb-1 mb-2 flex items-center'>
-                                    <FaSeedling className='mr-2'/> {marker.name}
+                        <Popup className="custom-popup">
+                            <div className="p-2 min-w-[200px]">
+                                <h3 className="font-bold text-lg text-emerald-700 border-b border-gray-100 pb-2 mb-3 flex items-center">
+                                    <FaSeedling className="mr-2" /> 
+                                    {marker.name}
                                 </h3>
                                 
-                                <label htmlFor={`crop-${marker.id}`} className='block text-sm font-semibold text-gray-600 mb-1 flex items-center'>
-                                    <FaTag className='mr-1 text-amber-500'/> Producto Plantado:
-                                </label>
-                                <input
-                                    id={`crop-${marker.id}`}
-                                    type="text"
-                                    value={marker.crop}
-                                    onChange={(e) => handleCropChange(marker.id, e.target.value)}
-                                    placeholder="Ej: Tomate, Pimiento, Vacío..."
-                                    className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-green-500 focus:border-green-500"
-                                />
-
-                                <p className='mt-2 text-xs text-gray-500'>
-                                    Coordenadas: Lat: {marker.lat.toFixed(6)}, Lng: {marker.lng.toFixed(6)}
-                                </p>
+                                <div className="space-y-2 text-sm text-gray-600">
+                                    <div className="flex items-center justify-between">
+                                        <span className="flex items-center text-gray-500">
+                                            <FaRulerCombined className="mr-2 w-4" /> Área:
+                                        </span>
+                                        <span className="font-semibold">{marker.area} ha</span>
+                                    </div>
+                                    
+                                    <div className="flex items-center justify-between">
+                                        <span className="flex items-center text-gray-500">
+                                            <FaMapMarkerAlt className="mr-2 w-4" /> Suelo:
+                                        </span>
+                                        <span className="font-semibold">{marker.soilType || 'N/A'}</span>
+                                    </div>
+                                </div>
                             </div>
                         </Popup>
                     </Marker>
                 ))}
             </MapContainer>
+            
+            {/* Optional Overlay Legend or Info */}
+            <div className="absolute bottom-4 left-4 z-[1000] bg-white/90 backdrop-blur-sm p-3 rounded-lg shadow-md border border-gray-200 text-xs text-gray-600">
+                <p className="font-bold text-gray-800 mb-1">Leyenda</p>
+                <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-green-500 border border-white shadow-sm"></span>
+                    <span>Parcelas/Invernaderos Activos</span>
+                </div>
+            </div>
         </div>
     );
 };

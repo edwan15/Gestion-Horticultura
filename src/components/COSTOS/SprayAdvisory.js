@@ -1,21 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { FaWind, FaTint, FaThermometerHalf, FaBell } from 'react-icons/fa';
 
-// --- Configuración (Reemplazar con tus datos) ---
-const API_KEY = 'TU_CLAVE_API_METEOROLOGICA';
-const LATITUD = '40.4168'; // Ejemplo: Madrid
-const LONGITUD = '-3.7038'; // Ejemplo: Madrid
-
 // --- Lógica del Asesoramiento de Pulverización (Sin cambios) ---
 const getSprayAdvice = (windSpeed_kph, humidity_perc) => {
     // 1. Criterio de Viento (Principal para deriva)
     const isOptimalWind = windSpeed_kph >= 6 && windSpeed_kph <= 15;
-    const isNoSprayWind = windSpeed_kph < 5 || windSpeed_kph > 25;
+    const isNoSprayWind = windSpeed_kph < 3 || windSpeed_kph > 20; // Ajustado un poco más estricto para "No Spray"
 
     // 2. Criterio de Humedad (Secundario para evaporación)
     const isOptimalHumidity = humidity_perc >= 50 && humidity_perc <= 85;
 
-    // Combinación de criterios (Simplificado)
+    // Combinación de criterios
     if (isNoSprayWind) {
         return { status: 'Prohibido 🛑', colorClass: 'bg-red-100 text-red-700 border-red-500' };
     }
@@ -27,48 +22,70 @@ const getSprayAdvice = (windSpeed_kph, humidity_perc) => {
 };
 
 // --- Componente React Principal ---
-const SprayAdvisory = () => {
+const SprayAdvisory = ({ apiKey, city }) => {
     const [forecast, setForecast] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchWeather = async () => {
-            // Lógica de la API...
+            if (!apiKey) {
+                setLoading(false);
+                return; // Esperamos a que llegue la prop
+            }
+
             try {
-                // Simula la respuesta de la API por simplicidad del ejemplo:
-                await new Promise(resolve => setTimeout(resolve, 1500)); 
+                // Fetch de 5 días / 3 horas de OpenWeatherMap
+                const response = await fetch(
+                    `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric&lang=es`
+                );
                 
-                const mockData = [
-                    { time: '10:00', temp: 18, wind: 4, humidity: 90 }, 
-                    { time: '11:00', temp: 20, wind: 8, humidity: 75 }, 
-                    { time: '12:00', temp: 23, wind: 12, humidity: 65 }, 
-                    { time: '13:00', temp: 26, wind: 18, humidity: 50 }, 
-                    { time: '14:00', temp: 28, wind: 28, humidity: 45 }, 
-                ];
+                if (!response.ok) {
+                   throw new Error("Error en la respuesta de la API");
+                }
+
+                const data = await response.json();
                 
-                const processedForecast = mockData.map(hour => ({
-                    ...hour,
-                    advice: getSprayAdvice(hour.wind, hour.humidity)
-                }));
+                // Tomamos los próximos 5 intervalos (aprox. 15 horas)
+                const nextIntervals = data.list.slice(0, 5);
+
+                const processedForecast = nextIntervals.map(item => {
+                    // La API devuelve metros/segundo. Multiplicar por 3.6 para km/h
+                    const windKph = Math.round(item.wind.speed * 3.6);
+                    const humidity = item.main.humidity;
+                    const temp = Math.round(item.main.temp);
+                    
+                    // Formatear hora (HH:mm)
+                    const dateObj = new Date(item.dt * 1000);
+                    const timeStr = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+                    return {
+                        time: timeStr,
+                        temp: temp,
+                        wind: windKph,
+                        humidity: humidity,
+                        advice: getSprayAdvice(windKph, humidity)
+                    };
+                });
                 
                 setForecast(processedForecast);
                 setLoading(false);
 
             } catch (err) {
-                setError("Error al cargar el pronóstico. Revisa tu clave y la URL de la API.");
+                console.error(err);
+                setError("No se pudo cargar el clima.");
                 setLoading(false);
             }
         };
 
         fetchWeather();
-    }, []);
+    }, [apiKey, city]);
 
     // --- Estados de Carga y Error ---
     if (loading) {
         return (
-            <div className="text-center p-5 text-gray-500">
-                <FaBell className="inline-block animate-spin mr-2" /> Cargando pronóstico agrícola...
+            <div className="text-center p-5 text-gray-500 flex items-center justify-center h-full">
+                <FaBell className="animate-spin mr-2" /> Calculando condiciones...
             </div>
         );
     }
@@ -76,7 +93,7 @@ const SprayAdvisory = () => {
     if (error) {
         return (
             <div className="p-4 text-center bg-red-50 text-red-700 rounded-lg border border-red-300">
-                Error: {error}
+                {error}
             </div>
         );
     }
@@ -87,7 +104,7 @@ const SprayAdvisory = () => {
             
             {/* Título y Subtítulo (Responsive) */}
             <p className="text-sm text-gray-500 border-b border-gray-200 pb-2 mb-2">
-                Basado en Viento (6-15 km/h) y Humedad (50-85%).
+                Condiciones actuales en <span className="font-semibold text-gray-700">{city}</span>.
             </p>
             
             {/* Encabezados de la Tabla (Visible en MD+, oculto en móvil) */}

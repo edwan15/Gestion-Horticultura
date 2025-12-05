@@ -25,6 +25,8 @@ const ParcelModal = ({ isOpen, onClose, onSave, parcel }) => {
         locality: '',
         city: '',
         vulnerableArea: '0',
+        latitude: '',
+        longitude: '',
         notes: '',
     });
     const [saving, setSaving] = useState(false);
@@ -45,6 +47,8 @@ const ParcelModal = ({ isOpen, onClose, onSave, parcel }) => {
                 locality: '',
                 city: '',
                 vulnerableArea: '0',
+                latitude: '',
+                longitude: '',
                 notes: '',
             });
         }

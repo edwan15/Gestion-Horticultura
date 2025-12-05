@@ -44,6 +44,7 @@ import EmployeeManagement from '../COSTOS/EmployeeManagement';
 import TimeSheetWizard from '../COSTOS/TimeSheetWizard'; 
 import SummaryCard from '../COSTOS/SummaryCard';
 import SprayAdvisory from '../COSTOS/SprayAdvisory';
+import SprayConditions from '../COSTOS/SprayConditions';
 
 // <=== SOLICITADO: Constantes de configuración para el componente de clima
 // ⚠️ ATENCIÓN: DEBES REEMPLAZAR ESTOS VALORES
@@ -1134,7 +1135,7 @@ export const HomeView = ({
                     className="h-[350px]"
                 >
                     <div className="overflow-y-auto h-[250px] -mx-5 px-5">
-                        <SprayAdvisory />
+                        <SprayAdvisory apiKey={OPENWEATHER_API_KEY} city={DEFAULT_CITY} />
                     </div>
                 </DashboardCard>
 
@@ -1224,6 +1225,11 @@ export const HomeView = ({
                         </div>
                     </div>
                 </DashboardCard>
+            </div>
+
+            {/* Componente de Condiciones de Pulverización (Estilo Wisecrop) */}
+            <div className="mb-6">
+                <SprayConditions apiKey={OPENWEATHER_API_KEY} city={DEFAULT_CITY} />
             </div>
 
             {/* 3. HISTORIAL DE MANO DE OBRA - Ancho completo */}
