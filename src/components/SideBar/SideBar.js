@@ -3,18 +3,12 @@ import { useNavigate, Link } from "react-router-dom";
 import { SlDirections } from "react-icons/sl";
 import { BiSearchAlt2, BiSupport, BiPackage } from "react-icons/bi";
 import { motion, AnimatePresence } from "framer-motion";
-import { BsMenuButtonWideFill } from "react-icons/bs";
 import { MdAdd, MdOutlineInventory } from "react-icons/md";
-import { CgProfile } from "react-icons/cg";
-import { FaChessKing, FaFlask, FaRegListAlt, FaSeedling } from "react-icons/fa";
+import { FaSeedling } from "react-icons/fa";
 import Menu from "../../data/Sidebar"; 
 import SideBarItem from "./SideBarItem"; 
-import Agro from "../../asset/LOGOS.svg"; 
 import { useAppContext } from '../SuperUser/AppContext'; 
-import AdminImpersonationSelector from '../SuperUser/AdminImpersonationSelector'; 
 
-// Constante para la altura del encabezado móvil
-const HEADER_HEIGHT_MOBILE = '4rem'; // h-16 = 4rem
 
 // Variantes para el menú de escritorio (Desktop/Tablet)
 const desktopSidebarVariants = {
@@ -121,14 +115,6 @@ const SideBar = ({ children }) => {
                             />
                         )}
                     </div>
-
-                    {/* Selector de Admin */}
-                    {isOpen && isAdmin && (
-                        <div className="mb-4">
-                            <AdminImpersonationSelector />
-                        </div>
-                    )}
-
                     {/* Menú Items */}
                     <div className="space-y-1">
                         {Menu.map((product, index) => (
@@ -233,19 +219,6 @@ const SideBar = ({ children }) => {
 
                                 {/* Contenido del Drawer con scroll suave */}
                                 <div className="flex-1 overflow-y-auto py-6 px-2 custom-scrollbar">
-                                    {isAdmin && (
-                                        <motion.div 
-                                            initial={{ y: 20, opacity: 0 }}
-                                            animate={{ y: 0, opacity: 1 }}
-                                            transition={{ delay: 0.2 }}
-                                            className="px-3 mb-6"
-                                        >
-                                            <div className="bg-white/60 backdrop-blur-md rounded-xl p-3 border border-white/40 shadow-lg">
-                                                <AdminImpersonationSelector />
-                                            </div>
-                                        </motion.div>
-                                    )}
-
                                     <motion.div 
                                         initial={{ y: 20, opacity: 0 }}
                                         animate={{ y: 0, opacity: 1 }}

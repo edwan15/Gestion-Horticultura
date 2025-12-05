@@ -48,7 +48,7 @@ import SprayAdvisory from '../COSTOS/SprayAdvisory';
 // <=== SOLICITADO: Constantes de configuración para el componente de clima
 // ⚠️ ATENCIÓN: DEBES REEMPLAZAR ESTOS VALORES
 const OPENWEATHER_API_KEY = "25d21a264f7dcdfb5be61655b423da67"; // Reemplaza con tu clave
-const DEFAULT_CITY = "Balsicas,es"; // Reemplaza con la ciudad deseada
+const DEFAULT_CITY = "Balsicas,ES"; // Reemplaza con la ciudad deseada
 
 
 // =======================================================================
@@ -1117,20 +1117,14 @@ export const HomeView = ({
                 </DashboardCard>
 
                 {/* Pronóstico Hoy - Visual y Destacado */}
-                <DashboardCard 
-                    title="Pronóstico Hoy" 
-                    icon={<FaCloudSun />} 
-                    titleColor="text-blue-600"
-                    className="h-[400px]"
-                >
-                    <div className="h-[300px] flex items-center justify-center overflow-hidden">
+                <div className="h-[400px]">
                         <WeatherForecast 
                             apiKey={OPENWEATHER_API_KEY} 
                             city={DEFAULT_CITY} 
-                            days={1} 
+                            days={1}
+                            className="h-full"
                         />
-                    </div>
-                </DashboardCard>
+                </div>
 
                 {/* Asesoramiento Crítico */}
                 <DashboardCard 
@@ -1166,21 +1160,26 @@ export const HomeView = ({
                         </div>
                     </div>
                 </DashboardCard>
-
-                {/* Pronóstico 5 Días */}
+                
                 <DashboardCard 
+                
                     title="Pronóstico 5 Días" 
                     icon={<FaCloudSun />} 
                     titleColor="text-blue-600"
                     className="h-[300px]"
+                
                 >
-                    <div className="overflow-x-auto -mx-5 px-5 h-[200px]">
+
+                {/* Pronóstico 5 Días */}
+               <div className="overflow-x-auto -mx-5 px-5 h-[200px]">
                         <WeatherForecast 
                             apiKey={OPENWEATHER_API_KEY} 
                             city={DEFAULT_CITY} 
-                            days={5} 
+                            days={1} 
+                            className="h-full"
                         />
-                    </div>
+                </div>
+
                 </DashboardCard>
 
                 {/* Información Rápida - Tipo Widget */}
