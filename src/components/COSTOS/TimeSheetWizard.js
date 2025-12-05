@@ -7,6 +7,7 @@ import {
     addDoc,
     serverTimestamp,
 } from 'firebase/firestore';
+import { auth } from '../../firebaseConfig'; 
 import { FaUsers, FaTools, FaClock, FaSeedling, FaTruck, FaFileAlt, FaCheckCircle, FaLeaf, FaArrowRight, FaArrowLeft } from 'react-icons/fa';
 
 // ------------------------------------
@@ -768,6 +769,7 @@ const TimeSheetWizard = ({ db, userId, setErrorMessage, availableLocals = [] }) 
                     ratePerHour: worker?.ratePerHour || 0,
                     createdBy: userId,
                     createdAt: serverTimestamp(),
+                    editedBy: auth.currentUser?.email || 'Sistema',
                 };
             });
             

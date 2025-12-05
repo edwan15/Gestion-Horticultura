@@ -1369,6 +1369,7 @@ const HomeContent = (props) => {
             // Limpiar valores nulos o vacíos y asegurar tipo
             dataToUpdate.totalHours = parseFloat(dataToUpdate.totalHours) || 0;
             dataToUpdate.ratePerHour = parseFloat(dataToUpdate.ratePerHour) || 0;
+            dataToUpdate.editedBy = auth.currentUser?.email || 'Sistema';
 
             await updateDoc(recordRef, dataToUpdate);
 

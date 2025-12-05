@@ -664,9 +664,12 @@ const CostesManager = () => {
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
+                                    <th className="px-2 py-3 text-center text-xs font-semibold text-emerald-600 uppercase tracking-wider w-8">
+                                        <FaEuroSign />
+                                    </th>
                                     <th 
                                         onClick={() => handleSort('date')}
-                                        className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors whitespace-nowrap"
+                                        className="px-2 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors whitespace-nowrap"
                                     >
                                         <div className="flex items-center gap-2">
                                             Fecha
@@ -675,21 +678,21 @@ const CostesManager = () => {
                                             )}
                                         </div>
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                                    <th className="px-2 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                                         Operación
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                                    <th className="px-2 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                                         Trabajador
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                                    <th className="px-2 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                                         Cultivo/Local
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                                    <th className="px-2 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                                         Horario
                                     </th>
                                     <th 
                                         onClick={() => handleSort('totalHours')}
-                                        className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors whitespace-nowrap"
+                                        className="px-2 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors whitespace-nowrap"
                                     >
                                         <div className="flex items-center justify-end gap-2">
                                             Horas
@@ -700,15 +703,18 @@ const CostesManager = () => {
                                     </th>
                                     <th 
                                         onClick={() => handleSort('ratePerHour')}
-                                        className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors whitespace-nowrap"
+                                        className="px-2 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors whitespace-nowrap"
                                     >
                                         Tarifa/h
                                     </th>
-                                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                                    <th className="px-2 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                                         Coste Total
                                     </th>
-                                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
-                                        Acciones
+                                    <th className="px-2 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                                        Editado por
+                                    </th>
+                                    <th className="px-2 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                                        acciones
                                     </th>
                                 </tr>
                             </thead>
@@ -734,36 +740,51 @@ const CostesManager = () => {
                                         const formattedRate = Number(rate).toFixed(2);
                                         
                                         return (
-                                            <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <tr key={item.id} className="hover:bg-gray-50 transition-colors text-sm">
+                                                <td className="px-2 py-3 whitespace-nowrap text-center">
+                                                    <div className="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center mx-auto">
+                                                        <FaEuroSign className="text-emerald-500 text-xs" />
+                                                    </div>
+                                                </td>
+                                                <td className="px-2 py-3 whitespace-nowrap text-gray-900">
                                                     {new Date(item.date).toLocaleDateString('es-ES')}
                                                 </td>
-                                                <td className="px-4 py-4 text-sm text-gray-700">
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                <td className="px-2 py-3 text-gray-700 max-w-[150px] truncate" title={`${item.operationId} - ${item.operationName}`}>
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 truncate max-w-full">
                                                         {item.operationId} - {item.operationName}
                                                     </span>
                                                 </td>
-                                                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                <td className="px-2 py-3 whitespace-nowrap font-medium text-gray-900 max-w-[120px] truncate" title={item.workerName}>
                                                     {item.workerName}
                                                 </td>
-                                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                <td className="px-2 py-3 whitespace-nowrap text-gray-700 max-w-[120px] truncate" title={item.localName}>
                                                     {item.localName}
                                                 </td>
-                                                <td className="px-4 py-4 whitespace-nowrap text-xs text-gray-500">
+                                                <td className="px-2 py-3 whitespace-nowrap text-xs text-gray-500">
                                                     {item.startTime} - {item.endTime}
                                                 </td>
-                                                <td className="px-4 py-4 whitespace-nowrap text-sm font-mono text-right text-purple-700 font-semibold">
-                                                    {Number(hours).toFixed(2)} h
+                                                <td className="px-2 py-3 whitespace-nowrap font-mono text-right text-purple-700 font-semibold">
+                                                    {Number(hours).toFixed(2)}
                                                 </td>
                                                 {/* CAMPO CORREGIDO */}
-                                                <td className="px-4 py-4 whitespace-nowrap text-sm font-mono text-right text-gray-600">
+                                                <td className="px-2 py-3 whitespace-nowrap font-mono text-right text-gray-600">
                                                     {formattedRate} €
                                                 </td>
-                                                <td className="px-4 py-4 whitespace-nowrap text-base font-bold text-right text-emerald-800">
+                                                <td className="px-2 py-3 whitespace-nowrap font-bold text-right text-emerald-800">
                                                     {cost.toFixed(2)} €
                                                 </td>
-                                                <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <div className="flex justify-center items-center gap-2">
+                                                <td className="px-2 py-3 whitespace-nowrap text-gray-500 max-w-[150px]">
+                                                    <div className="flex flex-col truncate">
+                                                        <span className="font-medium text-gray-700 truncate text-xs" title={item.editedBy || 'Sistema'}>{item.editedBy || 'Sistema'}</span>
+                                                        {item.updatedAt && (
+                                                            <span className="text-[10px] text-gray-400">
+                                                                {new Date(item.updatedAt.seconds * 1000).toLocaleDateString()}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="px-2 py-3 whitespace-nowrap text-right text-sm font-medium">
+                                                    <div className="flex justify-center items-center gap-1">
                                                         <button 
                                                             // onClick={() => handleEdit(item.id)} // Implementar lógica de edición
                                                             className="text-indigo-600 hover:text-indigo-900 p-1 rounded-md hover:bg-indigo-50 transition-colors"

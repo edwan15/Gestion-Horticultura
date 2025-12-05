@@ -1,5 +1,4 @@
-// export default acumuladoC;
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Truck,
   BarChart2,
@@ -11,11 +10,77 @@ import {
   MapPin,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { firebaseConfig } from "../../firebaseConfig";
 
-const acumuladoC = () => {
-  // COORDENADAS PROPORCIONADAS (37.824927, -0.944296)
-  const mapEmbedUrl =
-    "https://maps.google.com/maps?q=37.824927,-0.944296&z=15&output=embed";
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const getAppId = () => {
+    if (typeof window.__app_id !== "undefined") {
+        return window.__app_id;
+    }
+    return "default-calendar-app-id";
+};
+
+const AcumuladoC = () => {
+  const [coordinates, setCoordinates] = useState({ lat: 37.824927, lng: -0.944296 }); // Default coordinates
+  const [loading, setLoading] = useState(true);
+  const [farmName, setFarmName] = useState("");
+
+  useEffect(() => {
+    const fetchFarmLocation = async () => {
+        const user = auth.currentUser;
+        if (!user) {
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const appId = getAppId();
+            const FARMS_PATH = `artifacts/${appId}/public/data/farms`;
+            
+            const q = query(
+                collection(db, FARMS_PATH),
+                where("userId", "==", user.uid)
+            );
+            
+            const snapshot = await getDocs(q);
+            
+            if (!snapshot.empty) {
+                const farmData = snapshot.docs[0].data();
+                if (farmData.latitude && farmData.longitude) {
+                    setCoordinates({
+                        lat: parseFloat(farmData.latitude),
+                        lng: parseFloat(farmData.longitude)
+                    });
+                    setFarmName(farmData.name || "");
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching farm location:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Listen for auth state changes just in case
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+        if (user) {
+            fetchFarmLocation();
+        } else {
+            setLoading(false);
+        }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const mapEmbedUrl = `https://maps.google.com/maps?q=${coordinates.lat},${coordinates.lng}&z=15&output=embed`;
 
   return (
     // Contenedor principal: Altura y padding base ajustados para móviles.
@@ -139,7 +204,7 @@ const acumuladoC = () => {
       <section className="mt-12 sm:mt-16">
         <h2 className="text-xl sm:text-4xl font-bold text-center text-gray-800 mb-6 sm:mb-8 flex items-center justify-center">
           <MapPin className="w-6 h-6 sm:w-8 sm:h-8 text-red-500 mr-2 sm:mr-3" />
-          Ubicación Específica del Cultivo
+          Ubicación Específica del Cultivo {farmName && `- ${farmName}`}
         </h2>
 
         <div
@@ -162,7 +227,8 @@ const acumuladoC = () => {
           ></iframe>
         </div>
         <p className="text-center text-xs sm:text-sm text-gray-500 mt-3">
-          Coordenadas: 37.824927, -0.944296 (Balsicas, Murcia)
+          Coordenadas: {coordinates.lat}, {coordinates.lng} 
+          {loading ? " (Cargando...)" : (farmName ? ` (${farmName})` : " (Ubicación por defecto)")}
         </p>
       </section>
 
@@ -206,4 +272,4 @@ const Card = ({ icon, title, description, bgColor, hoverBorder }) => {
   );
 };
 
-export default acumuladoC;
+export default AcumuladoC;
