@@ -7,7 +7,7 @@ const apps = [
     { name: 'Producción', icon: <MdLocalFlorist className="text-green-600" />, path: '/produccionC', desc: 'Gestión de cultivos' },
     { name: 'Inventario', icon: <MdInventory className="text-blue-600" />, path: '/panel', desc: 'Control de stock' },
     { name: 'Personal', icon: <MdPeople className="text-orange-600" />, path: '/user-management', desc: 'RRHH y Usuarios' },
-    { name: 'Finanzas', icon: <MdBarChart className="text-purple-600" />, path: '/finanzas', desc: 'Costes y beneficios' }, // Placeholder path
+    { name: 'Finanzas', icon: <MdBarChart className="text-purple-600" />, path: '/costes', desc: 'Costes y beneficios' }, // Placeholder path
     { name: 'Clima', icon: <MdCloud className="text-sky-500" />, path: '/clima', desc: 'Monitorización' }, // Placeholder path
     { name: 'Configuración', icon: <MdSettings className="text-gray-600" />, path: '/settings', desc: 'Ajustes del sistema' },
 ];

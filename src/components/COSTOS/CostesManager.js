@@ -401,22 +401,39 @@ const CostesManager = () => {
         }
     };
 
-    // Opciones para los filtros
-    const localOptions = availableLocals.map(local => ({
-        value: local.id,
-        label: local.name
-    }));
+    // Opciones para los filtros (Dinámicas basadas en los datos)
+    const localOptions = useMemo(() => {
+        const uniqueLocals = new Map();
+        timesheets.forEach(item => {
+            if (item.localId && item.localName) {
+                uniqueLocals.set(item.localId, item.localName);
+            }
+        });
+        return Array.from(uniqueLocals.entries()).map(([id, name]) => ({
+            value: id,
+            label: name
+        }));
+    }, [timesheets]);
 
     const operationOptions = OPERATIONS.map(op => ({
         value: op.id,
         label: `${op.id} - ${op.name}`
     }));
 
-    const workerOptions = availableWorkers.map(worker => ({
-        value: worker.id,
-        label: worker.name
-    }));
+    const workerOptions = useMemo(() => {
+        const uniqueWorkers = new Map();
+        timesheets.forEach(item => {
+            if (item.workerId && item.workerName) {
+                uniqueWorkers.set(item.workerId, item.workerName);
+            }
+        });
+        return Array.from(uniqueWorkers.entries()).map(([id, name]) => ({
+            value: id,
+            label: name
+        }));
+    }, [timesheets]);
 
+    // Opciones de categoría (Fijo)
     const categoryOptions = CATEGORIES.map(cat => ({
         value: cat.id,
         label: cat.name
