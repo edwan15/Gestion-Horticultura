@@ -924,14 +924,23 @@ const Register = () => {
                 displayName: name,
             });
 
-            // 3. 💾 Guardar perfil y ROL en Firestore
+            // 3. 💾 Guardar perfil y ROL en Firestore con período de prueba
             const userDocRef = doc(db, "users", user.uid);
+            
+            // Calcular fecha de fin de prueba (7 días desde ahora)
+            const trialEndDate = new Date();
+            trialEndDate.setDate(trialEndDate.getDate() + 7);
+            
             await setDoc(userDocRef, {
                 uid: user.uid,
                 name: name,
                 email: email,
                 role: "subscriber",
                 createdAt: new Date(),
+                // 🆕 NUEVO: Período de prueba de 7 días para nuevos usuarios
+                trialEndsAt: trialEndDate,
+                subscriptionStatus: "trial", // Estado inicial: en prueba
+                isLegacyUser: false, // Marcar como usuario nuevo (no legacy)
             });
 
             // 4. Actualizar el estado de Redux

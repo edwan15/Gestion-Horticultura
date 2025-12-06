@@ -142,7 +142,7 @@ const SideBar = ({ children }) => {
             {/* =======================================================
                 CONTENIDO PRINCIPAL Y BARRA SUPERIOR MÓVIL
             ======================================================= */}
-            <div className="w-full flex-1 flex flex-col h-screen overflow-hidden">
+            <div className="w-full flex-1 flex flex-col">
                 
                 {/* MENÚ DESPLEGABLE MÓVIL (Overlay) - GLASSMORPHISM DESIGN */}
                 <AnimatePresence>
@@ -299,7 +299,7 @@ const SideBar = ({ children }) => {
                 </AnimatePresence>
 
                 {/* Contenedor del contenido del componente hijo */}
-                <div className="flex-1 w-full overflow-y-auto bg-gray-50 scroll-smooth">
+                <div className="flex-1 w-full bg-gray-50">
                      {React.Children.map(children, child => {
                         // Intento pasar la prop onMenuToggle si el hijo la acepta
                         if (React.isValidElement(child)) {
