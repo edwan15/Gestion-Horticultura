@@ -1,6 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useReactToPrint } from 'react-to-print';
 import DateRangeSummary from './DateRangeSummary';
+import IrrigationExportModal from '../export/IrrigationExportModal';
+import PrintableIrrigationReport from '../export/PrintableIrrigationReport';
 
 // --- FUNCIONES DE UTILDAD (Mantenidas) ---
 const formatDateForLog = (dateKey) => {
@@ -74,6 +77,11 @@ const ActivityLog = ({ logActivities }) => {
 const Calendar = ({ dailyData = {} }) => {
     const navigate = useNavigate();
     const [currentDate, setCurrentDate] = useState(new Date());
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+    const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+    const [exportConfig, setExportConfig] = useState(null);
+    const [previewData, setPreviewData] = useState(null);
+    const reportRef = React.useRef();
 
     // ... (Log Activities Logic - Mantenida) ...
     const logActivities = useMemo(() => {
@@ -211,6 +219,128 @@ const Calendar = ({ dailyData = {} }) => {
         return days;
     }, [year, month, totalDays, startDay, dailyData, goToDetails, baseCellClasses]); // Incluimos baseCellClasses para evitar warnings
 
+    const handleOpenExport = () => setIsExportModalOpen(true);
+
+    const handlePreview = (config) => {
+        setExportConfig(config);
+        setIsExportModalOpen(false);
+
+        // Helper function to format dates
+        const formatDateHelper = (date) => {
+            const d = new Date(date);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        };
+
+        // Filter Logic for irrigation data
+        const irrigationRecords = [];
+        let totalM2 = 0;
+        let totalSectors = 0;
+        let totalDays = 0;
+        
+        const now = new Date();
+        const todayStr = formatDateHelper(now);
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = formatDateHelper(yesterday);
+
+        const getStartDate = (range) => {
+            const d = new Date();
+            if (range === 'today') return d;
+            if (range === 'yesterday') return yesterday;
+            if (range === 'last_week') d.setDate(d.getDate() - 7);
+            if (range === 'last_month') d.setMonth(d.getMonth() - 1);
+            if (range === 'last_year') d.setFullYear(d.getFullYear() - 1);
+            if (range === 'all') return new Date('2000-01-01');
+            return new Date('2000-01-01');
+        };
+
+        const startDate = getStartDate(config.dateRange);
+
+        Object.keys(dailyData).forEach(dateKey => {
+            let isValidDate = false;
+            
+            if (config.dateRange === 'all') isValidDate = true;
+            else if (config.dateRange === 'today') isValidDate = (dateKey === todayStr);
+            else if (config.dateRange === 'yesterday') isValidDate = (dateKey === yesterdayStr);
+            else {
+                const currentDate = new Date(dateKey);
+                if (!isNaN(currentDate.getTime())) {
+                    isValidDate = currentDate >= startDate && currentDate <= now;
+                }
+            }
+
+            if (isValidDate) {
+                const dayRecords = dailyData[dateKey];
+                if (dayRecords && dayRecords.length > 0) {
+                    const dayM2 = dayRecords.reduce((sum, item) => sum + parseFloat(item.M2 || 0), 0);
+                    const firstRecord = dayRecords[0];
+                    const lastRecord = dayRecords[dayRecords.length - 1];
+                    
+                    // Crear el contador combinando N_INIT del primer registro y N_FIN del último
+                    const nInit = firstRecord.N_INIT || '';
+                    const nFin = lastRecord.N_FIN || '';
+                    const contador = (nInit && nFin) ? `${nInit}a${nFin}` : 'N/A';
+                    
+                    irrigationRecords.push({
+                        dateRaw: dateKey, // Keep raw date for sorting
+                        date: formatDateForLog(dateKey), // Formatted date for display
+                        invernadero: firstRecord.INVERNADERO || 'N/A',
+                        sectors: dayRecords.length,
+                        m2: dayM2.toFixed(2),
+                        contador: contador // New field
+                    });
+                    
+                    totalM2 += dayM2;
+                    totalSectors += dayRecords.length;
+                    totalDays++;
+                }
+            }
+        });
+
+        // Sort irrigation records based on config.sortBy
+        if (config.sortBy) {
+            irrigationRecords.sort((a, b) => {
+                switch (config.sortBy) {
+                    case 'date_asc':
+                        return new Date(a.dateRaw) - new Date(b.dateRaw);
+                    case 'date_desc':
+                        return new Date(b.dateRaw) - new Date(a.dateRaw);
+                    case 'm2_desc':
+                        return parseFloat(b.m2) - parseFloat(a.m2);
+                    case 'm2_asc':
+                        return parseFloat(a.m2) - parseFloat(b.m2);
+                    case 'sectors_desc':
+                        return b.sectors - a.sectors;
+                    case 'sectors_asc':
+                        return a.sectors - b.sectors;
+                    case 'greenhouse_asc':
+                        return a.invernadero.localeCompare(b.invernadero);
+                    case 'greenhouse_desc':
+                        return b.invernadero.localeCompare(a.invernadero);
+                    default:
+                        return 0;
+                }
+            });
+        }
+
+        setPreviewData({
+            farm: 'Riego de Invernaderos',
+            irrigationRecords,
+            totals: {
+                totalM2: totalM2.toFixed(2),
+                totalSectors,
+                totalDays
+            }
+        });
+        
+        setIsPreviewModalOpen(true);
+    };
+
+    const handlePrint = useReactToPrint({
+        contentRef: reportRef,
+        documentTitle: `Informe_Riego_${new Date().toISOString().split('T')[0]}`,
+    });
+
     const changeMonth = (delta) => {
         const newDate = new Date(currentDate.getTime()); 
         newDate.setMonth(currentDate.getMonth() + delta);
@@ -222,9 +352,20 @@ const Calendar = ({ dailyData = {} }) => {
     // Contenedor principal sin un 'max-w' fijo, usando un poco más de padding en md+
     <div className="mx-auto p-2 sm:p-4 md:p-8 max-w-7xl bg-gray-50 shadow-2xl rounded-3xl mt-4 sm:mt-6 lg:mt-10">
         
-        <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold text-center text-indigo-900 mb-4 sm:mb-8 pb-2 sm:pb-3 border-b-4 border-emerald-300/50 tracking-tight">
-            💧 Riego de Invernaderos
-        </h1>
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold text-center text-indigo-900 pb-2 sm:pb-3 border-b-4 border-emerald-300/50 tracking-tight flex-1">
+                💧 Riego de Invernaderos
+            </h1>
+            <button
+                className="mt-4 sm:mt-0 sm:ml-4 flex items-center px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700 hover:shadow-indigo-500/30 transition-all duration-200 text-sm"
+                onClick={handleOpenExport}
+            >
+                <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                Exportar Informe
+            </button>
+        </div>
 
         {/* CLAVE: En móvil (col-span-1), todo en una columna. 
             En LG (desktop), dos columnas: 
@@ -277,6 +418,48 @@ const Calendar = ({ dailyData = {} }) => {
             </div>
 
         </div>
+
+        {/* Export Modal */}
+        <IrrigationExportModal 
+            isOpen={isExportModalOpen} 
+            onClose={() => setIsExportModalOpen(false)} 
+            onPreview={handlePreview}
+        />
+
+        {/* Preview Modal */}
+        {isPreviewModalOpen && (
+            <div className="fixed inset-0 z-[60] flex flex-col bg-slate-900/95 backdrop-blur-md">
+                {/* Toolbar */}
+                <div className="flex items-center justify-between p-4 bg-slate-800 border-b border-slate-700 shadow-lg shrink-0">
+                    <button
+                        onClick={() => setIsPreviewModalOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2 text-white hover:bg-slate-700 rounded-lg transition"
+                    >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Volver
+                    </button>
+                    <h2 className="text-xl font-bold text-white">Vista Previa - Informe de Riego</h2>
+                    <button
+                        onClick={handlePrint}
+                        className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition shadow-lg"
+                    >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        Exportar a PDF / Imprimir
+                    </button>
+                </div>
+
+                {/* Preview Canvas */}
+                <div className="flex-1 overflow-auto bg-slate-900 p-8 flex justify-center">
+                    <div className="shadow-2xl">
+                        <PrintableIrrigationReport config={exportConfig} data={previewData} reportRef={reportRef} />
+                    </div>
+                </div>
+            </div>
+        )}
     </div>
 );
 

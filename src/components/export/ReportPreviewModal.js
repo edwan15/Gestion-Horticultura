@@ -8,7 +8,7 @@ const ReportPreviewModal = ({ isOpen, onClose, config, data }) => {
     const handlePrint = useReactToPrint({
         content: () => reportRef.current,
         documentTitle: `Reporte_${new Date().toISOString().split('T')[0]}`,
-        onAfterPrint: () => console.log('Print success'), // Optional callback
+        onAfterPrint: () => console.log('Print success'),
     });
 
     if (!isOpen) return null;
@@ -44,9 +44,9 @@ const ReportPreviewModal = ({ isOpen, onClose, config, data }) => {
                 </div>
             </div>
 
-            {/* Preview Canvas */}
-            <div className="flex-1 overflow-auto bg-slate-900 p-8 flex justify-center">
-                <div className="shadow-2xl">
+            {/* Preview Canvas - FULL WIDTH */}
+            <div className="flex-1 overflow-auto bg-slate-800 p-4 flex justify-center">
+                <div className="w-full max-w-[210mm] bg-white shadow-2xl">
                     <PrintableReport config={config} data={data} reportRef={reportRef} />
                 </div>
             </div>
