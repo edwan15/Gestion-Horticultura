@@ -5,7 +5,7 @@ import { initializeApp } from "firebase/app";
 import ConfirmationModal from "../shared/ConfirmationModal";
 import TareaEstadisticosModal from "./TareaEstadisticosModal";
 // Desde tu archivo de utilidades (asumiendo la estructura de carpetas anterior)
-import { calculateCosts } from "../../Util/costCalculations"; // calculateCosts es el error 1
+import { calculateCosts, formatNumber, HOURLY_COST_RATE } from "../../Util/costCalculations"; // calculateCosts es el error 1
 
 import { InlineMath } from "react-katex"; // 👈 ¡NECESARIO!
 import "katex/dist/katex.min.css";
@@ -915,848 +915,6 @@ ${globalTotals?.totalResult?.toFixed(2) || "0.00"}
 
 
 
-// const CalendarView = ({
-//   currentDate,
-//   navigateMonth,
-//   handleDayClick,
-//   setSelectedCalendarId,
-//   selectedCalendarId,
-//   calendars,
-//   events,
-//   dailyData,
-//   isAuthReady,
-//   setIsCalendarModalOpen,
-//   selectedCalendarName,
-//   globalTotals,
-//   setIsExportModalOpen, // Usado para exportar rango
-//   openExportModalInSingleDayMode, // Usado para exportar día único
-//   handleDeleteCalendar, // Función para eliminar el registro
-//   openStatsModal, // Estaba sin usar en el componente original, pero la mantengo como parte de las props
-// }) => {
-//   // --- Utilidades y Constantes ---
-//   const DAYS_OF_WEEK = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
-//   const MONTHS = [
-//     "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-//     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
-//   ];
-
-//   const formatDate = (date) => {
-//     // La función toISOString().split('T')[0] asegura el formato YYYY-MM-DD
-//     return date.toISOString().split('T')[0];
-//   };
-
-//   // --- LÓGICA DE GENERACIÓN DE DÍAS ---
-//   const year = currentDate.getFullYear();
-//   const month = currentDate.getMonth();
-//   const firstDayOfMonth = new Date(year, month, 1).getDay();
-//   const daysInMonth = new Date(year, month + 1, 0).getDate();
-//   const days = [];
-//   const prevMonthDaysTotal = new Date(year, month, 0).getDate();
-//   const startDay = prevMonthDaysTotal - firstDayOfMonth + 1;
-
-//   // Días del mes anterior
-//   for (let i = startDay; i <= prevMonthDaysTotal; i++) {
-//     if (i > prevMonthDaysTotal - firstDayOfMonth) {
-//       const fullDate = new Date(year, month - 1, i);
-//       days.push({
-//         key: `prev-${i}`,
-//         day: i,
-//         isCurrentMonth: false,
-//         fullDate,
-//         dateKey: formatDate(fullDate),
-//         events: [],
-//       });
-//     }
-//   }
-
-//   // Días del mes actual
-//   for (let i = 1; i <= daysInMonth; i++) {
-//     const fullDate = new Date(year, month, i);
-//     const dateKey = formatDate(fullDate);
-//     days.push({
-//       key: `curr-${i}`,
-//       day: i,
-//       isCurrentMonth: true,
-//       fullDate,
-//       dateKey,
-//       events: events[dateKey] || [],
-//     });
-//   }
-
-//   // Días del mes siguiente (para completar la cuadrícula)
-//   let nextDay = 1;
-//   while (days.length < 42) {
-//     const fullDate = new Date(year, month + 1, nextDay);
-//     days.push({
-//       key: `next-${nextDay}`,
-//       day: nextDay,
-//       isCurrentMonth: false,
-//       fullDate,
-//       dateKey: formatDate(fullDate),
-//       events: [],
-//     });
-//     nextDay++;
-//   }
-
-//   const today = formatDate(new Date());
-//   const selectedCalendarColor =
-//     calendars.find((c) => c.id === selectedCalendarId)?.color || "#3b82f6";
-
-//   // --- RENDERING (JSX) ---
-//   return (
-//     // 1. Contenedor Principal: Bordes súper redondeados y sombra elevada
-//     <div className="bg-white p-1 sm:p-6 md:p-8 rounded-3xl shadow-2xl shadow-indigo-100 border border-gray-100 transition-all duration-300">
-//       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-//         {/* COLUMNA IZQUIERDA: CALENDARIO (2/3) */}
-//         <div className="lg:col-span-2 flex flex-col space-y-6">
-//           <div className="p-4 bg-white border-2 border-green-200 rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300">
-//             <h2 className="text-xl sm:text-2xl font-bold text-green-800 mb-4 border-b-2 border-green-100 pb-3 flex items-center gap-2">
-//               🌶️ Vista del Mes - Producción de Pimientos
-//             </h2>
-
-//             {selectedCalendarId ? (
-//               <>
-//                 {/* Navegación del Calendario */}
-//                 <div className="flex justify-between items-center mb-6 ">
-//                   <button
-//                     onClick={() => navigateMonth(-1)}
-//                     className="p-3 bg-green-100 hover:bg-green-300 text-green-800 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-110"
-//                     title="Mes Anterior"
-//                   >
-//                     ⬅️
-//                   </button>
-//                   <h2 className="text-2xl font-extrabold text-gray-800 tracking-wide">
-//                     {MONTHS[month]} {year}
-//                   </h2>
-//                   <button
-//                     onClick={() => navigateMonth(1)}
-//                     className="p-3 bg-indigo-100 hover:bg-indigo-300 text-indigo-700 rounded-full transition-all duration-300 rotate-180 shadow-lg hover:shadow-xl"
-//                     title="Mes Siguiente"
-//                   >
-//                     ⬅️
-//                   </button>
-//                 </div>
-
-//                 {/* Días de la semana */}
-//                 <div className="grid grid-cols-7 text-center font-bold text-green-800 border-b-2 border-green-300 pb-3 mb-1">
-//                   {DAYS_OF_WEEK.map((day) => (
-//                     <div key={day} className="text-sm sm:text-base p-1">
-//                       {day}
-//                     </div>
-//                   ))}
-//                 </div>
-
-//                 {/* Grid de Días del Mes */}
-//                 <div className="grid grid-cols-7 gap-1 mt-2 p-0">
-//                   {days.map((dayData) => {
-//                     // Lógica de Cálculo de Métricas Diarias
-//                     const eventCount = dayData.events.length;
-
-//                     const dailyTotalResult = dayData.events.reduce(
-//                       (sum, event) => sum + (event.result || 0),
-//                       0
-//                     );
-
-//                     const dailyCostEntry = dailyData[dayData.dateKey]?.costs;
-//                     const costPerUnitFinal = parseFloat(dailyCostEntry?.finalResult) || 0;
-
-//                     const isToday = dayData.isCurrentMonth && dayData.dateKey === today;
-
-//                     return (
-//                       // Estilos de la celda de día: Compactos y con estilo
-//                       <div
-//                         key={dayData.key}
-//                         onClick={() => handleDayClick(dayData)}
-//                         className={`
-//                           flex flex-col cursor-pointer transition-all duration-300 rounded-xl p-1 sm:p-2
-//                           shadow-md border border-transparent
-//                           hover:shadow-lg hover:border-blue-400 hover:scale-[1.02]
-//                           relative group h-auto aspect-square
-
-//                           ${
-//                             dayData.isCurrentMonth
-//                               ? "bg-white text-gray-800"
-//                               : "bg-gray-50 text-gray-400 opacity-70"
-//                           }
-
-//                           ${
-//                             isToday
-//                               ? "border-2 border-red-500 ring-4 ring-red-200 shadow-xl z-20 bg-red-50 hover:bg-red-100"
-//                               : "z-10"
-//                           }
-//                         `}
-//                       >
-//                         {/* Número del día */}
-//                         <span
-//                           className={`font-extrabold text-lg text-right w-full
-//                             ${dayData.isCurrentMonth ? "text-gray-900" : "text-gray-400"}
-//                             ${isToday ? "text-red-700" : ""}
-//                             `}
-//                         >
-//                           {dayData.day}
-//                         </span>
-
-//                         {/* Contenido Dinámico (Métricas) */}
-//                         {eventCount > 0 && (
-//                           <div className="flex flex-col items-end px-0 space-y-0.5 opacity-90 group-hover:opacity-100">
-
-//                             {/* 1. INDICADOR DE EVENTO (PUNTO) - SOLO EN MÓVIL */}
-//                             <div className="flex justify-end w-full sm:hidden">
-//                                 <div
-//                                   className="w-2.5 h-2.5 rounded-full shadow-md ring-2 ring-white"
-//                                   style={{ backgroundColor: selectedCalendarColor }}
-//                                   title={`${eventCount} producto(s) registrado(s)`}
-//                                 ></div>
-//                             </div>
-
-//                             {/* 2. INFORMACIÓN DETALLADA - OCULTA EN MÓVIL, VISIBLE EN TABLET/ESCRITORIO */}
-//                             <div className="hidden sm:flex flex-col items-center w-full space-y-0.5 mt-auto">
-
-//                               {/* Total de Productos Guardados */}
-//                               <p className="font-medium text-[8px] sm:text-xs text-gray-700 leading-tight bg-gray-100/70 rounded-full px-2">
-//                                 {eventCount} Prod(s)
-//                               </p>
-
-//                               {/* COSTO DE PRODUCCIÓN POR UNIDAD */}
-//                               <p className="font-bold text-[8px] sm:text-xs text-blue-600 leading-tight">
-//                                 C/u: {costPerUnitFinal > 0 ? `$${costPerUnitFinal.toFixed(4)}` : '$0.0000'}
-//                               </p>
-
-//                               {/* TOTAL ACUMULADO DEL DÍA */}
-//                               <p className="font-extrabold text-[8px] sm:text-xs text-green-700 leading-tight">
-//                                 Total: {dailyTotalResult > 0 ? `$${dailyTotalResult.toFixed(2)}` : '$0.00'}
-//                               </p>
-
-//                             </div>
-
-//                           </div>
-//                         )}
-
-//                         {/* Mensaje sutil si no hay eventos */}
-//                         {eventCount === 0 && dayData.isCurrentMonth && (
-//                             <p className="text-gray-300 text-[8px] sm:text-[10px] mt-2 text-right invisible group-hover:visible">
-//                                 Click
-//                             </p>
-//                         )}
-//                       </div>
-//                     );
-//                   })}
-//                 </div>
-//               </>
-//             ) : (
-//               // Mensaje cuando no hay registro seleccionado
-//               <div className="p-10 text-center text-gray-500 bg-white rounded-2xl border-dashed border-4 border-gray-200 mt-4 shadow-inner">
-//                 📦
-//                 <p className="text-xl font-semibold">
-//                   Crea un registro para comenzar
-//                 </p>
-//                 <p className="mt-2">
-//                   Selecciona un registro o utiliza el botón Nuevo Registro
-//                   en el panel lateral.
-//                 </p>
-//               </div>
-//             )}
-//           </div>
-//         </div>
-
-//         {/* COLUMNA DERECHA: CONTROLES Y TOTALES (1/3) */}
-//         <div className="lg:col-span-1 flex flex-col space-y-8">
-//           {/* Controles Superiores (Select, Export, New, Delete, Stats) */}
-//           <div className="p-5 bg-white border-t-8 border-green-600 rounded-2xl shadow-2xl hover:shadow-3xl transition-shadow">
-//             <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2 border-b-2 border-gray-100 pb-3">
-//               🚜 Gestión del Invernadero
-//             </h3>
-//             <div className="space-y-4">
-//               {/* Selector de Registro */}
-//               <div className="flex flex-col space-y-2">
-//                 <label
-//                   htmlFor="calendar-select"
-//                   className="text-sm font-semibold text-gray-700"
-//                 >
-//                   Registro Actual:
-//                 </label>
-//                 <select
-//                   id="calendar-select"
-//                   value={selectedCalendarId || ""}
-//                   onChange={(e) => setSelectedCalendarId(e.target.value)}
-//                   className={`w-full p-3 border-2 rounded-xl shadow-inner text-base font-medium transition duration-200
-//                     ${
-//                       selectedCalendarId
-//                         ? "bg-indigo-50 text-gray-800 border-indigo-300 focus:ring-indigo-500 focus:border-indigo-500"
-//                         : "bg-gray-100 text-gray-500 border-dashed border-gray-400"
-//                     }`}
-//                   disabled={!isAuthReady || calendars.length === 0}
-//                 >
-//                   {calendars.length === 0 ? (
-//                     <option value="">Crea un registro</option>
-//                   ) : (
-//                     calendars.map((c) => (
-//                       <option key={c.id} value={c.id}>
-//                         {c.name}
-//                       </option>
-//                     ))
-//                   )}
-//                 </select>
-//               </div>
-
-//               {/* Botones de Acción */}
-//               <div className="flex flex-col space-y-3 pt-2">
-//                 {/* Botón de Nuevo Registro */}
-//                 <button
-//                   onClick={() => setIsCalendarModalOpen(true)}
-//                   className="flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-lg bg-green-600 hover:bg-green-700 text-white w-full transform hover:scale-[1.01]"
-//                   title="Crear Nuevo Registro/Calendario"
-//                 >
-//                   ➕
-//                   Nuevo Registro
-//                 </button>
-
-//                 {/* Botón de Exportar Rango */}
-//                 <button
-//                   onClick={() => setIsExportModalOpen("range")}
-//                   disabled={
-//                     !selectedCalendarId || globalTotals?.totalResult === 0
-//                   }
-//                   className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-md w-full transform hover:scale-[1.01]
-//                     ${
-//                       selectedCalendarId && globalTotals?.totalResult > 0
-//                         ? "bg-blue-600 hover:bg-blue-700 text-white"
-//                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
-//                     }`}
-//                   title="Exportar todos los registros filtrados (Rango de Fechas)"
-//                 >
-//                   ⬆️
-//                   Exportar Rango de Fechas
-//                 </button>
-
-//                 {/* Botón de Exportar Día Único */}
-//                 <button
-//                   onClick={openExportModalInSingleDayMode}
-//                   disabled={
-//                     !selectedCalendarId || globalTotals?.totalResult === 0
-//                   }
-//                   className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-md w-full transform hover:scale-[1.01]
-//                     ${
-//                       selectedCalendarId && globalTotals?.totalResult > 0
-//                         ? "bg-orange-600 hover:bg-orange-700 text-white"
-//                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
-//                     }`}
-//                   title="Exportar registros de un día específico"
-//                 >
-//                   🕒
-//                   Exportar Día
-//                 </button>
-
-//                 {/* 🗑️ BOTÓN ELIMINAR REGISTRO */}
-//                 <button
-//                   onClick={() =>
-//                     // Confirmación de seguridad antes de llamar a la función de eliminación
-//                     selectedCalendarId && selectedCalendarName &&
-//                     window.confirm(`¿Estás seguro de que quieres ELIMINAR el registro "${selectedCalendarName}" y todos sus datos? Esta acción es irreversible.`) &&
-//                     handleDeleteCalendar(selectedCalendarId)
-//                   }
-//                   disabled={!selectedCalendarId}
-//                   className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-lg w-full transform hover:scale-[1.01] mt-4
-//                     ${
-//                       selectedCalendarId
-//                         ? "bg-red-600 hover:bg-red-700 text-white"
-//                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
-//                     }`}
-//                   title="Eliminar el registro seleccionado y todos sus datos (¡Cuidado!)"
-//                 >
-//                   🗑️
-//                   Eliminar Registro
-//                 </button>
-
-//                 {/* 📊 BOTÓN DATOS ESTADÍSTICOS */}
-//                 <button
-//                   onClick={() => openStatsModal(true)} // Usando openStatsModal, asumo que es la función correcta para abrir el modal de estadísticas.
-//                   disabled={!selectedCalendarId}
-//                   className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-lg w-full transform hover:scale-[1.02] mt-3
-//                     ${
-//                       selectedCalendarId
-//                         ? "bg-purple-600 hover:bg-purple-700 text-white shadow-purple-300"
-//                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
-//                     }`}
-//                   title="Ver y editar datos estadísticos del invernadero"
-//                 >
-//                   📊
-//                   Datos Estadísticos
-//                 </button>
-//                 {/* ---------------------------------- */}
-//               </div>
-//             </div>
-//           </div>
-
-//           {/* Totales Globales del Registro Seleccionado */}
-//           <div className="p-5 bg-white border-t-8 border-orange-500 rounded-2xl shadow-2xl hover:shadow-3xl transition-shadow">
-//             <h3 className="text-xl font-bold text-orange-800 mb-4 flex items-center gap-2 border-b-2 border-gray-100 pb-3">
-//               🧺 Cosecha Total
-//             </h3>
-//             <div className="space-y-4">
-//               <div className="grid grid-cols-2 gap-4">
-//                 <div className="p-3 bg-green-100 rounded-xl text-center shadow-inner border-2 border-green-200 hover:border-green-400 transition-colors">
-//                   <p className="font-medium text-xs text-green-700 uppercase flex items-center justify-center gap-1">
-//                     🌱 Total Valor A
-//                   </p>
-//                   <p className="font-semibold text-green-900 text-xl mt-1">
-//                     {globalTotals?.totalA?.toFixed(2) || "0.00"}
-//                   </p>
-//                 </div>
-
-//                 <div className="p-3 bg-yellow-100 rounded-xl text-center shadow-inner border-2 border-yellow-200 hover:border-yellow-400 transition-colors">
-//                   <p className="font-medium text-xs text-yellow-700 uppercase flex items-center justify-center gap-1">
-//                     ☀️ Total Valor B
-//                   </p>
-//                   <p className="font-semibold text-yellow-900 text-xl mt-1">
-//                     {globalTotals?.totalB?.toFixed(2) || "0.00"}
-//                   </p>
-//                 </div>
-//               </div>
-
-//               <div className="p-4 bg-gradient-to-r from-orange-600 via-red-600 to-red-700 rounded-2xl text-white shadow-xl shadow-orange-300 text-center transform hover:scale-[1.02] transition-transform">
-//                 <p className="font-medium text-sm uppercase flex items-center justify-center gap-2">
-//                   🌶️ PRODUCCIÓN TOTAL ($A \times B$)
-//                 </p>
-//                 <p className="font-extrabold text-4xl mt-2">
-//                   ${globalTotals?.totalResult?.toFixed(2) || "0.00"}
-//                 </p>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-
-
-
-
-
-
-
-
-// const CalendarView = ({
-//   currentDate,
-//   navigateMonth,
-//   handleDayClick,
-//   setSelectedCalendarId,
-//   selectedCalendarId,
-//   calendars,
-//   events,
-//   dailyData, 
-//   isAuthReady,
-//   setIsCalendarModalOpen,
-//   selectedCalendarName,
-//   globalTotals,
-//   setIsExportModalOpen, // Usado para exportar rango
-//   openExportModalInSingleDayMode, // Usado para exportar día único
-//   handleDeleteCalendar, // ⬅️ NUEVA PROP: Función para eliminar el registro
-//   openStatsModal,  
-
-// }) => {
-//   // --- Utilidades y Constantes ---
-//   const DAYS_OF_WEEK = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
-//   const MONTHS = [
-//     "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-//     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
-//   ];
-  
-//   const formatDate = (date) => {
-//     // La función toISOString().split('T')[0] asegura el formato YYYY-MM-DD
-//     return date.toISOString().split('T')[0];
-//   };
-
-//   // --- LÓGICA DE GENERACIÓN DE DÍAS ---
-//   const year = currentDate.getFullYear();
-//   const month = currentDate.getMonth();
-//   const firstDayOfMonth = new Date(year, month, 1).getDay();
-//   const daysInMonth = new Date(year, month + 1, 0).getDate();
-//   const days = [];
-//   const prevMonthDaysTotal = new Date(year, month, 0).getDate();
-//   const startDay = prevMonthDaysTotal - firstDayOfMonth + 1;
-
-//   // Días del mes anterior
-//   for (let i = startDay; i <= prevMonthDaysTotal; i++) {
-//     if (i > prevMonthDaysTotal - firstDayOfMonth) {
-//       const fullDate = new Date(year, month - 1, i);
-//       days.push({
-//         key: `prev-${i}`,
-//         day: i,
-//         isCurrentMonth: false,
-//         fullDate,
-//         dateKey: formatDate(fullDate),
-//         events: [],
-//       });
-//     }
-//   }
-
-//   // Días del mes actual
-//   for (let i = 1; i <= daysInMonth; i++) {
-//     const fullDate = new Date(year, month, i);
-//     const dateKey = formatDate(fullDate); 
-//     days.push({
-//       key: `curr-${i}`,
-//       day: i,
-//       isCurrentMonth: true,
-//       fullDate,
-//       dateKey,
-//       events: events[dateKey] || [],
-//     });
-//   }
-
-//   // Días del mes siguiente (para completar la cuadrícula)
-//   let nextDay = 1;
-//   while (days.length < 42) {
-//     const fullDate = new Date(year, month + 1, nextDay);
-//     days.push({
-//       key: `next-${nextDay}`,
-//       day: nextDay,
-//       isCurrentMonth: false,
-//       fullDate,
-//       dateKey: formatDate(fullDate),
-//       events: [],
-//     });
-//     nextDay++;
-//   }
-
-//   const today = formatDate(new Date());
-//   const selectedCalendarColor =
-//     calendars.find((c) => c.id === selectedCalendarId)?.color || "#3b82f6";
-
-//   // --- RENDERING (JSX) ---
-//   return (
-//     // 1. Contenedor Principal: Bordes súper redondeados y sombra elevada
-//     <div className="bg-white p-1 sm:p-6 md:p-8 rounded-3xl shadow-2xl shadow-indigo-100 border border-gray-100 transition-all duration-300">
-//       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-//         {/* COLUMNA IZQUIERDA: CALENDARIO (2/3) */}
-//         <div className="lg:col-span-2 flex flex-col space-y-6">
-//           <div className="p-4 bg-white border-2 border-green-200 rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300">
-//             <h2 className="text-xl sm:text-2xl font-bold text-green-800 mb-4 border-b-2 border-green-100 pb-3 flex items-center gap-2">
-//               🌶️ Vista del Mes - Producción de Pimientos
-//             </h2>
-
-//             {selectedCalendarId ? (
-//               <>
-//                 {/* Navegación del Calendario */}
-//                 <div className="flex justify-between items-center mb-6 ">
-//                   <button
-//                     onClick={() => navigateMonth(-1)}
-//                     className="p-3 bg-green-100 hover:bg-green-300 text-green-800 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-110"
-//                     title="Mes Anterior"
-//                   >
-//                     ⬅️
-//                   </button>
-//                   <h2 className="text-2xl font-extrabold text-gray-800 tracking-wide">
-//                     {MONTHS[month]} {year}
-//                   </h2>
-//                   <button
-//                     onClick={() => navigateMonth(1)}
-//                     className="p-3 bg-indigo-100 hover:bg-indigo-300 text-indigo-700 rounded-full transition-all duration-300 rotate-180 shadow-lg hover:shadow-xl"
-//                     title="Mes Siguiente"
-//                   >
-//                     ⬅️
-//                   </button>
-//                 </div>
-
-//                 {/* Días de la semana */}
-//                 <div className="grid grid-cols-7 text-center font-bold text-green-800 border-b-2 border-green-300 pb-3 mb-1">
-//                   {DAYS_OF_WEEK.map((day) => (
-//                     <div key={day} className="text-sm sm:text-base p-1">
-//                       {day}
-//                     </div>
-//                   ))}
-//                 </div>
-
-//                 {/* Grid de Días del Mes */}
-//                 <div className="grid grid-cols-7 gap-1 mt-2 p-0"> 
-//                   {days.map((dayData) => {
-//                     // Lógica de Cálculo de Métricas Diarias
-//                     const eventCount = dayData.events.length;
-                    
-//                     const dailyTotalResult = dayData.events.reduce(
-//                       (sum, event) => sum + (event.result || 0), 
-//                       0
-//                     );
-                    
-//                     const dailyCostEntry = dailyData[dayData.dateKey]?.costs;
-//                     const costPerUnitFinal = parseFloat(dailyCostEntry?.finalResult) || 0; 
-                    
-//                     const isToday = dayData.isCurrentMonth && dayData.dateKey === today;
-
-//                     return (
-//                       // Estilos de la celda de día: Compactos y con estilo
-//                       <div
-//                         key={dayData.key}
-//                         onClick={() => handleDayClick(dayData)}
-//                         className={`
-//                           flex flex-col cursor-pointer transition-all duration-300 rounded-xl p-1 sm:p-2 
-//                           shadow-md border border-transparent 
-//                           hover:shadow-lg hover:border-blue-400 hover:scale-[1.02] 
-//                           relative group h-auto aspect-square
-                          
-//                           ${
-//                             dayData.isCurrentMonth
-//                               ? "bg-white text-gray-800"
-//                               : "bg-gray-50 text-gray-400 opacity-70"
-//                           }
-                          
-//                           ${
-//                             isToday
-//                               ? "border-2 border-red-500 ring-4 ring-red-200 shadow-xl z-20 bg-red-50 hover:bg-red-100"
-//                               : "z-10"
-//                           }
-//                         `}
-//                       >
-//                         {/* Número del día */}
-//                         <span
-//                           className={`font-extrabold text-lg text-right w-full 
-//                             ${dayData.isCurrentMonth ? "text-gray-900" : "text-gray-400"}
-//                             ${isToday ? "text-red-700" : ""}
-//                             `}
-//                         >
-//                           {dayData.day}
-//                         </span>
-                        
-//                         {/* Contenido Dinámico (Métricas) */}
-//                         {eventCount > 0 && (
-//                           <div className="flex flex-col items-end px-0 space-y-0.5 opacity-90 group-hover:opacity-100">
-
-//                             {/* 1. INDICADOR DE EVENTO (PUNTO) - SOLO EN MÓVIL */}
-//                             <div className="flex justify-end w-full sm:hidden"> 
-//                                 <div
-//                                   className="w-2.5 h-2.5 rounded-full shadow-md ring-2 ring-white"
-//                                   style={{ backgroundColor: selectedCalendarColor }}
-//                                   title={`${eventCount} producto(s) registrado(s)`}
-//                                 ></div>
-//                             </div>
-                            
-//                             {/* 2. INFORMACIÓN DETALLADA - OCULTA EN MÓVIL, VISIBLE EN TABLET/ESCRITORIO */}
-//                             <div className="hidden sm:flex flex-col items-center w-full space-y-0.5 mt-auto">
-                              
-//                               {/* Total de Productos Guardados */}
-//                               <p className="font-medium text-[8px] sm:text-xs text-gray-700 leading-tight bg-gray-100/70 rounded-full px-2">
-//                                 {eventCount} Prod(s)
-//                               </p>
-
-//                               {/* COSTO DE PRODUCCIÓN POR UNIDAD */}
-//                               <p className="font-bold text-[8px] sm:text-xs text-blue-600 leading-tight">
-//                                 C/u: {costPerUnitFinal > 0 ? `$${costPerUnitFinal.toFixed(4)}` : '$0.0000'}
-//                               </p>
-                              
-//                               {/* TOTAL ACUMULADO DEL DÍA */}
-//                               <p className="font-extrabold text-[8px] sm:text-xs text-green-700 leading-tight">
-//                                 Total: {dailyTotalResult > 0 ? `$${dailyTotalResult.toFixed(2)}` : '$0.00'}
-//                               </p>
-
-//                             </div>
-
-//                           </div>
-//                         )}
-                        
-//                         {/* Mensaje sutil si no hay eventos */}
-//                         {eventCount === 0 && dayData.isCurrentMonth && (
-//                             <p className="text-gray-300 text-[8px] sm:text-[10px] mt-2 text-right invisible group-hover:visible">
-//                                 Click
-//                             </p>
-//                         )}
-//                       </div>
-//                     );
-//                   })}
-//                 </div>
-//               </>
-//             ) : (
-//               // Mensaje cuando no hay registro seleccionado
-//               <div className="p-10 text-center text-gray-500 bg-white rounded-2xl border-dashed border-4 border-gray-200 mt-4 shadow-inner">
-//                 📦
-//                 <p className="text-xl font-semibold">
-//                   Crea un registro para comenzar
-//                 </p>
-//                 <p className="mt-2">
-//                   Selecciona un registro o utiliza el botón Nuevo Registro
-//                   en el panel lateral.
-//                 </p>
-//               </div>
-//             )}
-//           </div>
-//         </div>
-
-//         {/* COLUMNA DERECHA: CONTROLES Y TOTALES (1/3) */}
-//         <div className="lg:col-span-1 flex flex-col space-y-8">
-//           {/* Controles Superiores (Select, Export, New, Delete, Stats) */}
-//           <div className="p-5 bg-white border-t-8 border-green-600 rounded-2xl shadow-2xl hover:shadow-3xl transition-shadow">
-//             <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2 border-b-2 border-gray-100 pb-3">
-//               🚜 Gestión del Invernadero
-//             </h3>
-//             <div className="space-y-4">
-//               {/* Selector de Registro */}
-//               <div className="flex flex-col space-y-2">
-//                 <label
-//                   htmlFor="calendar-select"
-//                   className="text-sm font-semibold text-gray-700"
-//                 >
-//                   Registro Actual:
-//                 </label>
-//                 <select
-//                   id="calendar-select"
-//                   value={selectedCalendarId || ""}
-//                   onChange={(e) => setSelectedCalendarId(e.target.value)}
-//                   className={`w-full p-3 border-2 rounded-xl shadow-inner text-base font-medium transition duration-200
-//                     ${
-//                       selectedCalendarId
-//                         ? "bg-indigo-50 text-gray-800 border-indigo-300 focus:ring-indigo-500 focus:border-indigo-500"
-//                         : "bg-gray-100 text-gray-500 border-dashed border-gray-400"
-//                     }`}
-//                   disabled={!isAuthReady || calendars.length === 0}
-//                 >
-//                   {calendars.length === 0 ? (
-//                     <option value="">Crea un registro</option>
-//                   ) : (
-//                     calendars.map((c) => (
-//                       <option key={c.id} value={c.id}>
-//                         {c.name}
-//                       </option>
-//                     ))
-//                   )}
-//                 </select>
-//               </div>
-
-//               {/* Botones de Acción */}
-//               <div className="flex flex-col space-y-3 pt-2">
-//                 {/* Botón de Nuevo Registro */}
-//                 <button
-//                   onClick={() => setIsCalendarModalOpen(true)}
-//                   className="flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-lg bg-green-600 hover:bg-green-700 text-white w-full transform hover:scale-[1.01]"
-//                   title="Crear Nuevo Registro/Calendario"
-//                 >
-//                   ➕
-//                   Nuevo Registro
-//                 </button>
-
-//                 {/* Botón de Exportar Rango */}
-//                 <button
-//                   onClick={() => setIsExportModalOpen("range")}
-//                   disabled={
-//                     !selectedCalendarId || globalTotals?.totalResult === 0
-//                   }
-//                   className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-md w-full transform hover:scale-[1.01]
-//                     ${
-//                       selectedCalendarId && globalTotals?.totalResult > 0
-//                         ? "bg-blue-600 hover:bg-blue-700 text-white"
-//                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
-//                     }`}
-//                   title="Exportar todos los registros filtrados (Rango de Fechas)"
-//                 >
-//                   ⬆️
-//                   Exportar Rango de Fechas
-//                 </button>
-
-//                 {/* Botón de Exportar Día Único */}
-//                 <button
-//                   onClick={openExportModalInSingleDayMode}
-//                   disabled={
-//                     !selectedCalendarId || globalTotals?.totalResult === 0
-//                   }
-//                   className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-md w-full transform hover:scale-[1.01]
-//                     ${
-//                       selectedCalendarId && globalTotals?.totalResult > 0
-//                         ? "bg-orange-600 hover:bg-orange-700 text-white"
-//                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
-//                     }`}
-//                   title="Exportar registros de un día específico"
-//                 >
-//                   🕒
-//                   Exportar Día
-//                 </button>
-
-//                 {/* 🔑 NUEVO: BOTÓN ELIMINAR REGISTRO */}
-//                 <button
-//                   onClick={() => 
-//                     // Confirmación de seguridad antes de llamar a la función de eliminación
-//                     selectedCalendarId && selectedCalendarName && 
-//                     window.confirm(`¿Estás seguro de que quieres ELIMINAR el registro "${selectedCalendarName}" y todos sus datos? Esta acción es irreversible.`) &&
-//                     handleDeleteCalendar(selectedCalendarId)
-//                   }
-//                   disabled={!selectedCalendarId}
-//                   className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-lg w-full transform hover:scale-[1.01] mt-4
-//                     ${
-//                       selectedCalendarId
-//                         ? "bg-red-600 hover:bg-red-700 text-white"
-//                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
-//                     }`}
-//                   title="Eliminar el registro seleccionado y todos sus datos (¡Cuidado!)"
-//                 >
-//                   🗑️
-//                   Eliminar Registro
-//                 </button>
-
-//                 {/* 📊 BOTÓN DATOS ESTADÍSTICOS */}
-//                 <button
-//                   onClick={() => setIsStatsModalOpen(true)}
-//                   disabled={!selectedCalendarId}
-//                   className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-lg w-full transform hover:scale-[1.02] mt-3
-//                     ${
-//                       selectedCalendarId
-//                         ? "bg-purple-600 hover:bg-purple-700 text-white shadow-purple-300"
-//                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
-//                     }`}
-//                   title="Ver y editar datos estadísticos del invernadero"
-//                 >
-//                   📊
-//                   Datos Estadísticos
-//                 </button>
-//                 {/* ---------------------------------- */}
-//               </div>
-//             </div>
-//           </div>
-
-//           {/* Totales Globales del Registro Seleccionado */}
-//           <div className="p-5 bg-white border-t-8 border-orange-500 rounded-2xl shadow-2xl hover:shadow-3xl transition-shadow">
-//             <h3 className="text-xl font-bold text-orange-800 mb-4 flex items-center gap-2 border-b-2 border-gray-100 pb-3">
-//               🧺 Cosecha Total
-//             </h3>
-//             <div className="space-y-4">
-//               <div className="grid grid-cols-2 gap-4">
-//                 <div className="p-3 bg-green-100 rounded-xl text-center shadow-inner border-2 border-green-200 hover:border-green-400 transition-colors">
-//                   <p className="font-medium text-xs text-green-700 uppercase flex items-center justify-center gap-1">
-//                     🌱 Total Valor A
-//                   </p>
-//                   <p className="font-semibold text-green-900 text-xl mt-1">
-//                     {globalTotals?.totalA?.toFixed(2) || "0.00"}
-//                   </p>
-//                 </div>
-
-//                 <div className="p-3 bg-yellow-100 rounded-xl text-center shadow-inner border-2 border-yellow-200 hover:border-yellow-400 transition-colors">
-//                   <p className="font-medium text-xs text-yellow-700 uppercase flex items-center justify-center gap-1">
-//                     ☀️ Total Valor B
-//                   </p>
-//                   <p className="font-semibold text-yellow-900 text-xl mt-1">
-//                     {globalTotals?.totalB?.toFixed(2) || "0.00"}
-//                   </p>
-//                 </div>
-//               </div>
-
-//               <div className="p-4 bg-gradient-to-r from-orange-600 via-red-600 to-red-700 rounded-2xl text-white shadow-xl shadow-orange-300 text-center transform hover:scale-[1.02] transition-transform">
-//                 <p className="font-medium text-sm uppercase flex items-center justify-center gap-2">
-//                   🌶️ PRODUCCIÓN TOTAL ($A \times B$)
-//                 </p>
-//                 <p className="font-extrabold text-4xl mt-2">
-//                   ${globalTotals?.totalResult?.toFixed(2) || "0.00"}
-//                 </p>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-
 
 const ConfirmModal = ({ 
   isOpen, 
@@ -1809,1481 +967,6 @@ const ConfirmModal = ({
   );
 };
 
-// const CalendarView = ({
-//   currentDate,
-//   navigateMonth,
-//   handleDayClick,
-//   setSelectedCalendarId,
-//   selectedCalendarId,
-//   calendars,
-//   events,
-//   dailyData, 
-//   isAuthReady,
-//   setIsCalendarModalOpen,
-//   selectedCalendarName,
-//   globalTotals,
-//   setIsExportModalOpen,
-//   openExportModalInSingleDayMode,
-// }) => {
-//   // --- Utilidades y Constantes (Mantenidas) ---
-//   const DAYS_OF_WEEK = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
-//   const MONTHS = [
-//     "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-//     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
-//   ];
-  
-//   const formatDate = (date) => {
-//     return date.toISOString().split('T')[0];
-//   };
-
-//   // --- LÓGICA DE GENERACIÓN DE DÍAS (Mantenida) ---
-//   const year = currentDate.getFullYear();
-//   const month = currentDate.getMonth();
-//   const firstDayOfMonth = new Date(year, month, 1).getDay();
-//   const daysInMonth = new Date(year, month + 1, 0).getDate();
-//   const days = [];
-//   const prevMonthDaysTotal = new Date(year, month, 0).getDate();
-//   const startDay = prevMonthDaysTotal - firstDayOfMonth + 1;
-
-//   for (let i = startDay; i <= prevMonthDaysTotal; i++) {
-//     if (i > prevMonthDaysTotal - firstDayOfMonth) {
-//       const fullDate = new Date(year, month - 1, i);
-//       days.push({
-//         key: `prev-${i}`,
-//         day: i,
-//         isCurrentMonth: false,
-//         fullDate,
-//         dateKey: formatDate(fullDate),
-//         events: [],
-//       });
-//     }
-//   }
-
-//   for (let i = 1; i <= daysInMonth; i++) {
-//     const fullDate = new Date(year, month, i);
-//     const dateKey = formatDate(fullDate); 
-//     days.push({
-//       key: `curr-${i}`,
-//       day: i,
-//       isCurrentMonth: true,
-//       fullDate,
-//       dateKey,
-//       events: events[dateKey] || [],
-//     });
-//   }
-
-//   let nextDay = 1;
-//   while (days.length < 42) {
-//     const fullDate = new Date(year, month + 1, nextDay);
-//     days.push({
-//       key: `next-${nextDay}`,
-//       day: nextDay,
-//       isCurrentMonth: false,
-//       fullDate,
-//       dateKey: formatDate(fullDate),
-//       events: [],
-//     });
-//     nextDay++;
-//   }
-
-//   const today = formatDate(new Date());
-//   const selectedCalendarColor =
-//     calendars.find((c) => c.id === selectedCalendarId)?.color || "#3b82f6";
-
-
-    
-
-    
-
-//   // --- RENDERING (JSX) ---
-//   return (
-//     // 1. Contenedor Principal: Bordes súper redondeados y sombra elevada
-//     <div className="bg-white p-1 sm:p-6 md:p-8 rounded-3xl shadow-2xl shadow-indigo-100 border border-gray-100 transition-all duration-300">
-//       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-//         {/* COLUMNA IZQUIERDA: CALENDARIO (2/3) */}
-//         <div className="lg:col-span-2 flex flex-col space-y-6">
-//           <div className="p-4 bg-white border border-indigo-200 rounded-2xl shadow-xl">
-//             <h2 className="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 border-b-2 border-indigo-100 pb-3 flex items-center">
-//               🗓️ Vista del Mes
-//             </h2>
-
-//             {selectedCalendarId ? (
-//               <>
-//                 {/* Navegación del Calendario */}
-//                 <div className="flex justify-between items-center mb-6 ">
-//                   <button
-//                     onClick={() => navigateMonth(-1)}
-//                     className="p-3 bg-indigo-100 hover:bg-indigo-300 text-indigo-700 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl"
-//                     title="Mes Anterior"
-//                   >
-//                     ⬅️
-//                   </button>
-//                   <h2 className="text-2xl font-extrabold text-gray-800 tracking-wide">
-//                     {MONTHS[month]} {year}
-//                   </h2>
-//                   <button
-//                     onClick={() => navigateMonth(1)}
-//                     className="p-3 bg-indigo-100 hover:bg-indigo-300 text-indigo-700 rounded-full transition-all duration-300 rotate-180 shadow-lg hover:shadow-xl"
-//                     title="Mes Siguiente"
-//                   >
-//                     ⬅️
-//                   </button>
-//                 </div>
-
-//                 {/* Días de la semana */}
-//                 <div className="grid grid-cols-7 text-center font-bold text-indigo-700 border-b-2 border-indigo-300 pb-3 mb-1">
-//                   {DAYS_OF_WEEK.map((day) => (
-//                     <div key={day} className="text-sm sm:text-base p-1">
-//                       {day}
-//                     </div>
-//                   ))}
-//                 </div>
-
-//                 {/* Grid de Días del Mes: Quitamos padding y bordes internos */}
-//                 <div className="grid grid-cols-7 gap-1 mt-2 p-0"> 
-//                   {days.map((dayData) => {
-//                     // Lógica de Cálculo de Métricas Diarias
-//                     const eventCount = dayData.events.length;
-                    
-//                     const dailyTotalResult = dayData.events.reduce(
-//                       (sum, event) => sum + (event.result || 0), 
-//                       0
-//                     );
-                    
-//                     const dailyCostEntry = dailyData[dayData.dateKey]?.costs;
-//                     const costPerUnitFinal = parseFloat(dailyCostEntry?.finalResult) || 0; 
-                    
-//                     const isToday = dayData.isCurrentMonth && dayData.dateKey === today;
-
-//                     return (
-//                       // Estilos de la celda de día: **Eliminamos min-h y reducimos p-1**.
-//                       <div
-//                         key={dayData.key}
-//                         onClick={() => handleDayClick(dayData)}
-//                         className={`
-//                           flex flex-col cursor-pointer transition-all duration-300 rounded-xl p-1 sm:p-2 
-//                           shadow-md border border-transparent 
-//                           hover:shadow-lg hover:border-blue-400 hover:scale-[1.02] 
-//                           relative group h-auto aspect-square // <-- ASPECT-SQUARE ayuda a mantener proporción
-                          
-//                           ${
-//                             dayData.isCurrentMonth
-//                               ? "bg-white text-gray-800"
-//                               : "bg-gray-50 text-gray-400 opacity-70"
-//                           }
-                          
-//                           ${
-//                             isToday
-//                               ? "border-2 border-red-500 ring-4 ring-red-200 shadow-xl z-20 bg-red-50 hover:bg-red-100"
-//                               : "z-10"
-//                           }
-//                         `}
-//                       >
-//                         {/* Número del día */}
-//                         <span
-//                           className={`font-extrabold text-lg text-right w-full 
-//                             ${dayData.isCurrentMonth ? "text-gray-900" : "text-gray-400"}
-//                             ${isToday ? "text-red-700" : ""}
-//                             `}
-//                         >
-//                           {dayData.day}
-//                         </span>
-                        
-//                         {/* Contenido Dinámico (Métricas) */}
-//                         {eventCount > 0 && (
-//                           <div className="flex flex-col items-end px-0 space-y-0.5 opacity-90 group-hover:opacity-100">
-
-//                             {/* 1. INDICADOR DE EVENTO (PUNTO) - SOLO EN MÓVIL */}
-//                             <div className="flex justify-end w-full sm:hidden"> 
-//                                 <div
-//                                   className="w-2.5 h-2.5 rounded-full shadow-md ring-2 ring-white"
-//                                   style={{ backgroundColor: selectedCalendarColor }}
-//                                   title={`${eventCount} producto(s) registrado(s)`}
-//                                 ></div>
-//                             </div>
-                            
-//                             {/* 2. INFORMACIÓN DETALLADA - OCULTA EN MÓVIL, VISIBLE EN TABLET/ESCRITORIO */}
-//                             <div className="hidden sm:flex flex-col items-center w-full space-y-0.5 mt-auto">
-                              
-//                               {/* Total de Productos Guardados */}
-//                               <p className="font-medium text-[8px] sm:text-xs text-gray-700 leading-tight bg-gray-100/70 rounded-full px-2">
-//                                 {eventCount} Prod(s)
-//                               </p>
-
-//                               {/* COSTO DE PRODUCCIÓN POR UNIDAD */}
-//                               <p className="font-bold text-[8px] sm:text-xs text-blue-600 leading-tight">
-//                                 C/u: {costPerUnitFinal > 0 ? `$${costPerUnitFinal.toFixed(4)}` : '$0.0000'}
-//                               </p>
-                              
-//                               {/* TOTAL ACUMULADO DEL DÍA */}
-//                               <p className="font-extrabold text-[8px] sm:text-xs text-green-700 leading-tight">
-//                                 Total: {dailyTotalResult > 0 ? `$${dailyTotalResult.toFixed(2)}` : '$0.00'}
-//                               </p>
-
-//                             </div>
-
-//                           </div>
-//                         )}
-                        
-//                         {/* Mensaje sutil si no hay eventos */}
-//                         {eventCount === 0 && dayData.isCurrentMonth && (
-//                             <p className="text-gray-300 text-[8px] sm:text-[10px] mt-2 text-right invisible group-hover:visible">
-//                                 Click
-//                             </p>
-//                         )}
-//                       </div>
-//                     );
-//                   })}
-//                 </div>
-//               </>
-//             ) : (
-//               // Mensaje cuando no hay registro seleccionado
-//               <div className="p-10 text-center text-gray-500 bg-white rounded-2xl border-dashed border-4 border-gray-200 mt-4 shadow-inner">
-//                 📦
-//                 <p className="text-xl font-semibold">
-//                   Crea un registro para comenzar
-//                 </p>
-//                 <p className="mt-2">
-//                   Selecciona un registro o utiliza el botón **Nuevo Registro**
-//                   en el panel lateral.
-//                 </p>
-//               </div>
-//             )}
-//           </div>
-//         </div>
-
-//         {/* COLUMNA DERECHA: CONTROLES Y TOTALES (1/3) */}
-//       <div className="p-5 bg-white border-t-8 border-blue-500 rounded-2xl shadow-2xl">
-//   <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center border-b-2 border-gray-100 pb-3">
-//     ⚙️ Configuración y Exportación
-//   </h3>
-//   <div className="space-y-4">
-//     {/* Selector de Registro */}
-//     <div className="flex flex-col space-y-2">
-//       <label
-//         htmlFor="calendar-select"
-//         className="text-sm font-semibold text-gray-700"
-//       >
-//         Registro Actual:
-//       </label>
-//       <select
-//         id="calendar-select"
-//         value={selectedCalendarId || ""}
-//         onChange={(e) => setSelectedCalendarId(e.target.value)}
-//         className={`w-full p-3 border-2 rounded-xl shadow-inner text-base font-medium transition duration-200
-//           ${
-//             selectedCalendarId
-//               ? "bg-indigo-50 text-gray-800 border-indigo-300 focus:ring-indigo-500 focus:border-indigo-500"
-//               : "bg-gray-100 text-gray-500 border-dashed border-gray-400"
-//           }`}
-//         disabled={!isAuthReady || calendars.length === 0}
-//       >
-//         {calendars.length === 0 ? (
-//           <option value="">Crea un registro</option>
-//         ) : (
-//           calendars.map((c) => (
-//             <option key={c.id} value={c.id}>
-//               {c.name}
-//             </option>
-//           ))
-//         )}
-//       </select>
-//     </div>
-
-//     {/* Botones de Acción */}
-//     <div className="flex flex-col space-y-3 pt-2">
-//       {/* Botón de Nuevo Registro */}
-//       <button
-//         onClick={() => setIsCalendarModalOpen(true)}
-//         className="flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-lg bg-green-600 hover:bg-green-700 text-white w-full transform hover:scale-[1.01]"
-//         title="Crear Nuevo Registro/Calendario"
-//       >
-//         ➕
-//         Nuevo Registro
-//       </button>
-
-//       {/* Botón de Exportar Rango */}
-//       <button
-//         onClick={() => setIsExportModalOpen("range")}
-//         disabled={
-//           !selectedCalendarId || globalTotals?.totalResult === 0
-//         }
-//         className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-md w-full transform hover:scale-[1.01]
-//           ${
-//             selectedCalendarId && globalTotals?.totalResult > 0
-//               ? "bg-blue-600 hover:bg-blue-700 text-white"
-//               : "bg-gray-300 text-gray-500 cursor-not-allowed"
-//           }`}
-//         title="Exportar todos los registros filtrados (Rango de Fechas)"
-//       >
-//         ⬆️
-//         Exportar Rango de Fechas
-//       </button>
-
-//       {/* Botón de Exportar Día Único */}
-//       <button
-//         onClick={openExportModalInSingleDayMode}
-//         disabled={
-//           !selectedCalendarId || globalTotals?.totalResult === 0
-//         }
-//         className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-md w-full transform hover:scale-[1.01]
-//           ${
-//             selectedCalendarId && globalTotals?.totalResult > 0
-//               ? "bg-orange-600 hover:bg-orange-700 text-white"
-//               : "bg-gray-300 text-gray-500 cursor-not-allowed"
-//           }`}
-//         title="Exportar registros de un día específico"
-//       >
-//         🕒
-//         Exportar Día
-//       </button>
-
-//       {/* 🔑 NUEVO: BOTÓN ELIMINAR REGISTRO */}
-//       <button
-//         onClick={() => 
-//           selectedCalendarId && selectedCalendarName && 
-//           window.confirm(`¿Estás seguro de que quieres ELIMINAR el registro "${selectedCalendarName}" y todos sus datos? Esta acción es irreversible.`) &&
-//           handleDeleteCalendar(selectedCalendarId)
-//         }
-//         disabled={!selectedCalendarId}
-//         className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-lg w-full transform hover:scale-[1.01] mt-4
-//           ${
-//             selectedCalendarId
-//               ? "bg-red-600 hover:bg-red-700 text-white"
-//               : "bg-gray-300 text-gray-500 cursor-not-allowed"
-//           }`}
-//         title="Eliminar el registro seleccionado y todos sus datos (¡Cuidado!)"
-//       >
-//         🗑️
-//         Eliminar Registro
-//       </button>
-//       {/* ---------------------------------- */}
-//     </div>
-//   </div>
-// </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-
-
-// const CalendarView = ({
-//   currentDate,
-//   navigateMonth,
-//   handleDayClick,
-//   setSelectedCalendarId,
-//   selectedCalendarId,
-//   calendars,
-//   events,
-//   dailyData, // ⬅️ ¡NUEVA PROP!
-//   isAuthReady,
-//   setIsCalendarModalOpen,
-//   selectedCalendarName,
-//   globalTotals,
-//   setIsExportModalOpen,
-//   openExportModalInSingleDayMode,
-// }) => {
-//   // --- Utilidades y Constantes ---
-//   const DAYS_OF_WEEK = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
-//   const MONTHS = [
-//     "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-//     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
-//   ];
-  
-//   // Asume que 'formatDate' está disponible en este scope (debería venir del archivo 'utils' o ser una función interna de 'Tarea')
-//   // Simulación de formatDate para que el código compile
-//   const formatDate = (date) => {
-//     return date.toISOString().split('T')[0];
-//   };
-
-//   // --- LÓGICA DE GENERACIÓN DE DÍAS ---
-//   const year = currentDate.getFullYear();
-//   const month = currentDate.getMonth();
-//   const firstDayOfMonth = new Date(year, month, 1).getDay();
-//   const daysInMonth = new Date(year, month + 1, 0).getDate();
-//   const days = [];
-//   const prevMonthDaysTotal = new Date(year, month, 0).getDate();
-//   const startDay = prevMonthDaysTotal - firstDayOfMonth + 1;
-
-//   // Días del mes anterior
-//   for (let i = startDay; i <= prevMonthDaysTotal; i++) {
-//     if (i > prevMonthDaysTotal - firstDayOfMonth) {
-//       const fullDate = new Date(year, month - 1, i);
-//       days.push({
-//         key: `prev-${i}`,
-//         day: i,
-//         isCurrentMonth: false,
-//         fullDate,
-//         dateKey: formatDate(fullDate),
-//         events: [],
-//       });
-//     }
-//   }
-
-//   // Días del mes actual
-//   for (let i = 1; i <= daysInMonth; i++) {
-//     const fullDate = new Date(year, month, i);
-//     const dateKey = formatDate(fullDate); 
-//     days.push({
-//       key: `curr-${i}`,
-//       day: i,
-//       isCurrentMonth: true,
-//       fullDate,
-//       dateKey,
-//       events: events[dateKey] || [],
-//     });
-//   }
-
-//   // Días del mes siguiente
-//   let nextDay = 1;
-//   while (days.length < 42) {
-//     const fullDate = new Date(year, month + 1, nextDay);
-//     days.push({
-//       key: `next-${nextDay}`,
-//       day: nextDay,
-//       isCurrentMonth: false,
-//       fullDate,
-//       dateKey: formatDate(fullDate),
-//       events: [],
-//     });
-//     nextDay++;
-//   }
-
-//   const today = formatDate(new Date());
-//   const selectedCalendarColor =
-//     calendars.find((c) => c.id === selectedCalendarId)?.color || "bg-blue-600";
-
-//   // --- RENDERING (JSX) ---
-//   return (
-//     <div className="bg-white p-1 sm:p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-100 transition-all duration-300">
-//       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-//         {/* COLUMNA IZQUIERDA: CALENDARIO (2/3) */}
-//         <div className="lg:col-span-2 flex flex-col space-y-6">
-//           <div className="p-4 bg-white border border-indigo-200 rounded-xl shadow-lg">
-//             <h2 className="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 border-b pb-2 flex items-center">
-//               🗓️ Vista del Mes
-//             </h2>
-
-//             {selectedCalendarId ? (
-//               <>
-//                 {/* Navegación del Calendario */}
-//                 <div className="flex justify-between items-center mb-6 ">
-//                   <button
-//                     onClick={() => navigateMonth(-1)}
-//                     className="p-3 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded-full transition shadow-md"
-//                     title="Mes Anterior"
-//                   >
-//                     <ArrowLeft size={20} />
-//                   </button>
-//                   <h2 className="text-2xl font-bold text-gray-800">
-//                     {MONTHS[month]} {year}
-//                   </h2>
-//                   <button
-//                     onClick={() => navigateMonth(1)}
-//                     className="p-3 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded-full transition rotate-180 shadow-md"
-//                     title="Mes Siguiente"
-//                   >
-//                     <ArrowLeft size={20} />
-//                   </button>
-//                 </div>
-
-//                 {/* Días de la semana */}
-//                 <div className="grid grid-cols-7 text-center font-bold text-indigo-600 border-b-2 border-indigo-200 pb-3">
-//                   {DAYS_OF_WEEK.map((day) => (
-//                     <div key={day} className="text-sm sm:text-base">
-//                       {day}
-//                     </div>
-//                   ))}
-//                 </div>
-
-//                 {/* Grid de Días del Mes */}
-//                 <div className="grid grid-cols-7 gap-px mt-2 min-h-[300px] border-l border-t border-gray-300"> 
-//                   {days.map((dayData) => {
-//                     // Lógica de Cálculo de Métricas Diarias
-//                     const eventCount = dayData.events.length;
-                    
-//                     // 1. Total Acumulado del Día (Suma de event.result)
-//                     const dailyTotalResult = dayData.events.reduce(
-//                       (sum, event) => sum + (event.result || 0), // ⬅️ Usamos 'event.result'
-//                       0
-//                     );
-                    
-//                     // 2. Obtener el Costo de Producción por Unidad desde dailyData
-//                     const dailyCostEntry = dailyData[dayData.dateKey]?.costs;
-                    
-//                     // Asegúrate de que finalResult sea un número
-//                     const costPerUnitFinal = parseFloat(dailyCostEntry?.finalResult) || 0; 
-                    
-//                     const isToday = dayData.isCurrentMonth && dayData.dateKey === today;
-
-//                     return (
-//                       <div
-//                         key={dayData.key}
-//                         onClick={() => handleDayClick(dayData)}
-//                         className={`
-//                           flex flex-col cursor-pointer transition duration-150 rounded-none
-//                           border-b border-r border-gray-300 relative
-                          
-//                           ${
-//                             dayData.isCurrentMonth
-//                               ? "bg-white hover:bg-blue-50"
-//                               : "bg-gray-100 text-gray-400" 
-//                           }
-                          
-//                           ${
-//                             isToday
-//                               ? "border-2 border-red-500 ring-2 ring-red-200 z-10" 
-//                               : "hover:z-10"
-//                           }
-//                         `}
-//                         style={{ height: 'auto', minHeight: '64px', padding: '4px' }}
-//                       >
-//                         {/* Número del día */}
-//                         <span
-//                           className={`font-semibold text-sm text-right w-full p-1
-//                             ${
-//                               dayData.isCurrentMonth
-//                                 ? "text-gray-800"
-//                                 : "text-gray-400"
-//                             }`}
-//                         >
-//                           {dayData.day}
-//                         </span>
-                        
-//                         {/* Contenido Dinámico (Eventos/Productos/Costo) */}
-//                         {eventCount > 0 && (
-//                           <div className="flex flex-col items-end px-1 mt-0">
-
-//                             {/* 1. Indicador de Evento (PUNTO) - SOLO EN MÓVIL */}
-//                             <div className="flex justify-end w-full mb-1 sm:hidden"> 
-//                                 <div
-//                                   className="w-2 h-2 rounded-full shadow-md"
-//                                   style={{ backgroundColor: selectedCalendarColor || "#10B981" }}
-//                                   title={`${eventCount} producto(s) registrado(s)`}
-//                                 ></div>
-//                             </div>
-
-//                             {/* 2. Información Detallada (Contador y Costo) - VISIBLE de TABLET (sm) en adelante y CENTRADO */}
-//                             <div className="hidden sm:flex flex-col items-center w-full space-y-0.5">
-                              
-//                               {/* Total de Productos Guardados */}
-//                               <p className="font-medium text-xs text-gray-700 leading-tight">
-//                                 {eventCount} {eventCount === 1 ? 'Prod. Guardado' : 'Prods. Guardados'}
-//                               </p>
-
-//                               {/* COSTO DE PRODUCCIÓN POR UNIDAD (dailyCosts.finalResult) */}
-//                               <p className="font-bold text-xs text-blue-600 leading-tight">
-//                                 C. Prod/u: {costPerUnitFinal > 0 ? `$${costPerUnitFinal.toFixed(4)}` : '$0.0000'}
-//                               </p>
-                              
-//                               {/* TOTAL ACUMULADO DEL DÍA */}
-//                               <p className="font-extrabold text-xs text-green-700 leading-tight">
-//                                 Total Acum: {dailyTotalResult > 0 ? `$${dailyTotalResult.toFixed(2)}` : '$0.00'}
-//                               </p>
-
-//                             </div>
-//                           </div>
-//                         )}
-//                       </div>
-//                     );
-//                   })}
-//                 </div>
-//               </>
-//             ) : (
-//               // Mensaje cuando no hay registro seleccionado
-//               <div className="p-10 text-center text-gray-500 bg-white rounded-lg border-dashed border-2 border-gray-300 mt-4">
-//                 <Package size={48} className="mx-auto text-blue-400 mb-4" />
-//                 <p className="text-xl font-semibold">
-//                   Crea un registro para comenzar
-//                 </p>
-//                 <p className="mt-2">
-//                   Selecciona un registro o utiliza el botón **Nuevo Registro**
-//                   en el panel lateral.
-//                 </p>
-//               </div>
-//             )}
-//           </div>
-//         </div>
-
-//         {/* COLUMNA DERECHA: CONTROLES Y TOTALES (1/3) */}
-//         <div className="lg:col-span-1 flex flex-col space-y-8">
-//           {/* Controles Superiores (Select, Export, New) */}
-//           <div className="p-5 bg-white border-t-4 border-blue-500 rounded-xl shadow-lg">
-//             <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center border-b pb-3">
-//               ⚙️ Configuración y Exportación
-//             </h3>
-//             <div className="space-y-4">
-//               {/* Selector de Registro */}
-//               <div className="flex flex-col space-y-2">
-//                 <label
-//                   htmlFor="calendar-select"
-//                   className="text-sm font-semibold text-gray-700"
-//                 >
-//                   Registro Actual:
-//                 </label>
-//                 <select
-//                   id="calendar-select"
-//                   value={selectedCalendarId || ""}
-//                   onChange={(e) => setSelectedCalendarId(e.target.value)}
-//                   className={`w-full p-3 border-2 rounded-xl shadow-inner text-base font-medium bg-gray-50 focus:ring-blue-500 focus:border-blue-500 transition
-//                     ${
-//                       selectedCalendarId
-//                         ? "text-gray-800 border-gray-300"
-//                         : "text-gray-500 border-dashed border-gray-400"
-//                     }`}
-//                   disabled={!isAuthReady || calendars.length === 0}
-//                 >
-//                   {calendars.length === 0 ? (
-//                     <option value="">Crea un registro</option>
-//                   ) : (
-//                     calendars.map((c) => (
-//                       <option key={c.id} value={c.id}>
-//                         {c.name}
-//                       </option>
-//                     ))
-//                   )}
-//                 </select>
-//               </div>
-
-//               {/* Botones de Acción */}
-//               <div className="flex flex-col space-y-3 pt-2">
-//                 {/* Botón de Nuevo Registro */}
-//                 <button
-//                   onClick={() => setIsCalendarModalOpen(true)}
-//                   className="flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-md bg-green-600 hover:bg-green-700 text-white w-full"
-//                   title="Crear Nuevo Registro/Calendario"
-//                 >
-//                   <Plus size={16} className="mr-2" />
-//                   Nuevo Registro
-//                 </button>
-
-//                 {/* Botón de Exportar Rango */}
-//                 <button
-//                   onClick={() => setIsExportModalOpen("range")}
-//                   disabled={
-//                     !selectedCalendarId || globalTotals?.totalResult === 0
-//                   }
-//                   className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-md w-full 
-//                     ${
-//                       selectedCalendarId && globalTotals?.totalResult > 0
-//                         ? "bg-blue-600 hover:bg-blue-700 text-white"
-//                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
-//                     }`}
-//                   title="Exportar todos los registros filtrados (Rango de Fechas)"
-//                 >
-//                   <Upload size={16} className="mr-2" />
-//                   Exportar Rango de Fechas
-//                 </button>
-
-//                 {/* Botón de Exportar Día Único */}
-//                 <button
-//                   onClick={openExportModalInSingleDayMode}
-//                   disabled={
-//                     !selectedCalendarId || globalTotals?.totalResult === 0
-//                   }
-//                   className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-md w-full 
-//                     ${
-//                       selectedCalendarId && globalTotals?.totalResult > 0
-//                         ? "bg-orange-600 hover:bg-orange-700 text-white"
-//                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
-//                     }`}
-//                   title="Exportar registros de un día específico"
-//                 >
-//                   <Clock size={16} className="mr-2" />
-//                   Exportar Día
-//                 </button>
-//               </div>
-//             </div>
-//           </div>
-
-//           {/* Totales Globales del Registro Seleccionado */}
-//           <div className="p-5 bg-white border-t-4 border-purple-500 rounded-xl shadow-lg">
-//             <h3 className="text-xl font-bold text-purple-800 mb-4 flex items-center border-b pb-3">
-//               <Activity size={20} className="text-purple-600 mr-2" />
-//               Acumulado Global
-//             </h3>
-//             <div className="space-y-4">
-//               <div className="grid grid-cols-2 gap-4">
-//                 <div className="p-3 bg-purple-100 rounded-lg text-center shadow-inner">
-//                   <p className="font-medium text-xs text-purple-700 uppercase">
-//                     Total Valor A
-//                   </p>
-//                   <p className="font-semibold text-purple-900 text-xl mt-1">
-//                     {globalTotals?.totalA?.toFixed(2) || "0.00"}
-//                   </p>
-//                 </div>
-
-//                 <div className="p-3 bg-purple-100 rounded-lg text-center shadow-inner">
-//                   <p className="font-medium text-xs text-purple-700 uppercase">
-//                     Total Valor B
-//                   </p>
-//                   <p className="font-semibold text-purple-900 text-xl mt-1">
-//                     {globalTotals?.totalB?.toFixed(2) || "0.00"}
-//                   </p>
-//                 </div>
-//               </div>
-
-//               <div className="p-4 bg-purple-600 rounded-xl text-white shadow-xl text-center">
-//                 <p className="font-medium text-sm uppercase">
-//                   RESULTADO GLOBAL ($A \times B$)
-//                 </p>
-//                 <p className="font-extrabold text-3xl mt-1">
-//                   {globalTotals?.totalResult?.toFixed(2) || "0.00"}
-//                 </p>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default CalendarView;
-
-
-
-// const CalendarView = ({
-//   currentDate,
-//   navigateMonth,
-//   handleDayClick,
-//   setSelectedCalendarId,
-//   selectedCalendarId,
-//   calendars,
-//   events,
-//   isAuthReady,
-//   setIsCalendarModalOpen,
-//   selectedCalendarName,
-//   globalTotals,
-//   setIsExportModalOpen,
-//   openExportModalInSingleDayMode,
-// }) => {
-//   // --- Utilidades y Constantes (Mantenidas) ---
-//   const DAYS_OF_WEEK = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
-//   const MONTHS = [
-//     "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-//     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
-//   ];
-//   // Asumo que 'formatDate' está disponible en este scope.
-
-//   // --- LÓGICA DE GENERACIÓN DE DÍAS (Mantenida) ---
-//   const year = currentDate.getFullYear();
-//   const month = currentDate.getMonth();
-//   const firstDayOfMonth = new Date(year, month, 1).getDay();
-//   const daysInMonth = new Date(year, month + 1, 0).getDate();
-//   const days = [];
-//   const prevMonthDaysTotal = new Date(year, month, 0).getDate();
-//   const startDay = prevMonthDaysTotal - firstDayOfMonth + 1;
-
-//   for (let i = startDay; i <= prevMonthDaysTotal; i++) {
-//     if (i > prevMonthDaysTotal - firstDayOfMonth) {
-//       const fullDate = new Date(year, month - 1, i);
-//       days.push({
-//         key: `prev-${i}`,
-//         day: i,
-//         isCurrentMonth: false,
-//         fullDate,
-//         events: [],
-//         // Simulación: No hay dailyCosts en días de relleno
-//         dailyCosts: { finalResult: 0 }
-//       });
-//     }
-//   }
-
-//   for (let i = 1; i <= daysInMonth; i++) {
-//     const fullDate = new Date(year, month, i);
-//     const dateKey = formatDate(fullDate); 
-//     // NOTA: Aquí deberías inyectar el objeto dailyCosts real para cada día
-//     // Por ahora, solo usamos los eventos
-//     days.push({
-//       key: `curr-${i}`,
-//       day: i,
-//       isCurrentMonth: true,
-//       fullDate,
-//       dateKey,
-//       events: events[dateKey] || [],
-//       // SIMULACIÓN: Asume que dailyCosts está disponible en el scope principal o aquí
-//       // Lo dejaremos fuera de dayData para que se calcule por día
-//     });
-//   }
-
-//   let nextDay = 1;
-//   while (days.length < 42) {
-//     const fullDate = new Date(year, month + 1, nextDay);
-//     days.push({
-//       key: `next-${nextDay}`,
-//       day: nextDay,
-//       isCurrentMonth: false,
-//       fullDate,
-//       events: [],
-//       // Simulación: No hay dailyCosts en días de relleno
-//       dailyCosts: { finalResult: 0 }
-//     });
-//     nextDay++;
-//   }
-
-//   const today = formatDate(new Date());
-//   const selectedCalendarColor =
-//     calendars.find((c) => c.id === selectedCalendarId)?.color || "bg-blue-600";
-
-//   // --- RENDERING (JSX) ---
-//   return (
-//     <div className="bg-white p-1 sm:p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-100 transition-all duration-300">
-//       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-//         {/* COLUMNA IZQUIERDA: CALENDARIO (2/3) */}
-//         <div className="lg:col-span-2 flex flex-col space-y-6">
-//           <div className="p-4 bg-white border border-indigo-200 rounded-xl shadow-lg">
-//             <h2 className="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 border-b pb-2 flex items-center">
-//               🗓️ Vista del Mes
-//             </h2>
-
-//             {selectedCalendarId ? (
-//               <>
-//                 {/* Navegación del Calendario */}
-//                 <div className="flex justify-between items-center mb-6 ">
-//                   <button
-//                     onClick={() => navigateMonth(-1)}
-//                     className="p-3 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded-full transition shadow-md"
-//                     title="Mes Anterior"
-//                   >
-//                     <ArrowLeft size={20} />
-//                   </button>
-//                   <h2 className="text-2xl font-bold text-gray-800">
-//                     {MONTHS[month]} {year}
-//                   </h2>
-//                   <button
-//                     onClick={() => navigateMonth(1)}
-//                     className="p-3 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded-full transition rotate-180 shadow-md"
-//                     title="Mes Siguiente"
-//                   >
-//                     <ArrowLeft size={20} />
-//                   </button>
-//                 </div>
-
-//                 {/* Días de la semana */}
-//                 <div className="grid grid-cols-7 text-center font-bold text-indigo-600 border-b-2 border-indigo-200 pb-3">
-//                   {DAYS_OF_WEEK.map((day) => (
-//                     <div key={day} className="text-sm sm:text-base">
-//                       {day}
-//                     </div>
-//                   ))}
-//                 </div>
-
-//                 {/* Grid de Días del Mes */}
-//                 <div className="grid grid-cols-7 gap-px mt-2 min-h-[300px] border-l border-t border-gray-300"> 
-//                   {days.map((dayData) => {
-//                     // Cálculo de Métricas Diarias
-//                     const eventCount = dayData.events.length;
-//                     const dailyTotalResult = dayData.events.reduce(
-//                       (sum, event) => sum + (event.totalResult || 0), 
-//                       0
-//                     );
-                    
-//                     // 🌟 SIMULACIÓN/OBTENCIÓN DE DATOS DE COSTO POR UNIDAD
-//                     // **AQUÍ DEBES ASEGURARTE DE OBTENER EL dailyCosts.finalResult CORRESPONDIENTE AL dayData.dateKey**
-//                     // Por ahora, usaré un valor simulado si el día tiene eventos, o 0 si no.
-//                     // Si dayData ya trae dailyCosts: const costPerUnitFinal = dayData.dailyCosts.finalResult || 0;
-                    
-//                     // Asumiendo que dailyCosts es una prop/variable que se corresponde con el día:
-//                     // Si el día tiene eventos, asumimos un valor para 'finalResult' basado en la lógica anterior (Costo Total / Productos)
-//                     const costPerUnitFinal = 
-//                       eventCount > 0 && dailyTotalResult > 0
-//                         ? (dailyTotalResult * 0.1) / eventCount // SIMULACIÓN DE CÁLCULO
-//                         : 0;
-
-//                     return (
-//                       <div
-//                         key={dayData.key}
-//                         onClick={() => handleDayClick(dayData)}
-//                         className={`
-//                           flex flex-col cursor-pointer transition duration-150 rounded-none
-//                           border-b border-r border-gray-300 relative
-                          
-//                           ${
-//                             dayData.isCurrentMonth
-//                               ? "bg-white hover:bg-blue-50"
-//                               : "bg-gray-100 text-gray-400" 
-//                           }
-                          
-//                           ${
-//                             dayData.isCurrentMonth &&
-//                             dayData.dateKey === today
-//                               ? "border-2 border-red-500 ring-2 ring-red-200 z-10" 
-//                               : "hover:z-10"
-//                           }
-//                         `}
-//                         style={{ height: 'auto', minHeight: '64px', padding: '4px' }}
-//                       >
-//                         {/* Número del día */}
-//                         <span
-//                           className={`font-semibold text-sm text-right w-full p-1
-//                             ${
-//                               dayData.isCurrentMonth
-//                                 ? "text-gray-800"
-//                                 : "text-gray-400"
-//                             }`}
-//                         >
-//                           {dayData.day}
-//                         </span>
-                        
-//                         {/* Contenido Dinámico (Eventos/Productos/Costo) */}
-//                         {eventCount > 0 && (
-//                           <div className="flex flex-col items-end px-1 mt-0">
-
-//                             {/* 1. Indicador de Evento (PUNTO) - SOLO EN MÓVIL */}
-//                             <div className="flex justify-end w-full mb-1 sm:hidden"> 
-//                                 <div
-//                                   className="w-2 h-2 rounded-full shadow-md"
-//                                   style={{ backgroundColor: selectedCalendarColor || "#10B981" }}
-//                                   title={`${eventCount} producto(s) registrado(s)`}
-//                                 ></div>
-//                             </div>
-
-//                             {/* 2. Información Detallada (Contador y Costo) - VISIBLE de TABLET (sm) en adelante y CENTRADO */}
-//                             <div className="hidden sm:flex flex-col items-center w-full space-y-0.5">
-                              
-//                               {/* 🌟 Total de Productos Guardados */}
-//                               <p className="font-medium text-xs text-gray-700 leading-tight">
-//                                 {eventCount} {eventCount === 1 ? 'Prod. Guardado' : 'Prods. Guardados'}
-//                               </p>
-
-//                               {/* 🌟 COSTO DE PRODUCCIÓN POR UNIDAD (dailyCosts.finalResult) */}
-//                               <p className="font-bold text-xs text-blue-600 leading-tight">
-//                                 C. Prod/u: {costPerUnitFinal > 0 ? `$${costPerUnitFinal.toFixed(4)}` : '$0.00'}
-//                               </p>
-                              
-//                               {/* 🌟 TOTAL ACUMULADO DEL DÍA (dailyTotalResult) */}
-//                               <p className="font-extrabold text-xs text-green-700 leading-tight">
-//                                 Total Acum: {dailyTotalResult > 0 ? `$${dailyTotalResult.toFixed(2)}` : '$0.00'}
-//                               </p>
-
-//                             </div>
-//                           </div>
-//                         )}
-//                       </div>
-//                     );
-//                   })}
-//                 </div>
-//               </>
-//             ) : (
-//               // Mensaje cuando no hay registro seleccionado
-//               <div className="p-10 text-center text-gray-500 bg-white rounded-lg border-dashed border-2 border-gray-300 mt-4">
-//                 <Package size={48} className="mx-auto text-blue-400 mb-4" />
-//                 <p className="text-xl font-semibold">
-//                   Crea un registro para comenzar
-//                 </p>
-//                 <p className="mt-2">
-//                   Selecciona un registro o utiliza el botón **Nuevo Registro**
-//                   en el panel lateral.
-//                 </p>
-//               </div>
-//             )}
-//           </div>
-//         </div>
-
-//         {/* COLUMNA DERECHA: CONTROLES Y TOTALES (1/3) */}
-//         <div className="lg:col-span-1 flex flex-col space-y-8">
-//           {/* Controles Superiores (Select, Export, New) */}
-//           <div className="p-5 bg-white border-t-4 border-blue-500 rounded-xl shadow-lg">
-//             <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center border-b pb-3">
-//               ⚙️ Configuración y Exportación
-//             </h3>
-//             <div className="space-y-4">
-//               {/* Selector de Registro */}
-//               <div className="flex flex-col space-y-2">
-//                 <label
-//                   htmlFor="calendar-select"
-//                   className="text-sm font-semibold text-gray-700"
-//                 >
-//                   Registro Actual:
-//                 </label>
-//                 <select
-//                   id="calendar-select"
-//                   value={selectedCalendarId || ""}
-//                   onChange={(e) => setSelectedCalendarId(e.target.value)}
-//                   className={`w-full p-3 border-2 rounded-xl shadow-inner text-base font-medium bg-gray-50 focus:ring-blue-500 focus:border-blue-500 transition
-//                     ${
-//                       selectedCalendarId
-//                         ? "text-gray-800 border-gray-300"
-//                         : "text-gray-500 border-dashed border-gray-400"
-//                     }`}
-//                   disabled={!isAuthReady || calendars.length === 0}
-//                 >
-//                   {calendars.length === 0 ? (
-//                     <option value="">Crea un registro</option>
-//                   ) : (
-//                     calendars.map((c) => (
-//                       <option key={c.id} value={c.id}>
-//                         {c.name}
-//                       </option>
-//                     ))
-//                   )}
-//                 </select>
-//               </div>
-
-//               {/* Botones de Acción */}
-//               <div className="flex flex-col space-y-3 pt-2">
-//                 {/* Botón de Nuevo Registro */}
-//                 <button
-//                   onClick={() => setIsCalendarModalOpen(true)}
-//                   className="flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-md bg-green-600 hover:bg-green-700 text-white w-full"
-//                   title="Crear Nuevo Registro/Calendario"
-//                 >
-//                   <Plus size={16} className="mr-2" />
-//                   Nuevo Registro
-//                 </button>
-
-//                 {/* Botón de Exportar Rango */}
-//                 <button
-//                   onClick={() => setIsExportModalOpen("range")}
-//                   disabled={
-//                     !selectedCalendarId || globalTotals?.totalResult === 0
-//                   }
-//                   className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-md w-full 
-//                     ${
-//                       selectedCalendarId && globalTotals?.totalResult > 0
-//                         ? "bg-blue-600 hover:bg-blue-700 text-white"
-//                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
-//                     }`}
-//                   title="Exportar todos los registros filtrados (Rango de Fechas)"
-//                 >
-//                   <Upload size={16} className="mr-2" />
-//                   Exportar Rango de Fechas
-//                 </button>
-
-//                 {/* Botón de Exportar Día Único */}
-//                 <button
-//                   onClick={openExportModalInSingleDayMode}
-//                   disabled={
-//                     !selectedCalendarId || globalTotals?.totalResult === 0
-//                   }
-//                   className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-md w-full 
-//                     ${
-//                       selectedCalendarId && globalTotals?.totalResult > 0
-//                         ? "bg-orange-600 hover:bg-orange-700 text-white"
-//                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
-//                     }`}
-//                   title="Exportar registros de un día específico"
-//                 >
-//                   <Clock size={16} className="mr-2" />
-//                   Exportar Día
-//                 </button>
-//               </div>
-//             </div>
-//           </div>
-
-//           {/* Totales Globales del Registro Seleccionado */}
-//           <div className="p-5 bg-white border-t-4 border-purple-500 rounded-xl shadow-lg">
-//             <h3 className="text-xl font-bold text-purple-800 mb-4 flex items-center border-b pb-3">
-//               <Activity size={20} className="text-purple-600 mr-2" />
-//               Acumulado Global
-//             </h3>
-//             <div className="space-y-4">
-//               <div className="grid grid-cols-2 gap-4">
-//                 <div className="p-3 bg-purple-100 rounded-lg text-center shadow-inner">
-//                   <p className="font-medium text-xs text-purple-700 uppercase">
-//                     Total Valor A
-//                   </p>
-//                   <p className="font-semibold text-purple-900 text-xl mt-1">
-//                     {globalTotals?.totalA?.toFixed(2) || "0.00"}
-//                   </p>
-//                 </div>
-
-//                 <div className="p-3 bg-purple-100 rounded-lg text-center shadow-inner">
-//                   <p className="font-medium text-xs text-purple-700 uppercase">
-//                     Total Valor B
-//                   </p>
-//                   <p className="font-semibold text-purple-900 text-xl mt-1">
-//                     {globalTotals?.totalB?.toFixed(2) || "0.00"}
-//                   </p>
-//                 </div>
-//               </div>
-
-//               <div className="p-4 bg-purple-600 rounded-xl text-white shadow-xl text-center">
-//                 <p className="font-medium text-sm uppercase">
-//                   RESULTADO GLOBAL ($A \times B$)
-//                 </p>
-//                 <p className="font-extrabold text-3xl mt-1">
-//                   {globalTotals?.totalResult?.toFixed(2) || "0.00"}
-//                 </p>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-
-
-
-// const CalendarView = ({
-//   currentDate,
-//   navigateMonth,
-//   handleDayClick,
-//   setSelectedCalendarId,
-//   selectedCalendarId,
-//   calendars,
-//   events,
-//   isAuthReady,
-//   setIsCalendarModalOpen,
-//   selectedCalendarName,
-//   globalTotals,
-//   setIsExportModalOpen,
-//   openExportModalInSingleDayMode,
-// }) => {
-//   // Arrays de apoyo (Asegúrate de que estén definidos en tu archivo)
-//   const DAYS_OF_WEEK = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
-//   const MONTHS = [
-//     "Enero",
-//     "Febrero",
-//     "Marzo",
-//     "Abril",
-//     "Mayo",
-//     "Junio",
-//     "Julio",
-//     "Agosto",
-//     "Septiembre",
-//     "Octubre",
-//     "Noviembre",
-//     "Diciembre",
-//   ];
-//   // NOTA: Debes importar o definir la función formatDate(date)
-
-//   // --- LÓGICA DE GENERACIÓN DE DÍAS ---
-//   const year = currentDate.getFullYear();
-//   const month = currentDate.getMonth();
-//   // firstDayOfMonth (0=Dom, 1=Lun, ..., 6=Sáb)
-//   const firstDayOfMonth = new Date(year, month, 1).getDay();
-//   const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-//   const days = [];
-
-//   // 1. 🟢 CORRECCIÓN: Días de relleno del mes anterior
-//   const prevMonthDaysTotal = new Date(year, month, 0).getDate();
-
-//   // Si firstDayOfMonth es 0 (domingo), startDay debe ser (prevMonthDaysTotal + 1) para que el bucle no se ejecute
-//   // Si firstDayOfMonth es 1 (lunes), startDay debe ser prevMonthDaysTotal (solo un día)
-//   const startDay = prevMonthDaysTotal - firstDayOfMonth + 1;
-
-//   for (let i = startDay; i <= prevMonthDaysTotal; i++) {
-//     // Solo añade días si firstDayOfMonth > 0
-//     if (i > prevMonthDaysTotal - firstDayOfMonth) {
-//       const fullDate = new Date(year, month - 1, i);
-//       days.push({
-//         key: `prev-${i}`,
-//         day: i,
-//         isCurrentMonth: false,
-//         fullDate,
-//         events: [],
-//       });
-//     }
-//   }
-
-//   // 2. Días del mes actual
-//   for (let i = 1; i <= daysInMonth; i++) {
-//     const fullDate = new Date(year, month, i);
-//     const dateKey = formatDate(fullDate);
-//     days.push({
-//       key: `curr-${i}`,
-//       day: i,
-//       isCurrentMonth: true,
-//       fullDate,
-//       dateKey,
-//       events: events[dateKey] || [],
-//     });
-//   }
-
-//   // 3. 🟢 CORRECCIÓN: Días de relleno del mes siguiente (Asegura 6 filas = 42 días)
-//   let nextDay = 1;
-//   while (days.length < 42) {
-//     const fullDate = new Date(year, month + 1, nextDay);
-//     days.push({
-//       key: `next-${nextDay}`,
-//       day: nextDay,
-//       isCurrentMonth: false,
-//       fullDate,
-//       events: [],
-//     });
-//     nextDay++;
-//   }
-
-//   const today = formatDate(new Date());
-//   const selectedCalendarColor =
-//     calendars.find((c) => c.id === selectedCalendarId)?.color || "bg-blue-600";
-
-//   // --- RENDERING (JSX) (Se mantiene el JSX enviado previamente) ---
-//   // NOTA: He mantenido el JSX completo ya que lo solicitaste en tu pregunta anterior.
-//   // ... (El JSX es el mismo que en la respuesta anterior) ...
-
-//   console.log("--- DEBUG ACUMULADO GLOBAL ---");
-//   console.log("Objeto globalTotals completo:", globalTotals);
-//   console.log("Valor de Total Valor A:", globalTotals?.totalA);
-//   console.log("------------------------------");
-
-//   console.log("--- ESTRUCTURA DE EVENTOS GRABADOS ---");
-//   console.log("Eventos (por fecha):", events);
-//   console.log("--------------------------------------");
-//   return (
-//     // Contenedor principal: estilo moderno con sombra y responsivo
-//     <div className="bg-white p-1 sm:p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-100 transition-all duration-300">
-//       {/* 🛑 GRID RESPONSIVO: 1 columna en móvil, 3 columnas (2/3 y 1/3) en desktop 🛑 */}
-//       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-//         {/* ------------------------------------------- */}
-//         {/* COLUMNA IZQUIERDA: CALENDARIO (2/3) */}
-//         {/* ------------------------------------------- */}
-//         <div className="lg:col-span-2 flex flex-col space-y-6">
-//           {/* Contenedor del Calendario */}
-//           <div className="p-4 bg-white border border-indigo-200 rounded-xl shadow-lg">
-//             <h2 className="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 border-b pb-2 flex items-center">
-//               🗓️ Vista del Mes
-//             </h2>
-
-//             {selectedCalendarId ? (
-//               <>
-//                 {/* Navegación del Calendario */}
-//                 <div className="flex justify-between items-center mb-6 ">
-//                   <button
-//                     onClick={() => navigateMonth(-1)}
-//                     className="p-3 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded-full transition shadow-md"
-//                     title="Mes Anterior"
-//                   >
-//                     <ArrowLeft size={20} />
-//                   </button>
-//                   <h2 className="text-2xl font-bold text-gray-800">
-//                     {MONTHS[month]} {year}
-//                   </h2>
-//                   <button
-//                     onClick={() => navigateMonth(1)}
-//                     className="p-3 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded-full transition rotate-180 shadow-md"
-//                     title="Mes Siguiente"
-//                   >
-//                     <ArrowLeft size={20} />
-//                   </button>
-//                 </div>
-
-//                 {/* Días de la semana */}
-//                 <div className="grid grid-cols-7 text-center font-bold text-indigo-600 border-b-2 border-indigo-200 pb-3">
-//                   {DAYS_OF_WEEK.map((day) => (
-//                     <div key={day} className="text-sm sm:text-base">
-//                       {day}
-//                     </div>
-//                   ))}
-//                 </div>
-
-//                 {/* Grid de Días del Mes */}
-//                 <div className="grid grid-cols-7 gap-1 mt-2">
-//                   {days.map((dayData) => (
-//                     <div
-//                       key={dayData.key}
-//                       onClick={() => handleDayClick(dayData)}
-//                       className={`
-//                                                 h-24 sm:h-28 p-1 sm:p-2 flex flex-col cursor-pointer transition duration-150 rounded-lg hover:shadow-lg
-//                                                 ${
-//                                                   dayData.isCurrentMonth
-//                                                     ? "bg-gray-50 hover:bg-blue-50 border border-gray-200"
-//                                                     : "bg-gray-100 text-gray-400"
-//                                                 }
-//                                                 ${
-//                                                   dayData.isCurrentMonth &&
-//                                                   dayData.dateKey === today
-//                                                     ? "border-2 border-red-500 ring-4 ring-red-200"
-//                                                     : ""
-//                                                 }
-//                                             `}
-//                     >
-//                       <span
-//                         className={`font-bold text-lg text-right w-full ${
-//                           dayData.isCurrentMonth
-//                             ? "text-gray-800"
-//                             : "text-gray-400"
-//                         }`}
-//                       >
-//                         {dayData.day}
-//                       </span>
-//                       {dayData.events.length > 0 && (
-//                         <div className="flex-1 overflow-hidden mt-1 px-1">
-//                           <div
-//                             className="text-center font-medium text-xs py-1 rounded-full text-white shadow-md"
-//                             style={{
-//                               backgroundColor:
-//                                 selectedCalendarColor || "#10B981",
-//                             }}
-//                           >
-//                             <span className="font-bold">
-//                               {dayData.events.length}
-//                             </span>{" "}
-//                             {dayData.events.length === 1
-//                               ? "Producto"
-//                               : "Productos"}
-//                           </div>
-//                         </div>
-//                       )}
-//                     </div>
-//                   ))}
-//                 </div>
-//               </>
-//             ) : (
-//               <div className="p-10 text-center text-gray-500 bg-white rounded-lg border-dashed border-2 border-gray-300 mt-4">
-//                 <Package size={48} className="mx-auto text-blue-400 mb-4" />
-//                 <p className="text-xl font-semibold">
-//                   Crea un registro para comenzar
-//                 </p>
-//                 <p className="mt-2">
-//                   Selecciona un registro o utiliza el botón **Nuevo Registro**
-//                   en el panel lateral.
-//                 </p>
-//               </div>
-//             )}
-//           </div>
-//         </div>
-
-//         {/* ------------------------------------------- */}
-//         {/* COLUMNA DERECHA: CONTROLES Y TOTALES (1/3) */}
-//         {/* ------------------------------------------- */}
-//         <div className="lg:col-span-1 flex flex-col space-y-8">
-//           {/* Controles Superiores (Select, Export, New) */}
-//           <div className="p-5 bg-white border-t-4 border-blue-500 rounded-xl shadow-lg">
-//             <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center border-b pb-3">
-//               ⚙️ Configuración y Exportación
-//             </h3>
-//             <div className="space-y-4">
-//               {/* Selector de Registro */}
-//               <div className="flex flex-col space-y-2">
-//                 <label
-//                   htmlFor="calendar-select"
-//                   className="text-sm font-semibold text-gray-700"
-//                 >
-//                   Registro Actual:
-//                 </label>
-//                 <select
-//                   id="calendar-select"
-//                   value={selectedCalendarId || ""}
-//                   onChange={(e) => setSelectedCalendarId(e.target.value)}
-//                   className={`w-full p-3 border-2 rounded-xl shadow-inner text-base font-medium bg-gray-50 focus:ring-blue-500 focus:border-blue-500 transition 
-//                                     ${
-//                                       selectedCalendarId
-//                                         ? "text-gray-800 border-gray-300"
-//                                         : "text-gray-500 border-dashed border-gray-400"
-//                                     }`}
-//                   disabled={!isAuthReady || calendars.length === 0}
-//                 >
-//                   {calendars.length === 0 ? (
-//                     <option value="">Crea un registro</option>
-//                   ) : (
-//                     calendars.map((c) => (
-//                       <option key={c.id} value={c.id}>
-//                         {c.name}
-//                       </option>
-//                     ))
-//                   )}
-//                 </select>
-//               </div>
-
-//               {/* Botones de Acción */}
-//               <div className="flex flex-col space-y-3 pt-2">
-//                 {/* Botón de Nuevo Registro */}
-//                 <button
-//                   onClick={() => setIsCalendarModalOpen(true)}
-//                   className="flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-md bg-green-600 hover:bg-green-700 text-white w-full"
-//                   title="Crear Nuevo Registro/Calendario"
-//                 >
-//                   <Plus size={16} className="mr-2" />
-//                   Nuevo Registro
-//                 </button>
-
-//                 {/* Botón de Exportar Global/Rango */}
-//                 <button
-//                   onClick={() => setIsExportModalOpen("range")}
-//                   disabled={
-//                     !selectedCalendarId || globalTotals?.totalResult === 0
-//                   }
-//                   className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-md w-full 
-//                                     ${
-//                                       selectedCalendarId &&
-//                                       globalTotals?.totalResult > 0
-//                                         ? "bg-blue-600 hover:bg-blue-700 text-white"
-//                                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
-//                                     }`}
-//                   title="Exportar todos los registros filtrados (Rango de Fechas)"
-//                 >
-//                   <Upload size={16} className="mr-2" />
-//                   Exportar Rango de Fechas
-//                 </button>
-
-//                 {/* Botón de Exportar Día Único */}
-//                 <button
-//                   onClick={openExportModalInSingleDayMode}
-//                   disabled={
-//                     !selectedCalendarId || globalTotals?.totalResult === 0
-//                   }
-//                   className={`flex items-center justify-center px-4 py-3 text-sm font-bold rounded-xl transition duration-200 shadow-md w-full 
-//                                     ${
-//                                       selectedCalendarId &&
-//                                       globalTotals?.totalResult > 0
-//                                         ? "bg-orange-600 hover:bg-orange-700 text-white"
-//                                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
-//                                     }`}
-//                   title="Exportar registros de un día específico"
-//                 >
-//                   <Clock size={16} className="mr-2" />
-//                   Exportar Día
-//                 </button>
-//               </div>
-//             </div>
-//           </div>
-
-//           {/* Totales Globales del Registro Seleccionado */}
-//           <div className="p-5 bg-white border-t-4 border-purple-500 rounded-xl shadow-lg">
-//             <h3 className="text-xl font-bold text-purple-800 mb-4 flex items-center border-b pb-3">
-//               <Activity size={20} className="text-purple-600 mr-2" />
-//               Acumulado Global
-//             </h3>
-//             <div className="space-y-4">
-//               <div className="grid grid-cols-2 gap-4">
-//                 <div className="p-3 bg-purple-100 rounded-lg text-center shadow-inner">
-//                   <p className="font-medium text-xs text-purple-700 uppercase">
-//                     Total Valor A
-//                   </p>
-//                   <p className="font-semibold text-purple-900 text-xl mt-1">
-//                     {globalTotals?.totalA?.toFixed(2) || "0.00"}
-//                   </p>
-//                 </div>
-
-//                 <div className="p-3 bg-purple-100 rounded-lg text-center shadow-inner">
-//                   <p className="font-medium text-xs text-purple-700 uppercase">
-//                     Total Valor B
-//                   </p>
-//                   <p className="font-semibold text-purple-900 text-xl mt-1">
-//                     {globalTotals?.totalB?.toFixed(2) || "0.00"}
-//                   </p>
-//                 </div>
-//               </div>
-
-//               <div className="p-4 bg-purple-600 rounded-xl text-white shadow-xl text-center">
-//                 <p className="font-medium text-sm uppercase">
-//                   RESULTADO GLOBAL ($A \times B$)
-//                 </p>
-//                 <p className="font-extrabold text-3xl mt-1">
-//                   {globalTotals?.totalResult?.toFixed(2) || "0.00"}
-//                 </p>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// =========================================================================
-// === Componentes de Lista y Detalles (Omitido por ser Boilerplate) =======
-// =========================================================================
 
 const ProductList = ({
   eventsForDay,
@@ -3431,41 +1114,150 @@ const ProductList = ({
 // ===================================================
 
 const CostEditorView = ({
-  selectedDate, // Para obtener la clave de la fecha usando formatDate
+  selectedDate,
   initialCostData,
   handleSaveCosts,
   backToDayView,
+  globalCostDivisor,
+  setGlobalCostDivisor,
 }) => {
-  // --- 1. ESTADOS LOCALES DE COSTOS ---
-  const [numWorkers, setNumWorkers] = useState("");
-  const [hoursWorked, setHoursWorked] = useState("");
-  const [localDivisor, setLocalDivisor] = useState("");
+  // --- 1. ESTADO: ITEMS DE COSTO (Dinámico) ---
+  const getInitialItems = () => {
+    if (
+      initialCostData?.details &&
+      Array.isArray(initialCostData.details) &&
+      initialCostData.details.length > 0
+    ) {
+      return initialCostData.details;
+    }
+
+    // Fallback Legacy: Si existen valores antiguos, crea un ítem estándar
+    const legacyWorkers = initialCostData?.numWorkers;
+    const legacyHours = initialCostData?.hoursWorked;
+
+    if (
+      legacyWorkers &&
+      legacyWorkers !== 0 &&
+      legacyWorkers !== "0" &&
+      legacyHours &&
+      legacyHours !== 0
+    ) {
+      return [
+        {
+          id: Date.now().toString(),
+          type: "standard",
+          workers: String(legacyWorkers),
+          hours: String(legacyHours),
+        },
+      ];
+    }
+
+    // Default: Lista vacía o un ítem estándar vacío
+    return [
+      {
+        id: Date.now().toString(),
+        type: "standard",
+        workers: "",
+        hours: "",
+      },
+    ];
+  };
+
+  const [items, setItems] = useState(getInitialItems());
+  const [localDivisor, setLocalDivisor] = useState(
+    String(initialCostData?.divisor || globalCostDivisor || "1.0")
+  );
+  const [newItemType, setNewItemType] = useState("extra_labor");
   const [isSaving, setIsSaving] = useState(false);
 
-  // --- 2. ESTADOS LOCALES DE IMAGEN (Manteniendo la lógica que pediste) ---
+  // --- 2. IMAGEN (Manteniendo lógica existente) ---
   const [formImageFile, setFormImageFile] = useState(null);
-  const [formImageBase64, setFormImageBase64] = useState(null);
+  const [formImageBase64, setFormImageBase64] = useState(
+    initialCostData?.imageBase64 || null
+  );
 
-  // --- Sincronización de Props a Estado Local (La clave para la reactividad) ---
+  // Efecto para actualizar cuando cambian props (ej. al cambiar de día)
   useEffect(() => {
-    if (initialCostData) {
-      setNumWorkers(String(initialCostData.numWorkers || ""));
-      setHoursWorked(String(initialCostData.hoursWorked || ""));
-      // Usar el divisor del día o '1.0' como default
-      setLocalDivisor(String(initialCostData.divisor || "1.0"));
+    setItems(getInitialItems());
+    setLocalDivisor(
+      String(initialCostData?.divisor || globalCostDivisor || "1.0")
+    );
+    setFormImageBase64(initialCostData?.imageBase64 || null);
+  }, [initialCostData, globalCostDivisor]);
+
+  // --- 3. HANDLERS DE ITEMS ---
+  const handleAddItem = () => {
+    const newItem = {
+      id: Date.now().toString() + Math.random().toString().slice(2, 5),
+      type: newItemType,
+      workers: "",
+      hours: "",
+      machineryName: "",
+      machineryCost: "",
+    };
+    setItems([...items, newItem]);
+  };
+
+  const handleDeleteItem = (id) => {
+    setItems(items.filter((item) => item.id !== id));
+  };
+
+  const handleItemChange = (id, field, value) => {
+    setItems(
+      items.map((item) => {
+        if (item.id === id) {
+          return { ...item, [field]: value };
+        }
+        return item;
+      })
+    );
+  };
+
+  // --- 4. CÁLCULOS (Lógica portada) ---
+  const calculateTotals = () => {
+    let totalLaborCost = 0;
+    let totalMachineryCost = 0;
+
+    items.forEach((item) => {
+      const workers = parseFloat(item.workers) || 0;
+      const hours = parseFloat(item.hours) || 0;
+
+      // Coste laboral básico
+      const laborCost = workers * hours * HOURLY_COST_RATE;
+      totalLaborCost += laborCost;
+
+      if (item.type === "machinery") {
+        const machineFixed = parseFloat(item.machineryCost) || 0;
+        totalMachineryCost += machineFixed;
+      }
+    });
+
+    const productionCostVariable = totalLaborCost + totalMachineryCost;
+    const divisorFloat = parseFloat(localDivisor) || 1.0;
+
+    let finalResult = 0;
+    if (divisorFloat > 0) {
+      finalResult = productionCostVariable / divisorFloat;
     }
-    // Nota: No reiniciamos el estado de la imagen aquí.
-  }, [initialCostData]);
 
-  // --- CÁLCULOS (Los mantengo por completitud) ---
-  const numWorkersFloat = parseFloat(numWorkers) || 0;
-  const hoursWorkedFloat = parseFloat(hoursWorked) || 0;
-  const divisorFloat = parseFloat(localDivisor) || 1.0;
+    return {
+      totalLaborCost,
+      totalMachineryCost,
+      productionCostVariable,
+      finalResult,
+      divisorFloat,
+    };
+  };
 
-  const totalCost = numWorkersFloat * hoursWorkedFloat * 10;
-  const finalResult = totalCost / divisorFloat;
+  const {
+    totalLaborCost,
+    totalMachineryCost,
+    productionCostVariable,
+    finalResult,
+    divisorFloat,
+  } = calculateTotals();
 
-  // --- MANEJO DE IMAGEN (Se mantiene) ---
+  // --- 5. IMAGEN HANDLER ---
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -3481,38 +1273,148 @@ const CostEditorView = ({
     }
   };
 
-  // --- FUNCIÓN DE GUARDADO ---
+  // --- 6. GUARDAR ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSaving(true);
 
-    // ✅ Uso de la función formatDate incluida:
     const dateKey = selectedDate ? formatDate(selectedDate) : null;
-
     if (!dateKey) {
-      console.error("No se pudo determinar la fecha para guardar.");
+      console.error("No date key");
       setIsSaving(false);
       return;
     }
 
+    // Compatibilidad Legacy: Usamos el primer item Standard para llenar los campos antiguos
+    const standardItem = items.find((i) => i.type === "standard") || items[0];
+
     const costData = {
-      numWorkers: numWorkersFloat,
-      hoursWorked: hoursWorkedFloat,
+      // Legacy fields
+      numWorkers: parseFloat(standardItem?.workers) || 0,
+      hoursWorked: parseFloat(standardItem?.hours) || 0,
+      
+      // Nuevos campos
+      details: items,
       divisor: divisorFloat,
-      totalCost: totalCost,
+      
+      // Totales calculados (opcional guardarlos)
+      totalCost: productionCostVariable,
       finalResult: finalResult,
-      // Agregamos Base64 si existe (si se decide guardar así)
+      
       ...(formImageBase64 && { imageBase64: formImageBase64 }),
     };
 
-    // Llama al callback del padre, que guarda en Firestore y actualiza el estado dailyData
     await handleSaveCosts(dateKey, costData);
-
     setIsSaving(false);
     backToDayView();
   };
 
-  // --- RENDERIZADO ---
+  // --- HELPER DE RENDERIZADO DE FILA ---
+  const renderItemRow = (item, index) => {
+    const isStandard = item.type === "standard";
+    return (
+      <div
+        key={item.id}
+        className={`p-4 rounded-xl border-2 mb-3 relative transition-all ${
+          isStandard ? "bg-white border-teal-100" : "bg-gray-50 border-gray-200"
+        }`}
+      >
+        <div className="flex justify-between items-center mb-3">
+          <span
+            className={`text-xs font-bold uppercase tracking-wider ${
+              isStandard ? "text-teal-600" : "text-gray-500"
+            }`}
+          >
+            {item.type === "standard"
+              ? "👥 Cuadrilla Principal"
+              : item.type === "extra_labor"
+              ? "👷‍♂️ Trabajadores Extra"
+              : "🚜 Maquinaria & Operador"}
+          </span>
+          {!isStandard && (
+            <button
+              onClick={() => handleDeleteItem(item.id)}
+              className="text-red-400 hover:text-red-600 p-1 bg-red-50 hover:bg-red-100 rounded-md transition"
+              type="button"
+            >
+              <Trash2 size={16} />
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {item.type === "machinery" && (
+            <div className="col-span-2 grid grid-cols-2 gap-3 mb-2 pb-3 border-b border-dashed border-gray-200">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">
+                  Tipo Maquinaria
+                </label>
+                <select
+                  value={item.machineryName}
+                  onChange={(e) =>
+                    handleItemChange(item.id, "machineryName", e.target.value)
+                  }
+                  className="w-full p-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
+                >
+                  <option value="">Seleccionar...</option>
+                  <option value="tractor">🚜 Tractor</option>
+                  <option value="montacarga">🏗️ Montacarga</option>
+                  <option value="camion">🚛 Camión</option>
+                  <option value="fumigadora">💨 Fumigadora</option>
+                  <option value="otro">⚙️ Otro</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">
+                  Costo Máquina (€)
+                </label>
+                <input
+                  type="number"
+                  value={item.machineryCost}
+                  onChange={(e) =>
+                    handleItemChange(item.id, "machineryCost", e.target.value)
+                  }
+                  placeholder="0.00"
+                  className="w-full p-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">
+              {item.type === "machinery"
+                ? "👨‍🔧 N. Operadores"
+                : "👨‍🌾 N. Trabajadores"}
+            </label>
+            <input
+              type="number"
+              value={item.workers}
+              onChange={(e) =>
+                handleItemChange(item.id, "workers", e.target.value)
+              }
+              className="w-full p-2.5 bg-white border border-gray-300 rounded-lg text-sm shadow-sm focus:ring-2 focus:ring-teal-500"
+              placeholder="0"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">
+              ⏱ Horas (c/u)
+            </label>
+            <input
+              type="number"
+              value={item.hours}
+              onChange={(e) => handleItemChange(item.id, "hours", e.target.value)}
+              className="w-full p-2.5 bg-white border border-gray-300 rounded-lg text-sm shadow-sm focus:ring-2 focus:ring-teal-500"
+              placeholder="0.0"
+              step="0.5"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="bg-white p-6 sm:p-10 rounded-2xl shadow-2xl border-t-8 border-teal-600 max-w-4xl mx-auto animate-fade-in">
       <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-4">
@@ -3521,12 +1423,16 @@ const CostEditorView = ({
             <Settings size={32} />
           </span>
           <div>
-            <span className="block text-sm font-semibold text-teal-600 uppercase tracking-widest mb-1">Configuración</span>
+            <span className="block text-sm font-semibold text-teal-600 uppercase tracking-widest mb-1">
+              Configuración
+            </span>
             Costos de Producción
           </div>
         </h2>
         <div className="text-right hidden sm:block">
-          <p className="text-sm text-gray-500 font-medium">Fecha Seleccionada</p>
+          <p className="text-sm text-gray-500 font-medium">
+            Fecha Seleccionada
+          </p>
           <p className="text-lg font-bold text-gray-800">
             {selectedDate ? formatDate(selectedDate) : "N/A"}
           </p>
@@ -3535,50 +1441,46 @@ const CostEditorView = ({
 
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Columna Izquierda: Inputs */}
+          {/* Columna Izquierda: Lista de Items + Divisor */}
           <div className="space-y-6">
-            {/* Campo Trabajadores */}
-            <div className="group">
-              <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center group-focus-within:text-teal-600 transition-colors">
-                <Users size={18} className="mr-2 text-gray-400 group-focus-within:text-teal-500" />
-                Cantidad de Trabajadores
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-sm font-bold text-gray-700">
+                Desglose de Costos
               </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  step="1"
-                  required
-                  value={numWorkers}
-                  onChange={(e) => setNumWorkers(e.target.value)}
-                  className="w-full pl-4 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-teal-100 focus:border-teal-500 text-lg font-semibold text-gray-800 transition-all shadow-sm group-hover:border-gray-300"
-                  placeholder="0"
-                />
+              
+              <div className="flex gap-2">
+                 <select
+                    value={newItemType}
+                    onChange={(e) => setNewItemType(e.target.value)}
+                    className="p-1.5 text-xs border border-gray-300 rounded-lg focus:ring-teal-500"
+                  >
+                    <option value="extra_labor">👷‍♂️ Extra</option>
+                    <option value="machinery">🚜 Maquinaria</option>
+                  </select>
+                  <button
+                    type="button"
+                    onClick={handleAddItem}
+                    className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center shadow-sm"
+                  >
+                    <Plus size={14} className="mr-1" /> Agregar
+                  </button>
               </div>
             </div>
 
-            {/* Campo Horas Trabajadas */}
-            <div className="group">
-              <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center group-focus-within:text-teal-600 transition-colors">
-                <Clock size={18} className="mr-2 text-gray-400 group-focus-within:text-teal-500" />
-                Horas Trabajadas
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  step="0.5"
-                  required
-                  value={hoursWorked}
-                  onChange={(e) => setHoursWorked(e.target.value)}
-                  className="w-full pl-4 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-teal-100 focus:border-teal-500 text-lg font-semibold text-gray-800 transition-all shadow-sm group-hover:border-gray-300"
-                  placeholder="0.0"
-                />
-              </div>
+            {/* LISTA DE ITEMS */}
+            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+              {items.map((item, index) => renderItemRow(item, index))}
             </div>
 
-            {/* Campo Divisor (Producción total) */}
+            <div className="border-t border-gray-100 my-4"></div>
+
+            {/* Divisor */}
             <div className="group">
               <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center group-focus-within:text-yellow-600 transition-colors">
-                <Package size={18} className="mr-2 text-gray-400 group-focus-within:text-yellow-500" />
+                <Package
+                  size={18}
+                  className="mr-2 text-gray-400 group-focus-within:text-yellow-500"
+                />
                 Unidades Producidas (Divisor)
               </label>
               <div className="relative">
@@ -3592,7 +1494,9 @@ const CostEditorView = ({
                   placeholder="1.00"
                 />
                 <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                  <span className="text-gray-400 font-medium text-sm">Unidades</span>
+                  <span className="text-gray-400 font-medium text-sm">
+                    Unidades
+                  </span>
                 </div>
               </div>
             </div>
@@ -3605,27 +1509,36 @@ const CostEditorView = ({
               <h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2 border-b border-gray-200 pb-2">
                 Resumen de Costos
               </h4>
-              
-              <div className="flex justify-between items-end">
-                <span className="text-gray-600 font-medium">Costo Total Diario</span>
+
+              <div className="grid grid-cols-2 gap-4 text-xs mb-2">
+                 <div className="bg-green-50 p-2 rounded-lg text-center">
+                    <span className="block text-green-700 font-bold mb-1">Mano de Obra</span>
+                    <span className="text-lg font-bold text-green-800">${formatNumber(totalLaborCost)}</span>
+                 </div>
+                 <div className="bg-orange-50 p-2 rounded-lg text-center">
+                    <span className="block text-orange-700 font-bold mb-1">Maquinaria</span>
+                    <span className="text-lg font-bold text-orange-800">${formatNumber(totalMachineryCost)}</span>
+                 </div>
+              </div>
+
+              <div className="flex justify-between items-end mt-2">
+                <span className="text-gray-600 font-medium">
+                  Costo Total Diario
+                </span>
                 <span className="text-2xl font-extrabold text-teal-700">
-                  $ {totalCost.toFixed(2)}
+                  $ {formatNumber(productionCostVariable)}
                 </span>
               </div>
-              
+
               <div className="flex justify-between items-end pt-2 border-t border-dashed border-gray-300">
                 <span className="text-gray-700 font-bold flex items-center">
                   <DollarSign size={16} className="mr-1 text-yellow-600" />
                   Costo Por Unidad
                 </span>
                 <span className="text-3xl font-black text-yellow-600 bg-yellow-50 px-3 py-1 rounded-lg border border-yellow-200 shadow-sm">
-                  $ {finalResult.toFixed(4)}
+                  $ {formatNumber(finalResult, 4)}
                 </span>
               </div>
-              
-              <p className="text-xs text-gray-400 text-center mt-2 italic">
-                Cálculo automático basado en trabajadores, horas y unidades.
-              </p>
             </div>
 
             {/* Campo Carga de Imagen */}
@@ -3646,7 +1559,9 @@ const CostEditorView = ({
                       className="w-32 h-32 object-cover rounded-lg shadow-md border-2 border-white ring-2 ring-gray-200"
                     />
                     <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                      <p className="text-white font-bold text-sm">Cambiar Foto</p>
+                      <p className="text-white font-bold text-sm">
+                        Cambiar Foto
+                      </p>
                     </div>
                   </div>
                 ) : (
@@ -3657,9 +1572,7 @@ const CostEditorView = ({
                     <p className="text-sm font-bold text-gray-600">
                       Subir Foto de Evidencia
                     </p>
-                    <p className="text-xs text-gray-400">
-                      (Opcional) JPG, PNG
-                    </p>
+                    <p className="text-xs text-gray-400">(Opcional) JPG, PNG</p>
                   </>
                 )}
               </div>
@@ -4469,6 +2382,7 @@ const handleSaveStats = useCallback(
           fetchedDailyCosts[dateKey] = {
             items: [], // Dejamos vacío, los ítems están en el estado 'events'
             costs: {
+              ...data, // Mantener todos los campos (incluyendo details e imageBase64)
               // Convertimos todos los campos numéricos a float para evitar problemas
               numWorkers: parseFloat(data.numWorkers) || 0,
               hoursWorked: parseFloat(data.hoursWorked) || 0,
@@ -4889,156 +2803,7 @@ const handleSaveStats = useCallback(
     /* ... */
   };
 
-  // --- Renderizado Principal ---
-  // if (isLoading) {
-  //   return (
-  //     <div className="flex justify-center items-center h-screen bg-gray-50">
-  //       <Loader className="animate-spin text-blue-600" size={32} />
-  //       <p className="ml-3 text-lg text-gray-700">Cargando aplicación...</p>
-  //     </div>
-  //   );
-  // }
-
-  // return (
-  //   <div className="p-4 sm:p-8 min-h-screen bg-gray-50">
-  //     {/* Modal para Crear Calendario (Boilerplate) */}
-  //     <div
-  //       className={`fixed inset-0 z-50 bg-gray-900 bg-opacity-75 flex items-center justify-center ${
-  //         isCalendarModalOpen ? "" : "hidden"
-  //       }`}
-  //     >
-  //       {/* ... Contenido del Modal de Calendario ... */}
-  //       <div className="bg-white rounded-xl p-6 w-11/12 max-w-md shadow-2xl transform transition-all duration-300 scale-100">
-  //         <div className="flex justify-between items-center mb-4 border-b pb-2">
-  //           <h2 className="text-xl font-bold text-gray-800">
-  //             Crear Nuevo Registro
-  //           </h2>
-  //           <button
-  //             onClick={() => setIsCalendarModalOpen(false)}
-  //             className="text-gray-400 hover:text-gray-600"
-  //           >
-  //             <X size={24} />
-  //           </button>
-  //         </div>
-  //         <form onSubmit={saveNewCalendar} className="space-y-4">
-  //           <input
-  //             type="text"
-  //             value={newCalendarName}
-  //             onChange={(e) => setNewCalendarName(e.target.value)}
-  //             className="w-full p-2 border border-gray-300 rounded-lg"
-  //             placeholder="Nombre del Registro (Ej: Ventas 2024)"
-  //             required
-  //           />
-  //           <button
-  //             type="submit"
-  //             className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-lg"
-  //           >
-  //             Crear Registro
-  //           </button>
-  //         </form>
-  //       </div>
-  //     </div>
-
-  //     {/* Modal de Exportación Global/Día Único */}
-  //     <ExportModal
-  //       isOpen={isExportModalOpen}
-  //       onClose={() => setIsExportModalOpen(false)}
-  //       events={events}
-  //       selectedCalendarName={selectedCalendarName}
-  //       handleGlobalExport={handleGlobalExport}
-  //       isLoadingExport={isLoadingExport}
-  //       initialMode={exportModalInitialMode}
-  //     />
-
-  //     <div className="max-w-7xl mx-auto">
-  //       <div className="flex items-center mb-6">
-  //         {currentView === "details" && (
-  //           <button
-  //             onClick={backToCalendar}
-  //             className="mr-4 p-2 bg-gray-200 hover:bg-gray-300 rounded-full transition shadow-md"
-  //             title="Volver al calendario"
-  //           >
-  //             <ArrowLeft size={24} className="text-gray-700" />
-  //           </button>
-  //         )}
-  //         <h1 className="text-4xl font-extrabold text-gray-800 flex items-center">
-  //           <CalendarIcon className="mr-3 text-blue-600" size={36} />
-  //           {selectedCalendarName}
-  //           {currentView === "calendar" && (
-  //             <span className="text-xl text-gray-400 ml-3">
-  //               | {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
-  //             </span>
-  //           )}
-  //         </h1>
-  //       </div>
-
-  //       {error && (
-  //         <div className="bg-red-100 text-red-800 p-3 rounded-lg mb-4 font-medium border border-red-300">
-  //           {error}
-  //         </div>
-  //       )}
-
-  //       {/* Renderizado Condicional de Vistas */}
-  //       {currentView === "calendar" ? (
-  //         <CalendarView
-  //           currentDate={currentDate}
-  //           navigateMonth={navigateMonth}
-  //           handleDayClick={handleDayClick} // Usando la función corregida
-  //           setSelectedCalendarId={setSelectedCalendarId}
-  //           selectedCalendarId={selectedCalendarId}
-  //           calendars={calendars}
-  //           events={events}
-  //           isAuthReady={isAuthReady}
-  //           setIsCalendarModalOpen={setIsCalendarModalOpen}
-  //           selectedCalendarName={selectedCalendarName}
-  //           globalTotals={globalTotals}
-  //           setIsExportModalOpen={openExportModalInRangeMode}
-  //           openExportModalInSingleDayMode={openExportModalInSingleDayMode}
-  //         />
-  //       ) : (
-  //         <EventDetailsView
-  //           selectedDate={selectedDate}
-  //           userId={userId}
-  //   calendarId={selectedCalendarId}
-  //   globalCostDivisor={globalCostDivisor}
-  //   setGlobalCostDivisor={setGlobalCostDivisor}
-  //   dailyCosts={getDailyCosts(selectedDate)} // <--- CLAVE
-  //           handleSaveCosts={handleSaveCosts} // <--- CLAVE
-  //           events={events}
-  //           saveEvent={saveEvent}
-  //           formTitle={formTitle}
-  //           setFormTitle={setFormTitle}
-  //           formImageBase64={formImageBase64}
-  //           handleImageChange={handleImageChange}
-  //           formValueA={formValueA}
-  //           setFormValueA={setFormValueA}
-  //           formValueB={formValueB}
-  //           setFormValueB={setFormValueB}
-  //           multiplicationResult={multiplicationResult}
-  //           deleteEvent={deleteEvent}
-  //           exportToPDF={exportToPDF}
-  //           exportToCSV={exportToCSV}
-  //           lastSaved={lastSaved}
-  //           setLastSaved={setLastSaved}
-  //           currentDate={currentDate}
-  //           monthlyTotals={monthlyTotals}
-  //           resetFormAndScroll={resetFormAndScroll}
-  //           editingEventId={editingEventId}
-  //           loadEventForEdit={loadEventForEdit}
-  //         />
-  //       )}
-
-  //       <div className="mt-8 pt-4 border-t border-gray-200">
-  //         <p className="text-xs text-gray-400">
-  //           <span className="font-semibold">ID de Usuario:</span>
-  //           <span className="truncate font-mono text-gray-500 ml-1">
-  //             {userId || "Cargando..."}
-  //           </span>
-  //         </p>
-  //       </div>
-  //     </div>
-  //   </div>
-  // );
+  
 
   if (isLoading) {
     return (
@@ -5077,329 +2842,6 @@ const handleSaveStats = useCallback(
       />
     );
   }
-
-  // 4. Mostrar la Aplicación Principal (Solo si userId existe)
-  // return (
-  //     <div className="p-4 sm:p-8 min-h-screen bg-gray-50">
-
-  //         {/* --- Botón de Cierre de Sesión (¡NUEVO!) --- */}
-  //         <div className="max-w-7xl mx-auto flex justify-end mb-4">
-  //              <button onClick={handleSignOut} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition shadow-md">
-  //                  Cerrar Sesión
-  //              </button>
-  //         </div>
-  //         {/* ------------------------------------------- */}
-
-  //         {/* Modal para Crear Calendario (Tu código existente) */}
-  //         <div
-  //             className={`fixed inset-0 z-50 bg-gray-900 bg-opacity-75 flex items-center justify-center ${
-  //                 isCalendarModalOpen ? "" : "hidden"
-  //             }`}
-  //         >
-  //             <div className="bg-white rounded-xl p-6 w-11/12 max-w-md shadow-2xl transform transition-all duration-300 scale-100">
-  //                 <div className="flex justify-between items-center mb-4 border-b pb-2">
-  //                     <h2 className="text-xl font-bold text-gray-800">
-  //                         Crear Nuevo Registro
-  //                     </h2>
-  //                     <button
-  //                         onClick={() => setIsCalendarModalOpen(false)}
-  //                         className="text-gray-400 hover:text-gray-600"
-  //                     >
-  //                         <X size={24} />
-  //                     </button>
-  //                 </div>
-  //                 <form onSubmit={saveNewCalendar} className="space-y-4">
-  //                     <input
-  //                         type="text"
-  //                         value={newCalendarName}
-  //                         onChange={(e) => setNewCalendarName(e.target.value)}
-  //                         className="w-full p-2 border border-gray-300 rounded-lg"
-  //                         placeholder="Nombre del Registro (Ej: Ventas 2024)"
-  //                         required
-  //                     />
-  //                     <button
-  //                         type="submit"
-  //                         className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-lg"
-  //                     >
-  //                         Crear Registro
-  //                     </button>
-  //                 </form>
-  //             </div>
-  //         </div>
-
-  //         {/* Modal de Exportación Global/Día Único (Tu código existente) */}
-  //         <ExportModal
-  //             isOpen={isExportModalOpen}
-  //             onClose={() => setIsExportModalOpen(false)}
-  //             events={events}
-  //             selectedCalendarName={selectedCalendarName}
-  //             handleGlobalExport={handleGlobalExport}
-  //             isLoadingExport={isLoadingExport}
-  //             initialMode={exportModalInitialMode}
-  //         />
-
-  //         <div className="max-w-7xl mx-auto">
-  //             <div className="flex items-center mb-6">
-  //                 {currentView === "details" && (
-  //                     <button
-  //                         onClick={backToCalendar}
-  //                         className="mr-4 p-2 bg-gray-200 hover:bg-gray-300 rounded-full transition shadow-md"
-  //                         title="Volver al calendario"
-  //                     >
-  //                         <ArrowLeft size={24} className="text-gray-700" />
-  //                     </button>
-  //                 )}
-  //                 <h1 className="text-4xl font-extrabold text-gray-800 flex items-center">
-  //                     <CalendarIcon className="mr-3 text-blue-600" size={36} />
-  //                     {selectedCalendarName}
-  //                     {currentView === "calendar" && (
-  //                         <span className="text-xl text-gray-400 ml-3">
-  //                             | {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
-  //                         </span>
-  //                     )}
-  //                 </h1>
-  //             </div>
-
-  //             {error && (
-  //                 <div className="bg-red-100 text-red-800 p-3 rounded-lg mb-4 font-medium border border-red-300">
-  //                     {error}
-  //                 </div>
-  //             )}
-
-  //             {/* Renderizado Condicional de Vistas */}
-  //             {currentView === "calendar" ? (
-  //                 <CalendarView
-  //                     currentDate={currentDate}
-  //                     navigateMonth={navigateMonth}
-  //                     handleDayClick={handleDayClick}
-  //                     setSelectedCalendarId={setSelectedCalendarId}
-  //                     selectedCalendarId={selectedCalendarId}
-  //                     calendars={calendars}
-  //                     events={events}
-  //                     isAuthReady={isAuthReady}
-  //                     setIsCalendarModalOpen={setIsCalendarModalOpen}
-  //                     selectedCalendarName={selectedCalendarName}
-  //                     globalTotals={globalTotals}
-  //                     setIsExportModalOpen={openExportModalInRangeMode}
-  //                     openExportModalInSingleDayMode={openExportModalInSingleDayMode}
-  //                 />
-  //             ) : (
-  //                 <EventDetailsView
-  //                     selectedDate={selectedDate}
-  //                     userId={userId}
-  //                     calendarId={selectedCalendarId}
-  //                     globalCostDivisor={globalCostDivisor}
-  //                     setGlobalCostDivisor={setGlobalCostDivisor}
-  //                     dailyCosts={getDailyCosts(selectedDate)}
-  //                     handleSaveCosts={handleSaveCosts}
-  //                     events={events}
-  //                     saveEvent={saveEvent}
-  //                     formTitle={formTitle}
-  //                     setFormTitle={setFormTitle}
-  //                     formImageBase64={formImageBase64}
-  //                     handleImageChange={handleImageChange}
-  //                     formValueA={formValueA}
-  //                     setFormValueA={setFormValueA}
-  //                     formValueB={formValueB}
-  //                     setFormValueB={setFormValueB}
-  //                     multiplicationResult={multiplicationResult}
-  //                     deleteEvent={deleteEvent}
-  //                     exportToPDF={exportToPDF}
-  //                     exportToCSV={exportToCSV}
-  //                     lastSaved={lastSaved}
-  //                     setLastSaved={setLastSaved}
-  //                     currentDate={currentDate}
-  //                     monthlyTotals={monthlyTotals}
-  //                     resetFormAndScroll={resetFormAndScroll}
-  //                     editingEventId={editingEventId}
-  //                     loadEventForEdit={loadEventForEdit}
-  //                 />
-  //             )}
-
-  //             {/* Bloque de ID de Usuario */}
-  //             <div className="mt-8 pt-4 border-t border-gray-200">
-  //                 <p className="text-xs text-gray-400">
-  //                     <span className="font-semibold">ID de Usuario:</span>
-  //                     <span className="truncate font-mono text-gray-500 ml-1">
-  //                         {userId || "N/A (Error de autenticación)"}
-  //                     </span>
-  //                 </p>
-  //             </div>
-  //         </div>
-  //     </div>
-  // );
-
-//   return (
-//     <div className="p-4 sm:p-8 min-h-screen bg-gray-50">
-//       {/* --- Botón de Cierre de Sesión --- */}
-//       <div className="max-w-7xl mx-auto flex justify-end mb-4">
-//         <button
-//           onClick={handleSignOut}
-//           className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition shadow-md"
-//         >
-//           Cerrar Sesión
-//         </button>
-//       </div>
-//       {/* ------------------------------------------- */}
-
-//       {/* Modal para Crear Calendario */}
-//       <div
-//         className={`fixed inset-0 z-50 bg-gray-900 bg-opacity-75 flex items-center justify-center ${
-//           isCalendarModalOpen ? "" : "hidden"
-//         }`}
-//       >
-//         <div className="bg-white rounded-xl p-6 w-11/12 max-w-md shadow-2xl transform transition-all duration-300 scale-100">
-//           <div className="flex justify-between items-center mb-4 border-b pb-2">
-//             <h2 className="text-xl font-bold text-gray-800">
-//               Crear Nuevo Registro
-//             </h2>
-//             {/* El ícono X debe estar importado */}
-//             <button
-//               onClick={() => setIsCalendarModalOpen(false)}
-//               className="text-gray-400 hover:text-gray-600"
-//             >
-//               <X size={24} />
-//             </button>
-//           </div>
-//           <form onSubmit={saveNewCalendar} className="space-y-4">
-//             <input
-//               type="text"
-//               value={newCalendarName}
-//               onChange={(e) => setNewCalendarName(e.target.value)}
-//               className="w-full p-2 border border-gray-300 rounded-lg"
-//               placeholder="Nombre del Registro (Ej: Ventas 2024)"
-//               required
-//             />
-//             <button
-//               type="submit"
-//               className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-lg"
-//             >
-//               Crear Registro
-//             </button>
-//           </form>
-//         </div>
-//       </div>
-
-//       {/* Modal de Exportación Global/Día Único */}
-//       <ExportModal
-//         isOpen={isExportModalOpen}
-//         onClose={() => setIsExportModalOpen(false)}
-//         events={events}
-//         selectedCalendarName={selectedCalendarName}
-//         handleGlobalExport={handleGlobalExport}
-//         isLoadingExport={isLoadingExport}
-//         initialMode={exportModalInitialMode}
-//       />
-
-//       <div className="max-w-7xl mx-auto">
-//         {/* Contenedor del Título y Botón de Retroceso (Mejorado para móvil) */}
-//         <div className="flex flex-col sm:flex-row sm:items-center mb-6">
-//           {currentView === "details" && (
-//             <button
-//               onClick={backToCalendar}
-//               className="mb-4 sm:mb-0 mr-4 p-2 bg-gray-200 hover:bg-gray-300 rounded-full transition shadow-md self-start sm:self-auto"
-//               title="Volver al calendario"
-//             >
-//               {/* El ícono ArrowLeft debe estar importado */}
-//               <ArrowLeft size={24} className="text-gray-700" />
-//             </button>
-//           )}
-//           <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-800 flex items-center flex-wrap">
-//             {/* El ícono CalendarIcon debe estar importado */}
-//             <CalendarIcon
-//               className="mr-3 text-blue-600 flex-shrink-0"
-//               size={36}
-//             />
-//             <span className="truncate flex-1 min-w-0">
-//               {selectedCalendarName}
-//             </span>
-//             {currentView === "calendar" && (
-//               <span className="text-xl text-gray-400 ml-0 sm:ml-3 mt-1 sm:mt-0 w-full sm:w-auto">
-//                 {/* Asegúrate de que MONTHS esté definido/importado */}|{" "}
-//                 {MONTHS && MONTHS[currentDate?.getMonth()]}{" "}
-//                 {currentDate?.getFullYear()}
-//               </span>
-//             )}
-//           </h1>
-//         </div>
-
-//         {error && (
-//           <div className="bg-red-100 text-red-800 p-3 rounded-lg mb-4 font-medium border border-red-300">
-//             {error}
-//           </div>
-//         )}
-
-//         {/* Renderizado Condicional de Vistas */}
-//         <div className="w-full overflow-x-auto">
-//           {currentView === "calendar" ? (
-//             <CalendarView
-//               // Añadimos w-full para aprovechar el ancho en móvil
-//               className="w-full"
-//               currentDate={currentDate}
-//               navigateMonth={navigateMonth}
-//               handleDayClick={handleDayClick}
-//               setSelectedCalendarId={setSelectedCalendarId}
-//               selectedCalendarId={selectedCalendarId}
-//               calendars={calendars}
-//               events={events}
-//               isAuthReady={isAuthReady}
-//               setIsCalendarModalOpen={setIsCalendarModalOpen}
-//               selectedCalendarName={selectedCalendarName}
-//               globalTotals={globalTotals}
-//               setIsExportModalOpen={openExportModalInRangeMode}
-//               openExportModalInSingleDayMode={openExportModalInSingleDayMode}
-//               dailyData={dailyData}
-              
-//             />
-//           ) : (
-//             <EventDetailsView
-//               selectedDate={selectedDate}
-//               userId={userId}
-//               calendarId={selectedCalendarId}
-//               globalCostDivisor={globalCostDivisor}
-//               setGlobalCostDivisor={setGlobalCostDivisor}
-//               dailyCosts={getDailyCosts(selectedDate)}
-//               handleSaveCosts={handleSaveCosts}
-//               events={events}
-//               saveEvent={saveEvent}
-//               formTitle={formTitle}
-//               setFormTitle={setFormTitle}
-//               formImageBase64={formImageBase64}
-//               handleImageChange={handleImageChange}
-//               formValueA={formValueA}
-//               setFormValueA={setFormValueA}
-//               formValueB={formValueB}
-//               setFormValueB={setFormValueB}
-//               multiplicationResult={multiplicationResult}
-//               deleteEvent={deleteEvent}
-//               exportToPDF={exportToPDF}
-//               exportToCSV={exportToCSV}
-//               lastSaved={lastSaved}
-//               setLastSaved={setLastSaved}
-//               currentDate={currentDate}
-//               monthlyTotals={monthlyTotals}
-//               resetFormAndScroll={resetFormAndScroll}
-//               editingEventId={editingEventId}
-//               loadEventForEdit={loadEventForEdit}
-//             />
-//           )}
-//         </div>
-
-//         {/* Bloque de ID de Usuario */}
-//         <div className="mt-8 pt-4 border-t border-gray-200">
-//           <p className="text-xs text-gray-400">
-//             <span className="font-semibold">ID de Usuario:</span>
-//             <span className="truncate font-mono text-gray-500 ml-1">
-//               {userId || "N/A (Error de autenticación)"}
-//             </span>
-//           </p>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-
 
 
 
@@ -5625,181 +3067,6 @@ return (
     </div>
   );
 };
-
-// return (
-//     <div className="p-4 sm:p-8 min-h-screen bg-gray-50">
-//       {/* --- Botón de Cierre de Sesión --- */}
-//       {/* <div className="max-w-full lg:max-w-screen-xl 2xl:max-w-screen-2xl mx-auto flex justify-end mb-4 px-4 sm:px-0">
-//         <button
-//           onClick={handleSignOut}
-//           className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition shadow-md"
-//         >
-//           Cerrar Sesión
-//         </button>
-//       </div> */}
-//       {/* ------------------------------------------- */}
-
-//       {/* Modal para Crear Calendario */}
-//       <div
-//         className={`fixed inset-0 z-50 bg-gray-900 bg-opacity-75 flex items-center justify-center ${
-//           isCalendarModalOpen ? "" : "hidden"
-//         }`}
-//       >
-//         <div className="bg-white rounded-xl p-6 w-11/12 max-w-md shadow-2xl transform transition-all duration-300 scale-100">
-//           <div className="flex justify-between items-center mb-4 border-b pb-2">
-//             <h2 className="text-xl font-bold text-gray-800">
-//               Crear Nuevo Registro
-//             </h2>
-//             {/* El ícono X debe estar importado */}
-//             <button
-//               onClick={() => setIsCalendarModalOpen(false)}
-//               className="text-gray-400 hover:text-gray-600"
-//             >
-//               <X size={24} />
-//             </button>
-//           </div>
-//           <form onSubmit={saveNewCalendar} className="space-y-4">
-//             <input
-//               type="text"
-//               value={newCalendarName}
-//               onChange={(e) => setNewCalendarName(e.target.value)}
-//               className="w-full p-2 border border-gray-300 rounded-lg"
-//               placeholder="Nombre del Registro (Ej: Ventas 2024)"
-//               required
-//             />
-//             <button
-//               type="submit"
-//               className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-lg"
-//             >
-//               Crear Registro
-//             </button>
-//           </form>
-//         </div>
-//       </div>
-
-//       {/* Modal de Exportación Global/Día Único */}
-//       <ExportModal
-//         isOpen={isExportModalOpen}
-//         onClose={() => setIsExportModalOpen(false)}
-//         events={events}
-//         selectedCalendarName={selectedCalendarName}
-//         handleGlobalExport={handleGlobalExport}
-//         isLoadingExport={isLoadingExport}
-//         initialMode={exportModalInitialMode}
-//       />
-
-//       {/* 🔑 CONTENEDOR PRINCIPAL DEL CALENDARIO Y TÍTULO */}
-//       <div className="max-w-full lg:max-w-screen-xl 2xl:max-w-screen-2xl mx-auto">
-//         {/* Contenedor del Título y Botón de Retroceso (Mejorado para móvil) */}
-//         <div className="flex flex-col sm:flex-row sm:items-center mb-6 px-4 sm:px-0"> {/* Añadido padding horizontal para móviles */}
-//           {currentView === "details" && (
-//             <button
-//               onClick={backToCalendar}
-//               className="mb-4 sm:mb-0 mr-4 p-2 bg-gray-200 hover:bg-gray-300 rounded-full transition shadow-md self-start sm:self-auto"
-//               title="Volver al calendario"
-//             >
-//               {/* El ícono ArrowLeft debe estar importado */}
-//               <ArrowLeft size={24} className="text-gray-700" />
-//             </button>
-//           )}
-//           <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-800 flex items-center flex-wrap">
-//             {/* El ícono CalendarIcon debe estar importado */}
-//             <CalendarIcon
-//               className="mr-3 text-blue-600 flex-shrink-0"
-//               size={36}
-//             />
-//             <span className="truncate flex-1 min-w-0">
-//               {selectedCalendarName}
-//             </span>
-//             {currentView === "calendar" && (
-//               <span className="text-xl text-gray-400 ml-0 sm:ml-3 mt-1 sm:mt-0 w-full sm:w-auto">
-//                 {/* Asegúrate de que MONTHS esté definido/importado */}
-//                 | {MONTHS && MONTHS[currentDate?.getMonth()]}{" "}
-//                 {currentDate?.getFullYear()}
-//               </span>
-//             )}
-//           </h1>
-//         </div>
-
-//         {error && (
-//           <div className="bg-red-100 text-red-800 p-3 rounded-lg mb-4 font-medium border border-red-300 mx-4 sm:mx-0"> {/* Añadido mx-4 para que el error no toque el borde en móvil */}
-//             {error}
-//           </div>
-//         )}
-
-//         {/* Renderizado Condicional de Vistas */}
-//         <div className="w-full overflow-x-auto">
-//           {currentView === "calendar" ? (
-//             <CalendarView
-//               // Aseguramos que CalendarView ocupe todo el ancho disponible
-//               className="w-full"
-//               currentDate={currentDate}
-//               navigateMonth={navigateMonth}
-//               handleDayClick={handleDayClick}
-//               setSelectedCalendarId={setSelectedCalendarId}
-//               selectedCalendarId={selectedCalendarId}
-//               calendars={calendars}
-//               events={events}
-//               isAuthReady={isAuthReady}
-//               setIsCalendarModalOpen={setIsCalendarModalOpen}
-//               selectedCalendarName={selectedCalendarName}
-//               globalTotals={globalTotals}
-//               setIsExportModalOpen={openExportModalInRangeMode}
-//               openExportModalInSingleDayMode={openExportModalInSingleDayMode}
-//               dailyData={dailyData}
-//                handleDeleteCalendar={openDeleteModal}
-//              openStatsModal={() => setIsStatsModalOpen(true)}
-              
-//             />
-
-            
-//           ) : (
-//             <EventDetailsView
-//               selectedDate={selectedDate}
-//               userId={userId}
-//               calendarId={selectedCalendarId}
-//               globalCostDivisor={globalCostDivisor}
-//               setGlobalCostDivisor={setGlobalCostDivisor}
-//               dailyCosts={getDailyCosts(selectedDate)}
-//               handleSaveCosts={handleSaveCosts}
-//               events={events}
-//               saveEvent={saveEvent}
-//               formTitle={formTitle}
-//               setFormTitle={setFormTitle}
-//               formImageBase64={formImageBase64}
-//               handleImageChange={handleImageChange}
-//               formValueA={formValueA}
-//               setFormValueA={setFormValueA}
-//               formValueB={formValueB}
-//               setFormValueB={setFormValueB}
-//               multiplicationResult={multiplicationResult}
-//               deleteEvent={deleteEvent}
-//               exportToPDF={exportToPDF}
-//               exportToCSV={exportToCSV}
-//               lastSaved={lastSaved}
-//               setLastSaved={setLastSaved}
-//               currentDate={currentDate}
-//               monthlyTotals={monthlyTotals}
-//               resetFormAndScroll={resetFormAndScroll}
-//               editingEventId={editingEventId}
-//               loadEventForEdit={loadEventForEdit}
-//             />
-//           )}
-//         </div>
-
-//         {/* Bloque de ID de Usuario */}
-//         <div className="mt-8 pt-4 border-t border-gray-200 px-4 sm:px-0"> {/* Añadido padding horizontal para móviles */}
-//           <p className="text-xs text-gray-400">
-//             <span className="font-semibold">ID de Usuario:</span>
-//             <span className="truncate font-mono text-gray-500 ml-1">
-//               {userId || "N/A (Error de autenticación)"}
-//             </span>
-//           </p>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
 
 
 export default Tarea;

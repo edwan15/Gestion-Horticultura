@@ -17,7 +17,7 @@ const formatDateForLog = (dateKey) => {
 // --- 1. Componente de Registro de Actividad (Log) ---
 // -------------------------------------------------------
 const ActivityLog = ({ logActivities }) => {
-    const ACTIVITIES_PER_PAGE = 6;
+    const ACTIVITIES_PER_PAGE = 4;
     const [currentPage, setCurrentPage] = useState(1);
     const totalPages = Math.ceil(logActivities.length / ACTIVITIES_PER_PAGE);
     const startIndex = (currentPage - 1) * ACTIVITIES_PER_PAGE;
@@ -119,7 +119,7 @@ const Calendar = ({ dailyData = {} }) => {
 
     const navButtonClasses = "px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base font-bold rounded-xl transition duration-300 ease-in-out shadow-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-indigo-300 focus:ring-opacity-80 transform active:scale-95";
     // 🛑 AJUSTE CLAVE: Reducimos la altura en móvil ('h-12' o 'h-16') y la aumentamos en 'md'
-    const baseCellClasses = "h-12 sm:h-16 md:h-28 p-1 text-right relative border border-gray-100 cursor-pointer rounded-lg transition duration-300 ease-in-out transform hover:z-10";
+    const baseCellClasses = "h-12 sm:h-16 md:h-28 p-1 text-right relative cursor-pointer rounded-lg transition duration-300 ease-in-out transform hover:z-10";
 
     const goToDetails = (day) => {
         const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -149,13 +149,8 @@ const Calendar = ({ dailyData = {} }) => {
             
             const cellClasses = `${baseCellClasses} ${
                 hasData 
-                    ? 'group bg-emerald-50 text-gray-800 font-bold shadow-md hover:shadow-xl hover:bg-emerald-100' 
-                    : 'bg-white text-gray-900 hover:bg-indigo-50 hover:shadow-sm'
-            }
-            ${
-                hasData 
-                    ? 'border-2 border-emerald-400 hover:border-emerald-600 transform hover:scale-[1.03]' 
-                    : 'border-gray-200'
+                    ? 'group bg-emerald-50 text-gray-800 font-bold shadow-md hover:shadow-xl hover:bg-emerald-100 border-2 border-emerald-500 hover:border-emerald-600 transform hover:scale-[1.03]' 
+                    : 'bg-white text-gray-900 hover:bg-indigo-50 hover:shadow-sm border border-gray-200'
             }`;
 
             days.push(
@@ -176,8 +171,8 @@ const Calendar = ({ dailyData = {} }) => {
                     {hasData && (
                         <div className="
                             hidden md:flex  
-                            absolute top-1 left-1 text-xs md:text-sm font-semibold text-emerald-700 bg-emerald-200 rounded-full px-2 py-0.5 shadow-md 
-                            items-center space-x-1
+                            absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-xs md:text-sm font-semibold text-emerald-700 bg-emerald-200 rounded-full px-2 py-0.5 shadow-md 
+                            items-center space-x-1 w-max
                         ">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -212,7 +207,10 @@ const Calendar = ({ dailyData = {} }) => {
             );
         }
         
-        const remainingCells = 42 - (startDay + totalDays); 
+        // Calcular celdas restantes para completar solo la última fila
+        const totalUsedCells = startDay + totalDays;
+        const remainingCells = (7 - (totalUsedCells % 7)) % 7; 
+        
         for (let i = 0; i < remainingCells; i++) {
             days.push(<div key={`next-${i}`} className="bg-gray-50 text-gray-400 border border-gray-100 h-12 sm:h-16 md:h-28 rounded-lg"></div>);
         }
