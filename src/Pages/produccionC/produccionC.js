@@ -119,19 +119,44 @@ const calculateResult = (productName, factorB) => {
   return (factorA * b).toFixed(2);
 };
 
-const calculateCosts = (dailyTotal, numWorkers, hoursWorked) => {
-  const dailyLaborCost =
-    (parseFloat(numWorkers) || 0) *
-    (parseFloat(hoursWorked) || 0) *
-    HOURLY_COST_RATE;
-  const productionCostVariable = parseFloat(dailyLaborCost).toFixed(2);
+const calculateCosts = (dailyTotal, costData) => {
+  let productionCostVariable = 0;
+  
+  if (costData?.details && Array.isArray(costData.details) && costData.details.length > 0) {
+      // Logic for new dynamic details
+      let totalLabor = 0;
+      let totalMachinery = 0;
 
-  let finalProductionCost = 0;
-  if (dailyTotal > 0) {
-    finalProductionCost = (dailyLaborCost / dailyTotal).toFixed(4);
+      costData.details.forEach(item => {
+          const w = parseFloat(item.workers) || 0;
+          const h = parseFloat(item.hours) || 0;
+          const labor = w * h * HOURLY_COST_RATE;
+          
+          totalLabor += labor;
+
+          if (item.type === 'machinery') {
+              totalMachinery += (parseFloat(item.machineryCost) || 0);
+          }
+      });
+      productionCostVariable = totalLabor + totalMachinery;
+
+  } else {
+      // Legacy Logic
+      const numWorkers = parseFloat(costData?.numWorkers) || 0;
+      const hoursWorked = parseFloat(costData?.hoursWorked) || 0;
+      
+      productionCostVariable = numWorkers * hoursWorked * HOURLY_COST_RATE;
   }
 
-  return { productionCostVariable, finalProductionCost };
+  // Ensure 2 decimals for variable cost
+  const variableCostFixed = parseFloat(productionCostVariable).toFixed(2);
+  
+  let finalProductionCost = 0;
+  if (dailyTotal > 0) {
+    finalProductionCost = (productionCostVariable / dailyTotal).toFixed(4);
+  }
+
+  return { productionCostVariable: variableCostFixed, finalProductionCost };
 };
 
 const exportToCsv = (dailyData, dateKeyToExport = null) => {
@@ -1474,8 +1499,7 @@ const sanitizeForFirestore = (data) => {
         );
         const costs = calculateCosts(
           dailyTotal,
-          currentDay.numWorkers,
-          currentDay.hoursWorked
+          currentDay.costData || {} // Use costData object
         );
 
         return {
@@ -1528,17 +1552,9 @@ const sanitizeForFirestore = (data) => {
         newDayData.dailyTotal = dailyTotal.toFixed(2);
 
         // Recalcular los costes si ya existen datos de costes
-        const existingNumWorkers = parseFloat(
-          newDayData.costData.numWorkers || 0
-        );
-        const existingHoursWorked = parseFloat(
-          newDayData.costData.hoursWorked || 0
-        );
-
         const costs = calculateCosts(
           dailyTotal,
-          existingNumWorkers,
-          existingHoursWorked
+          newDayData.costData || {} // Use updated costData
         );
 
         newDayData = {
@@ -1553,11 +1569,10 @@ const sanitizeForFirestore = (data) => {
         newDayData.costData = costData;
 
         // Recalcular los costes con el total de producción existente
-        const dailyTotal = parseFloat(newDayData.dailyTotal || 0);
-        const newNumWorkers = parseFloat(costData.numWorkers || 0);
-        const newHoursWorked = parseFloat(costData.hoursWorked || 0);
-
-        const costs = calculateCosts(dailyTotal, newNumWorkers, newHoursWorked);
+        // Note: costData already contains details due to logic in CostEditForm
+        // But we recalculate to ensure consistency with dailyTotal and server-side truth
+        const dailyTotal = parseFloat(newDayData.dailyTotal || 0); // Define dailyTotal
+        const costs = calculateCosts(dailyTotal, costData);
 
         newDayData = {
           ...newDayData,
