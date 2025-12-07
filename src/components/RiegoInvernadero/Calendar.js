@@ -4,6 +4,7 @@ import { useReactToPrint } from 'react-to-print';
 import DateRangeSummary from './DateRangeSummary';
 import IrrigationExportModal from '../export/IrrigationExportModal';
 import PrintableIrrigationReport from '../export/PrintableIrrigationReport';
+import WaterManagement from './WaterManagement';
 
 // --- FUNCIONES DE UTILDAD (Mantenidas) ---
 const formatDateForLog = (dateKey) => {
@@ -455,15 +456,27 @@ const Calendar = ({ dailyData = {} }) => {
                 {/* Preview Canvas */}
                 <div className="flex-1 overflow-auto bg-slate-900 p-8 flex justify-center">
                     <div className="shadow-2xl">
-                        <PrintableIrrigationReport config={exportConfig} data={previewData} reportRef={reportRef} />
+                        <PrintableIrrigationReport 
+                            config={exportConfig} 
+                            data={previewData} 
+                            reportRef={reportRef}
+                            consumptionP1={Object.values(dailyData).flat().filter(r => r.reservoir === 'pantano1' || !r.reservoir).reduce((sum, item) => sum + parseFloat(item.M2 || 0), 0)}
+                            consumptionP2={Object.values(dailyData).flat().filter(r => r.reservoir === 'pantano2').reduce((sum, item) => sum + parseFloat(item.M2 || 0), 0)}
+                        />
                     </div>
                 </div>
             </div>
         )}
+
+        {/* Water Management Section */}
+        <WaterManagement 
+            consumptionP1={Object.values(dailyData).flat().filter(r => r.reservoir === 'pantano1' || !r.reservoir).reduce((sum, item) => sum + parseFloat(item.M2 || 0), 0)}
+            consumptionP2={Object.values(dailyData).flat().filter(r => r.reservoir === 'pantano2').reduce((sum, item) => sum + parseFloat(item.M2 || 0), 0)}
+        />
+
     </div>
 );
 
 };
 
 export default Calendar;
-

@@ -34,6 +34,7 @@ const initialNewRecordState = (date) => ({
     H_FIN: '',
     NOTAS: '',
     date: date,
+    reservoir: 'pantano1', // Por defecto Pantano 1
 });
 
 
@@ -438,8 +439,8 @@ function DayDetails({ refetchData }) {
                 <h2 className="text-xl font-bold mb-4 text-indigo-700">Añadir Nuevo Registro</h2>
                 <form onSubmit={handleAddRecord} className="space-y-4">
 
-                    {/* Fila 1: M2 e Invernadero */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Fila 1: Invernadero, Pantano y M2 */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label htmlFor="invernadero" className="block text-sm font-medium text-gray-700">Invernadero/Sección <span className="text-red-500">*</span></label>
                             {/* CAMPO SELECT IMPLEMENTADO AQUÍ */}
@@ -455,6 +456,21 @@ function DayDetails({ refetchData }) {
                                 {INVERNADERO_OPTIONS.map(option => (
                                     <option key={option} value={option}>{option}</option>
                                 ))}
+                            </select>
+                        </div>
+
+                        {/* SELECTOR DE PANTANO */}
+                        <div>
+                            <label htmlFor="reservoir" className="block text-sm font-medium text-gray-700">Fuente de Agua</label>
+                            <select
+                                id="reservoir"
+                                name="reservoir"
+                                value={newRecord.reservoir || 'pantano1'}
+                                onChange={handleInputChange}
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 focus:border-indigo-500 focus:ring-indigo-500 bg-blue-50/30"
+                            >
+                                <option value="pantano1">Pantano 1 (15,000 L)</option>
+                                <option value="pantano2">Pantano 2 (10,000 L)</option>
                             </select>
                         </div>
                         <div>

@@ -8,6 +8,7 @@ const IrrigationExportModal = ({ isOpen, onClose, onPreview }) => {
     dateRange: 'last_month', 
     sortBy: 'date_asc', // New: date_asc, date_desc, m2_desc, m2_asc, sectors_desc, greenhouse_asc
     showEmptyTables: false,
+    observations: '', // User custom observations
     
     // Toggleable sections
     sections: {
@@ -221,6 +222,22 @@ const IrrigationExportModal = ({ isOpen, onClose, onPreview }) => {
                  </div>
             </div>
             
+            {/* Observations Section */}
+            <div className="px-6 pb-4">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                📝 Observaciones Personalizadas
+              </label>
+              <textarea
+                value={reportConfig.observations}
+                onChange={(e) => setReportConfig(prev => ({ ...prev, observations: e.target.value }))}
+                placeholder="Escribe aquí cualquier observación o nota que desees incluir en el informe..."
+                rows={4}
+                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition resize-none text-sm"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Estas observaciones aparecerán en la sección de observaciones del informe final.
+              </p>
+            </div>
           </div>
 
           {/* Footer Actions */}

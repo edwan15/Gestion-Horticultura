@@ -1,7 +1,11 @@
 import React, { useMemo } from 'react';
 
 // Updated: 2025-12-07 19:36 - Manual pagination with 15 rows per page
-const PrintableIrrigationReport = ({ data, config, reportRef }) => {
+const PrintableIrrigationReport = ({ data, config, reportRef, consumptionP1 = 0, consumptionP2 = 0 }) => {
+    // Capacidad total
+    const capacityP1 = 15000;
+    const capacityP2 = 10000;
+
     // Mock/default data if not provided
     const irrigationData = data?.irrigationRecords || [];
     const totals = data?.totals || { totalM2: 0, totalSectors: 0, totalDays: 0 };
@@ -269,18 +273,101 @@ const PrintableIrrigationReport = ({ data, config, reportRef }) => {
                     )}
 
                     {/* Observations */}
+                    {/* Observations */}
                     {config?.sections?.observations && (
                         <div className="avoid-break mb-6">
                             <h2 className="text-base font-bold text-indigo-800 mb-2 border-b border-indigo-200 pb-1">
                                 Observaciones
                             </h2>
                             <div className="bg-gray-50 p-3 rounded border border-gray-200 min-h-[60px]">
-                                <p className="text-xs text-gray-600 italic">
-                                    Sin observaciones registradas para este período.
-                                </p>
+                                {config.observations ? (
+                                    <p className="text-xs text-gray-700 whitespace-pre-wrap">
+                                        {config.observations}
+                                    </p>
+                                ) : (
+                                    <p className="text-xs text-gray-600 italic">
+                                        Sin observaciones registradas para este período.
+                                    </p>
+                                )}
                             </div>
                         </div>
                     )}
+
+                    {/* Water Reservoir Status */}
+                    <div className="avoid-break mb-6">
+                        <h2 className="text-base font-bold text-indigo-800 mb-2 border-b border-indigo-200 pb-1">
+                            💧 Estado de Pantanos
+                        </h2>
+                        <table className="w-full text-xs border-collapse">
+                            <thead>
+                                <tr className="bg-blue-600 text-white">
+                                    <th className="border border-blue-700 p-2 text-left font-bold">Pantano</th>
+                                    <th className="border border-blue-700 p-2 text-right font-bold">Capacidad</th>
+                                    <th className="border border-blue-700 p-2 text-right font-bold">Consumido</th>
+                                    <th className="border border-blue-700 p-2 text-right font-bold">Disponible</th>
+                                    <th className="border border-blue-700 p-2 text-center font-bold">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {/* Pantano 1 */}
+                                <tr className="bg-white">
+                                    <td className="border border-gray-300 p-2 font-semibold">Pantano 1</td>
+                                    <td className="border border-gray-300 p-2 text-right">15,000 L</td>
+                                    <td className="border border-gray-300 p-2 text-right text-orange-600 font-semibold">
+                                        {consumptionP1.toLocaleString()} L
+                                    </td>
+                                    <td className="border border-gray-300 p-2 text-right text-green-600 font-semibold">
+                                        {(capacityP1 - consumptionP1).toLocaleString()} L
+                                    </td>
+                                    <td className="border border-gray-300 p-2 text-center">
+                                        <span className={`px-2 py-1 rounded text-xs font-bold ${
+                                            ((capacityP1 - consumptionP1) / capacityP1) > 0.5 ? 'bg-green-100 text-green-700' :
+                                            ((capacityP1 - consumptionP1) / capacityP1) > 0.2 ? 'bg-yellow-100 text-yellow-700' :
+                                            'bg-red-100 text-red-700'
+                                        }`}>
+                                            {(((capacityP1 - consumptionP1) / capacityP1) * 100).toFixed(1)}%
+                                        </span>
+                                    </td>
+                                </tr>
+                                {/* Pantano 2 */}
+                                <tr className="bg-gray-50">
+                                    <td className="border border-gray-300 p-2 font-semibold">Pantano 2</td>
+                                    <td className="border border-gray-300 p-2 text-right">10,000 L</td>
+                                    <td className="border border-gray-300 p-2 text-right text-orange-600 font-semibold">
+                                        {consumptionP2.toLocaleString()} L
+                                    </td>
+                                    <td className="border border-gray-300 p-2 text-right text-green-600 font-semibold">
+                                        {(capacityP2 - consumptionP2).toLocaleString()} L
+                                    </td>
+                                    <td className="border border-gray-300 p-2 text-center">
+                                        <span className={`px-2 py-1 rounded text-xs font-bold ${
+                                            ((capacityP2 - consumptionP2) / capacityP2) > 0.5 ? 'bg-green-100 text-green-700' :
+                                            ((capacityP2 - consumptionP2) / capacityP2) > 0.2 ? 'bg-yellow-100 text-yellow-700' :
+                                            'bg-red-100 text-red-700'
+                                        }`}>
+                                            {(((capacityP2 - consumptionP2) / capacityP2) * 100).toFixed(1)}%
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p className="text-xs text-gray-500 mt-2 italic">
+                            * Los valores mostrados corresponden al consumo acumulado en el período seleccionado.
+                        </p>
+                    </div>
+
+                    {/* Signatures */}
+                    <div className="grid grid-cols-2 gap-12 mt-12 mb-8 avoid-break">
+                        <div className="text-center">
+                            <div className="border-b border-gray-400 w-3/4 mx-auto mb-2"></div>
+                            <p className="text-xs font-bold text-gray-600 uppercase tracking-wider">Firma del Responsable</p>
+                        </div>
+                        <div className="text-center">
+                            <div className="border-b border-gray-400 w-3/4 mx-auto mb-2"></div>
+                            <p className="text-xs font-bold text-gray-600 uppercase tracking-wider">Firma del Supervisor</p>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
