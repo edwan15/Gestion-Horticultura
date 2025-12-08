@@ -58,6 +58,7 @@ import NotificationManagement from "./Pages/NotificationManagement/NotificationM
 // import { CostDashboard } from "./components/COSTOS/CostDashboard";
 import  CostesManager  from "./components/COSTOS/CostesManager";
 import FarmSettings from "./Pages/FarmSettings/FarmSettings";
+import FieldActivities from "./components/FieldActivities";
 
 
 axios.defaults.withCredentials = true;
@@ -299,6 +300,12 @@ function App() {
                     <Route
                         path="/trabajador"
                         element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><HoraTrabajador /></ProtectedLayout></RoleRoute>}
+                    />
+                    
+                    {/* Actividades de Campo */}
+                    <Route
+                        path="/field-activities"
+                        element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><FieldActivities /></ProtectedLayout></RoleRoute>}
                     />
 
                     {/* Administración de Usuarios (Admin) */}
