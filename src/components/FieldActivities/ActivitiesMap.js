@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, LayersControl, Polygon, Tooltip, FeatureGroup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, LayersControl, Polygon, Tooltip, FeatureGroup, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import { EditControl } from 'react-leaflet-draw';
@@ -32,11 +32,49 @@ const greenhouseIcon = new L.Icon({
     shadowSize: [41, 41]
 });
 
+const MapController = () => {
+    const map = useMapEvents({
+        moveend: () => {
+            const center = map.getCenter();
+            const zoom = map.getZoom();
+            localStorage.setItem('fieldActivities_mapState', JSON.stringify({ 
+                center: [center.lat, center.lng], 
+                zoom 
+            }));
+        }
+    });
+    return null;
+};
+
 const ActivitiesMap = ({ db, userId, activeTab }) => {
     const [markers, setMarkers] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [farmCenter, setFarmCenter] = useState([37.825, -0.941]);
+    
+    // Initialize from localStorage or default
+    const savedState = JSON.parse(localStorage.getItem('fieldActivities_mapState') || 'null');
+    const [farmCenter, setFarmCenter] = useState(savedState?.center || [37.825, -0.941]);
+    const [zoomLevel, setZoomLevel] = useState(savedState?.zoom || 14);
     const [selectedGreenhouse, setSelectedGreenhouse] = useState(null);
+    const [modalPosition, setModalPosition] = useState(null);
+
+    // Helper to handle greenhouse selection and positioning
+    const handleGreenhouseClick = (greenhouse, e) => {
+        // e.originalEvent prevents bubbling if needed, but here we need the leaflet event
+        
+        // We need the map instance to convert latlng to container point.
+        // Since we are inside the component rendering the map logic but outside the MapContainer for the modal...
+        // We can't easily access 'map' here without a Ref or Context.
+        // However, we can calculate relatively or just use the mouse event clientX/Y.
+        // Using clientX/Y relative to the container is easiest.
+        
+        const containerRect = e.originalEvent.target.closest('.leaflet-container').getBoundingClientRect();
+        const x = e.originalEvent.clientX - containerRect.left;
+        const y = e.originalEvent.clientY - containerRect.top;
+
+        setModalPosition({ x, y });
+        setSelectedGreenhouse(greenhouse);
+    };
+
     const [isEditMode, setIsEditMode] = useState(false);
     const [tempLayer, setTempLayer] = useState(null);
     const [showAssignmentModal, setShowAssignmentModal] = useState(false);
@@ -94,17 +132,19 @@ const ActivitiesMap = ({ db, userId, activeTab }) => {
         const FARMS_PATH = `artifacts/${appId}/public/data/farms`;
 
         const fetchData = async () => {
-            // Fetch Farm Center
-            try {
-                const qFarm = query(collection(db, FARMS_PATH), where("userId", "==", userId));
-                const farmSnap = await getDocs(qFarm);
-                if (!farmSnap.empty) {
-                    const farmData = farmSnap.docs[0].data();
-                    if (farmData.latitude && farmData.longitude) {
-                        setFarmCenter([parseFloat(farmData.latitude), parseFloat(farmData.longitude)]);
+            // Fetch Farm Center ONLY if no saved state exists
+            if (!localStorage.getItem('fieldActivities_mapState')) {
+                try {
+                    const qFarm = query(collection(db, FARMS_PATH), where("userId", "==", userId));
+                    const farmSnap = await getDocs(qFarm);
+                    if (!farmSnap.empty) {
+                        const farmData = farmSnap.docs[0].data();
+                        if (farmData.latitude && farmData.longitude) {
+                            setFarmCenter([parseFloat(farmData.latitude), parseFloat(farmData.longitude)]);
+                        }
                     }
-                }
-            } catch (error) { console.error(error); }
+                } catch (error) { console.error(error); }
+            }
 
             // Fetch Parcels
             const qParcels = query(collection(db, PARCELS_PATH), where("userId", "==", userId));
@@ -229,10 +269,11 @@ const ActivitiesMap = ({ db, userId, activeTab }) => {
 
             <MapContainer 
                 center={farmCenter} 
-                zoom={14} 
+                zoom={zoomLevel} 
                 scrollWheelZoom={true}
                 style={{ height: "100%", width: "100%" }}
             >
+                <MapController />
                 <LayersControl position="topright">
                     <LayersControl.BaseLayer name="Mapa Normal">
                         <TileLayer
@@ -281,12 +322,12 @@ const ActivitiesMap = ({ db, userId, activeTab }) => {
                             <Polygon 
                                 positions={marker.polygon}
                                 pathOptions={{ 
-                                    color: selectedGreenhouse?.id === marker.id ? '#10B981' : '#F59E0B', // Wisecrop Orange/Yellow
+                                    color: selectedGreenhouse?.id === marker.id ? '#10B981' : '#F59E0B', 
                                     weight: 2, 
                                     fillOpacity: 0.1 
                                 }}
                                 eventHandlers={{
-                                    click: () => setSelectedGreenhouse(marker),
+                                    click: (e) => handleGreenhouseClick(marker, e),
                                 }}
                             >
                                 <Tooltip 
@@ -300,12 +341,11 @@ const ActivitiesMap = ({ db, userId, activeTab }) => {
                                 </Tooltip>
                             </Polygon>
                         ) : (
-                            // Fallback to marker if no polygon
                             <Marker
                                 position={[marker.lat, marker.lng]}
                                 icon={new L.Icon.Default()} 
                                 eventHandlers={{
-                                    click: () => setSelectedGreenhouse(marker),
+                                    click: (e) => handleGreenhouseClick(marker, e),
                                 }}
                             >
                                  <Tooltip 
@@ -331,6 +371,7 @@ const ActivitiesMap = ({ db, userId, activeTab }) => {
                     greenhouse={selectedGreenhouse}
                     db={db}
                     userId={userId}
+                    position={modalPosition}
                 />
             )}
         </div>

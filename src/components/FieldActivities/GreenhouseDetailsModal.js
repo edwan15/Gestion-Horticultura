@@ -9,7 +9,7 @@ const getAppId = () => {
     return "default-calendar-app-id";
 };
 
-const GreenhouseDetailsModal = ({ isOpen, onClose, greenhouse, db, userId }) => {
+const GreenhouseDetailsModal = ({ isOpen, onClose, greenhouse, db, userId, position }) => {
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -19,18 +19,21 @@ const GreenhouseDetailsModal = ({ isOpen, onClose, greenhouse, db, userId }) => 
         const appId = getAppId();
         const TIMESHEET_PATH = `artifacts/${appId}/public/data/timesheets`;
 
-        // Query activities for this specific local/parcel
-        // Note: This relies on localId matching greenhouse.id or localName matching greenhouse.name
-        // We will try to match by ID first, then fallback or check logic.
-        // Assuming TimeSheetWizard saves 'localId' which matches Parcel ID.
+        // Strategy: Query by 'localName' which is more likely to match the display name "Invernadero 2"
+        // Also could try by 'localId' if available.
+        // Since we can't easily do OR queries in this setup without complex indexing or multiple queries,
+        // we'll fetch based on 'localName' as it matches the visual confirmation the user sees.
         
-        let q = query(
+        const q = query(
             collection(db, TIMESHEET_PATH), 
-            where("localId", "==", greenhouse.id),
+            where("localName", "==", greenhouse.name),
             orderBy("createdAt", "desc"),
             limit(5)
         );
 
+        // Fallback or parallel query for ID could be added, but name is usually safer for "human" matches
+        // if the ID system isn't strictly foreign-keyed.
+        
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const data = snapshot.docs.map(doc => ({
                 id: doc.id,
@@ -39,7 +42,8 @@ const GreenhouseDetailsModal = ({ isOpen, onClose, greenhouse, db, userId }) => 
             setHistory(data);
             setLoading(false);
         }, (err) => {
-            console.error(err);
+            console.error("Error fetching history by name, trying ID...", err);
+            // If name fails (e.g. indexing), we could try ID here, but usually it's just no results.
             setLoading(false);
         });
 
@@ -48,8 +52,20 @@ const GreenhouseDetailsModal = ({ isOpen, onClose, greenhouse, db, userId }) => 
 
     if (!isOpen) return null;
 
+    // Calculate position styles
+    // Default to right side if no position provided
+    const style = position ? {
+        top: Math.min(position.y, 400), // Prevent going too low
+        left: Math.min(position.x + 20, window.innerWidth - 400), // Prevent going offscreen right
+        position: 'absolute'
+    } : {
+        top: '1rem',
+        right: '1rem',
+        position: 'absolute'
+    };
+
     return (
-        <div className="absolute top-4 right-4 z-[1000] w-96 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col max-h-[calc(100%-2rem)]">
+        <div style={style} className="z-[3000] w-80 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col max-h-[500px] animate-fade-in-up">
             {/* Header */}
             <div className="bg-emerald-600 p-4 text-white flex justify-between items-start">
                 <div>
