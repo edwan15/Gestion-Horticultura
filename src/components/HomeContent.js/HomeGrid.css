@@ -1,0 +1,18 @@
+/* Estilos para el Grid Layout en HomeContent */
+
+/* Placeholder: La sombra verde que aparece DETRÁS de la tarjeta cuando la arrastras para mostrar dónde caerá */
+.react-grid-item.react-grid-placeholder {
+    background: rgba(74, 222, 128, 0.2) !important; /* Green-400 con opacidad */
+    border-radius: 0.75rem; /* rounded-xl */
+    opacity: 0.8 !important;
+}
+
+.react-grid-item {
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+/* Clases auxiliares si las necesitamos */
+.grid-edit-mode .react-grid-item > div {
+    /* Esto lo manejamos en JS con estilos inline/condicionales, 
+       pero podemos reforzarlo aquí si fuera necesario */
+}

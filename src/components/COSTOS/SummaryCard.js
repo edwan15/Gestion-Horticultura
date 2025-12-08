@@ -1553,101 +1553,101 @@ const SummaryCard = ({ timesheets = [] }) => {
     const isClickable = activeCategory === 'Cultivos' || activeCategory === 'Operación';
 
     return (
-        // * REDISEÑO 1: Reducción de Padding para mayor compacidad *
-        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-lg border border-gray-100 max-w-6xl mx-auto">
+        // * REDISEÑO 1: Adaptación al Grid (llena el contenedor padre y maneja scroll interno) *
+        <div className="bg-white p-4 sm:p-5 rounded-xl shadow-lg border border-gray-100 h-full flex flex-col overflow-hidden">
             
-            {/* 1. Encabezado y Filtro de Fechas (Movido y Simplificado) */}
-            <div className="mb-4 flex flex-col md:flex-row justify-between items-start md:items-center">
-                <h2 className="text-xl font-bold text-gray-800 flex items-center mb-3 md:mb-0">
-                    <FaClock className="text-green-500 mr-2 text-2xl"/> Resumen de Actividades
-                </h2>
-                
-                {/* Filtro de Fechas Compacto */}
-                <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg text-sm border border-gray-200">
-                    <FaCalendarAlt className='text-gray-500'/>
-                    <input
-                        type="date"
-                        value={dateRange.start}
-                        onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-                        className="p-1 border-0 rounded-md text-sm bg-transparent focus:ring-0 w-28"
-                    />
-                    -
-                    <input
-                        type="date"
-                        value={dateRange.end}
-                        onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-                        className="p-1 border-0 rounded-md text-sm bg-transparent focus:ring-0 w-28"
-                    />
-                    <button
-                        onClick={() => setDateRange({ start: '', end: '' })}
-                        className="text-xs text-red-500 hover:text-red-700 transition"
-                        title="Restablecer Fechas"
-                    >
-                        Reset
-                    </button>
+            {/* 1. Encabezado y Filtro de Fechas */}
+            <div className="flex-none mb-2"> {/* flex-none para que no se encoja */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-2">
+                    <h2 className="text-lg font-bold text-gray-800 flex items-center">
+                        <FaClock className="text-green-500 mr-2 text-xl"/> Resumen de Actividades
+                    </h2>
+                    
+                    {/* Filtro de Fechas Compacto */}
+                    <div className="flex items-center gap-1 p-1 bg-gray-50 rounded-lg text-xs border border-gray-200 mt-2 md:mt-0">
+                        <FaCalendarAlt className='text-gray-500'/>
+                        <input
+                            type="date"
+                            value={dateRange.start}
+                            onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                            className="p-1 border-0 rounded-md bg-transparent focus:ring-0 w-24"
+                        />
+                        -
+                        <input
+                            type="date"
+                            value={dateRange.end}
+                            onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                            className="p-1 border-0 rounded-md bg-transparent focus:ring-0 w-24"
+                        />
+                        <button
+                            onClick={() => setDateRange({ start: '', end: '' })}
+                            className="px-2 text-red-500 hover:text-red-700 transition font-bold"
+                            title="Restablecer Fechas"
+                        >
+                            Reset
+                        </button>
+                    </div>
                 </div>
-            </div>
 
-            {/* * REDISEÑO 2: Grid de Contadores Interactivos Minimalistas (Similares a las pestañas) * */}
-            <div className="grid grid-cols-4 border-b border-gray-200 mb-4 text-center">
-                {counters.map((item) => (
-                    <div 
-                        key={item.title} 
-                        className={`
-                            p-3 cursor-pointer transition-all duration-300 relative
-                            ${activeCategory === item.title 
-                                ? `font-semibold ${item.color}`
-                                : `text-gray-500 hover:text-gray-700`
-                            }
-                        `}
-                        onClick={() => setActiveCategory(item.title)}
-                    >
-                        <div className="flex flex-col items-center justify-center">
-                             <item.icon className="text-xl mb-1"/> 
-                            <span className="text-xs sm:text-sm">{item.title}</span>
-                            <p className="text-xl sm:text-2xl font-extrabold mt-1">
-                                {item.count}
-                            </p>
+                {/* Grid de Contadores (Pestañas) */}
+                <div className="grid grid-cols-4 border-b border-gray-200 text-center">
+                    {counters.map((item) => (
+                        <div 
+                            key={item.title} 
+                            className={`
+                                py-2 cursor-pointer transition-all duration-300 relative
+                                ${activeCategory === item.title 
+                                    ? `font-semibold ${item.color}`
+                                    : `text-gray-500 hover:text-gray-700`
+                                }
+                            `}
+                            onClick={() => setActiveCategory(item.title)}
+                        >
+                            <div className="flex flex-col items-center justify-center">
+                                <item.icon className="text-lg mb-1"/> 
+                                <span className="text-xs">{item.title}</span>
+                                <p className="text-lg font-extrabold leading-tight">
+                                    {item.count}
+                                </p>
+                            </div>
+                            {activeCategory === item.title && (
+                                <div className={`absolute bottom-0 left-0 right-0 h-1 ${item.activeBorder} bg-current rounded-t-sm`}></div>
+                            )}
                         </div>
-                        {/* Indicador de pestaña activa (línea inferior) */}
-                        {activeCategory === item.title && (
-                            <div className={`absolute bottom-0 left-0 right-0 h-1 ${item.activeBorder} bg-current rounded-t-sm`}></div>
-                        )}
-                    </div>
-                ))}
-            </div>
-
-            {/* * REDISEÑO 3: Totales Generales (Movidos para ser más prominentes) * */}
-             {detailKeys.length > 0 && (
-                <div className="flex justify-around items-center p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm mb-6">
-                    <div className="flex flex-col items-center p-2 border-r border-gray-300 flex-1">
-                        <span className="text-sm text-gray-600 font-medium">Horas Totales</span>
-                        <span className="text-2xl font-extrabold text-green-700 mt-1">{totalHours.toFixed(2)}h</span>
-                    </div>
-                    <div className="flex flex-col items-center p-2 flex-1">
-                        <span className="text-sm text-gray-600 font-medium">Coste Estimado</span>
-                        <span className="text-2xl font-extrabold text-red-700 mt-1 flex items-center">
-                            <FaEuroSign className='text-xl mr-1'/> {totalCost.toFixed(2)}
-                        </span>
-                    </div>
+                    ))}
                 </div>
-            )}
+
+                {/* Totales Generales */}
+                 {detailKeys.length > 0 && (
+                    <div className="flex justify-around items-center p-2 mt-2 bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
+                        <div className="flex flex-col items-center p-1 border-r border-gray-300 flex-1">
+                            <span className="text-xs text-gray-600 font-medium">Horas Totales</span>
+                            <span className="text-xl font-extrabold text-green-700">{totalHours.toFixed(2)}h</span>
+                        </div>
+                        <div className="flex flex-col items-center p-1 flex-1">
+                            <span className="text-xs text-gray-600 font-medium">Coste Estimado</span>
+                            <span className="text-xl font-extrabold text-red-700 flex items-center">
+                                <FaEuroSign className='text-base mr-1'/> {totalCost.toFixed(2)}
+                            </span>
+                        </div>
+                    </div>
+                )}
+            </div>
             
-            {/* * REDISEÑO 4: Área de Detalles Relacionales (Más limpia) * */}
-            <div className="pt-2">
+            {/* * CONTENIDO SCROLLABLE (La lista llena el espacio restante) * */}
+            <div className="flex-1 overflow-y-auto min-h-0 mt-2 pr-1 custom-scrollbar">
                 {detailKeys.length > 0 ? (
-                    // Aquí puedes volver a usar motion.div si está disponible
-                    <div className="p-4 bg-white rounded-lg border border-gray-100">
-                        <h4 className="text-md font-bold text-gray-700 mb-4">
-                            Listado de {activeCategory} ({detailKeys.length})
+                    <div className="">
+                        <h4 className="text-sm font-bold text-gray-700 mb-2 sticky top-0 bg-white z-10 py-1">
+                            Listado de {activeCategory}
                         </h4>
                         
-                        <ul className="space-y-3 max-h-80 overflow-y-auto pr-2">
+                        <ul className="space-y-2">
                             {detailKeys.map((key) => {
                                 const item = currentCategoryDetails[key];
                                 const itemClass = isClickable 
-                                    ? "p-3 bg-white rounded-md border border-gray-200 hover:bg-blue-50 hover:border-blue-300 transition duration-150 cursor-pointer"
-                                    : "p-3 bg-white rounded-md border border-gray-200 transition duration-150";
+                                    ? "p-2 bg-white rounded-md border border-gray-200 hover:bg-blue-50 hover:border-blue-300 transition duration-150 cursor-pointer"
+                                    : "p-2 bg-white rounded-md border border-gray-200 transition duration-150";
 
                                 return (
                                     <li 
@@ -1655,35 +1655,32 @@ const SummaryCard = ({ timesheets = [] }) => {
                                         className={itemClass}
                                         onClick={isClickable ? () => openModal(key, activeCategory, item.records) : undefined}
                                     >
-                                        <div className="flex justify-between items-start">
-                                            <span className="text-base font-semibold text-gray-800 leading-tight pr-4">
-                                                {key} 
-                                                <div className="mt-0.5 text-xs text-gray-500 font-normal">
-                                                     {item.details.slice(0, 2).join(' | ')}
-                                                     {item.details.length > 2 && ` | +${item.details.length - 2}`}
+                                        <div className="flex justify-between items-center">
+                                            <div className="min-w-0 flex-1 mr-2">
+                                                <div className="text-sm font-semibold text-gray-800 truncate">
+                                                    {key}
                                                 </div>
-                                            </span>
+                                                <div className="text-xs text-gray-500 truncate">
+                                                     {item.details.slice(0, 3).join(' | ')}
+                                                     {item.details.length > 3 && ` +${item.details.length - 3}`}
+                                                </div>
+                                            </div>
                                             <div className="text-right flex-shrink-0">
                                                 <span className="text-sm font-bold text-green-700 whitespace-nowrap">
                                                     {item.totalHours.toFixed(2)}h
                                                 </span>
-                                                {isClickable && (
-                                                    <FaChevronRight className="text-gray-400 ml-2 text-sm inline-block"/>
-                                                )}
                                             </div>
                                         </div>
                                     </li>
                                 );
                             })}
                         </ul>
-                        
                     </div>
                 ) : (
-                    <div className="mb-6 flex flex-col items-center justify-center p-8 bg-gray-50 rounded-lg border border-gray-200 shadow-inner">
-                        <p className="text-xl text-gray-700 font-bold mb-3">
-                            ⚠️ No se encontraron registros de {activeCategory}.
+                    <div className="h-full flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg border border-gray-200 border-dashed">
+                        <p className="text-sm text-gray-600 font-medium text-center">
+                            No hay datos para mostrar.
                         </p>
-                        <p className="text-gray-500 text-sm">Pruebe a seleccionar otra categoría o cambiar el rango de fechas.</p>
                     </div>
                 )}
             </div>

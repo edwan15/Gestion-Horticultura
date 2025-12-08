@@ -46,6 +46,15 @@ import SummaryCard from '../COSTOS/SummaryCard';
 import SprayAdvisory from '../COSTOS/SprayAdvisory';
 import SprayConditions from '../COSTOS/SprayConditions';
 
+// Importaciones para Grid Layout (WiseCrop Style)
+import './HomeGrid.css';
+import { Responsive, WidthProvider } from "react-grid-layout";
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
+
+// Envolver ResponsiveGridLayout con WidthProvider para que sea fluido
+const ResponsiveGridLayout = WidthProvider(Responsive);
+
 // <=== SOLICITADO: Constantes de configuración para el componente de clima
 // ⚠️ ATENCIÓN: DEBES REEMPLAZAR ESTOS VALORES
 const OPENWEATHER_API_KEY = "25d21a264f7dcdfb5be61655b423da67"; // Reemplaza con tu clave
@@ -1066,6 +1075,26 @@ const DashboardCard = ({
 
 
 
+// =======================================================================
+// === 4. COMPONENTE HomeView (Con react-grid-layout)
+// =======================================================================
+
+// Definición del layout por defecto (Desktop - lg)
+// w: ancho (en columnas de un total de 12), h: alto (en unidades de fila)
+const defaultLayouts = {
+    lg: [
+        { i: 'summary', x: 0, y: 0, w: 12, h: 3 }, // Resumen compacto superior (YA ES MOVIBLE)
+        { i: 'map', x: 0, y: 3, w: 6, h: 10 },    // Mapa mitad izquierda (Altura 10)
+        { i: 'forecast', x: 6, y: 3, w: 6, h: 5 }, // Pronóstico mitad derecha arriba (Altura 5)
+        { i: 'advisory', x: 6, y: 8, w: 6, h: 5 }, // Alertas mitad derecha abajo (Altura 5) -> 5+5=10 (Alineado con Mapa)
+        { i: 'chart', x: 0, y: 13, w: 6, h: 8 },  // Gráfico abajo izquierda (Altura 8)
+        { i: 'forecast_5', x: 6, y: 13, w: 6, h: 8 }, // Pronóstico 5 días abajo derecha (Altura 8) -> Alineado
+        { i: 'quick_info', x: 0, y: 21, w: 6, h: 6 }, // Info rápida izquierda (Altura 6)
+        { i: 'spray_conditions', x: 6, y: 21, w: 6, h: 6 }, // Condiciones derecha (Altura 6) -> Alineado
+        { i: 'labor_history', x: 0, y: 27, w: 12, h: 8 } // Historial completo abajo (Altura 8)
+    ]
+};
+
 export const HomeView = ({ 
     dailyData, 
     greenhouses = [], 
@@ -1089,172 +1118,268 @@ export const HomeView = ({
     }, 0);
 
     const handleMapSelect = (id) => { setSelectedGreenhouseId(id); };
-    
+
+    // --- ESTADO PARA MODO EDICIÓN ---
+    const [isEditMode, setIsEditMode] = useState(false);
+
+    // Función auxiliar para obtener layout guardado o el por defecto
+    const getLayoutFromLS = () => {
+        try {
+            const saved = localStorage.getItem('dashboardLayouts');
+            const parsed = saved ? JSON.parse(saved) : null;
+            // Asegurarnos de que si devolvemos algo, tenga estructura válida, si no, devolver default
+            return (parsed && parsed.lg) ? parsed : defaultLayouts; 
+        } catch (e) {
+            return defaultLayouts;
+        }
+    };
+
+    const [layouts, setLayouts] = useState(getLayoutFromLS()); // Inicializar con LocalStorage
+
+    // Manejador de cambio de layout (para guardar en futuro)
+    const onLayoutChange = (currentLayout, allLayouts) => {
+        setLayouts(allLayouts);
+        // Guardar automáticamente en LocalStorage para persistencia entre recargas/páginas
+        localStorage.setItem('dashboardLayouts', JSON.stringify(allLayouts));
+        console.log("Layout guardado en local:", allLayouts);
+    };
+
+    // Estilo condicional para las cajas en modo edición
+    const gridItemStyle = (isEditMode) => `
+        height: 100%;
+        transition: box-shadow 0.3s ease, border 0.3s ease;
+        ${isEditMode ? 'border-2 border-dashed border-green-500 rounded-xl bg-white cursor-move shadow-xl relative z-50' : ''}
+    `;
+
     return (
-        <div className="p-6 bg-[#F5F7FA] min-h-screen">
+        <div className="p-6 bg-[#F5F7FA] min-h-screen relative">
             
-            {/* 1. RESUMEN GLOBAL - Ancho completo */}
-            <div className="mb-6">
-                {/* <SummaryCard timesheets={timesheets} />  */}
+            {/* --- CABECERA DE CONTROLES (Flotante o Integrada) --- */}
+            <div className="flex justify-end mb-4">
+                 <button 
+                    onClick={() => setIsEditMode(!isEditMode)}
+                    className={`
+                        flex items-center space-x-2 px-4 py-2 rounded-lg font-semibold shadow-sm transition-all
+                        ${isEditMode 
+                            ? 'bg-green-600 text-white shadow-green-200 ring-2 ring-green-300' 
+                            : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}
+                    `}
+                 >
+                    {isEditMode ? (
+                        <>
+                            <FaSave className="text-lg" />
+                            <span>Guardar Diseño</span>
+                        </>
+                    ) : (
+                        <>
+                             {/* Icono de Ajustes/Edición similar a la imagen */}
+                             <div className="relative group">
+                                <FaTools className="text-lg transform group-hover:rotate-45 transition-transform duration-300" />
+                            </div>
+                            <span>Editar Vistas</span>
+                        </>
+                    )}
+                 </button>
             </div>
 
-            {/* 2. GRID PRINCIPAL - 2 Columnas uniformes y compactas */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                
-                {/* Mapa de Invernaderos */}
-                <DashboardCard 
-                    title="Visión General de Invernaderos" 
-                    icon={<FaMapMarkerAlt />} 
-                    titleColor="text-gray-700"
-                    className="h-[400px] relative"
-                >
-                    <div className="h-[300px] relative z-0">
-                        <GreenhouseMap 
-                            greenhouses={greenhouses} 
-                            onGreenhouseSelect={handleMapSelect} 
-                            selectedGreenhouseId={selectedGreenhouseId} 
-                        />
-                    </div>
-                </DashboardCard>
-
-                {/* Pronóstico Hoy - Visual y Destacado */}
-                <div className="h-[400px]">
-                        <WeatherForecast 
-                            apiKey={OPENWEATHER_API_KEY} 
-                            city={DEFAULT_CITY} 
-                            days={1}
-                            className="h-full"
-                        />
+             {/* NOTA VISUAL EN MODO EDICIÓN */}
+             {isEditMode && (
+                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-800 text-sm flex items-center animate-pulse">
+                    <FaHome className="mr-2" />
+                    Modo de Edición Activo: Arrastra y suelta los widgets para personalizar tu panel.
                 </div>
+            )}
 
-                {/* Asesoramiento Crítico */}
-                <DashboardCard 
-                    title="Asesoramiento Crítico" 
-                    icon={<FaBell />} 
-                    titleColor="text-amber-600"
-                    className="h-[350px]"
-                >
-                    <div className="overflow-y-auto h-[250px] -mx-5 px-5">
-                        <SprayAdvisory apiKey={OPENWEATHER_API_KEY} city={DEFAULT_CITY} />
-                    </div>
-                </DashboardCard>
-
-                {/* Producción vs Meta */}
-                <DashboardCard 
-                    title="Producción vs. Meta" 
-                    icon={<FaChartLine />} 
-                    titleColor="text-purple-600"
-                    className="h-[350px]"
-                >
-                    <div className="h-[250px] flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border border-purple-100">
-                        <FaChartLine className="text-6xl text-purple-300 mb-4" />
-                        <p className="text-sm font-medium text-gray-600">Gráfica en desarrollo</p>
-                        <div className="mt-4 grid grid-cols-2 gap-4 w-full px-8">
-                            <div className="text-center p-3 bg-white rounded-lg shadow-sm">
-                                <p className="text-xs text-gray-500 mb-1">Producción</p>
-                                <p className="text-lg font-bold text-green-600">{totalProduction.toFixed(0)} kg</p>
-                            </div>
-                            <div className="text-center p-3 bg-white rounded-lg shadow-sm">
-                                <p className="text-xs text-gray-500 mb-1">Cultivo</p>
-                                <p className="text-sm font-semibold text-gray-700 truncate">{currentCropName}</p>
-                            </div>
-                        </div>
-                    </div>
-                </DashboardCard>
-                
-                <DashboardCard 
-                
-                    title="Pronóstico 5 Días" 
-                    icon={<FaCloudSun />} 
-                    titleColor="text-blue-600"
-                    className="h-[300px]"
-                
-                >
-
-                {/* Pronóstico 5 Días */}
-               <div className="overflow-x-auto -mx-5 px-5 h-[200px]">
-                        <WeatherForecast 
-                            apiKey={OPENWEATHER_API_KEY} 
-                            city={DEFAULT_CITY} 
-                            days={1} 
-                            className="h-full"
-                        />
-                </div>
-
-                </DashboardCard>
-
-                {/* Información Rápida - Tipo Widget */}
-                <DashboardCard 
-                    title="Información Rápida" 
-                    icon={<FaSeedling />} 
-                    titleColor="text-green-600"
-                    className="h-[300px]"
-                >
-                    <div className="h-[200px] flex flex-col justify-center space-y-4">
-                        {/* Cultivo Activo */}
-                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100">
-                            <div className="flex items-center space-x-3">
-                                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                                    <FaSeedling className="text-white text-xl" />
-                                </div>
-                                <div>
-                                    <p className="text-xs text-gray-500 font-medium">Cultivo Activo</p>
-                                    <p className="text-base font-bold text-gray-800">{currentCropName}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Producción Total */}
-                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-100">
-                            <div className="flex items-center space-x-3">
-                                <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
-                                    <FaChartLine className="text-white text-xl" />
-                                </div>
-                                <div>
-                                    <p className="text-xs text-gray-500 font-medium">Producción Total</p>
-                                    <p className="text-xl font-bold text-green-600">{totalProduction.toFixed(2)} kg</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Última actualización */}
-                        <div className="text-center pt-2 border-t border-gray-100">
-                            <p className="text-xs text-gray-400">
-                                Última actualización: {new Date().toLocaleDateString()}
-                            </p>
-                        </div>
-                    </div>
-                </DashboardCard>
-            </div>
-
-            {/* Componente de Condiciones de Pulverización (Estilo Wisecrop) */}
-            <div className="mb-6">
-                <SprayConditions apiKey={OPENWEATHER_API_KEY} city={DEFAULT_CITY} />
-            </div>
-
-            {/* 3. HISTORIAL DE MANO DE OBRA - Ancho completo */}
-            <DashboardCard
-                title="Historial de Registros de Mano de Obra"
-                icon={<FaListAlt />}
-                titleColor="text-gray-700"
-                badge={`${timesheets ? timesheets.length : 0} registros`}
-                className="max-h-[500px]"
+            {/* --- GRID LAYOUT --- */}
+            <ResponsiveGridLayout
+                className="layout"
+                layouts={layouts}
+                // Breakpoints estándar (lg = desktop, md = tablet, etc)
+                breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+                // Columnas (12 es el estándar para mucha flexibilidad)
+                cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+                // Altura de fila base (30px permite ajuste fino)
+                rowHeight={30}
+                // Padding entre widgets [x, y]
+                margin={[20, 20]}
+                // Solo permitir drag/resize si estamos en modo edición
+                isDraggable={isEditMode}
+                isResizable={isEditMode}
+                onLayoutChange={onLayoutChange}
+                // Animaciones suaves
+                useCSSTransforms={true}
             >
-                <div className="overflow-y-auto max-h-[380px] -mx-5 px-5">
-                    <LaborCostDashboardDisplay 
-                        timesheets={timesheets || []}
-                        onEditRecord={handleEdit}
-                        onDeleteRecord={handleDelete}
-                    />
+                
+                {/* 1. RESUMEN GLOBAL (Widget Estático o Dinámico si se desea) */}
+                <div key="summary" className={`bg-white rounded-xl transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
+                    <SummaryCard timesheets={timesheets} />
+                    {isEditMode && <div className="absolute top-2 right-2 text-xs bg-green-100 text-green-800 px-2 rounded">Resumen</div>}
                 </div>
-            </DashboardCard>
-            
+
+                {/* 2. MAPA DE INVERNADEROS */}
+                <div key="map" className={`bg-white rounded-xl transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
+                    <div className="h-full w-full" style={{ pointerEvents: isEditMode ? 'none' : 'auto' }}>
+                        <DashboardCard 
+                            title="Visión General" 
+                            icon={<FaMapMarkerAlt />} 
+                            titleColor="text-gray-700"
+                            className="h-full"
+                        >
+                             <div className="h-full relative z-0">
+                                <GreenhouseMap 
+                                    greenhouses={greenhouses} 
+                                    onGreenhouseSelect={handleMapSelect} 
+                                    selectedGreenhouseId={selectedGreenhouseId} 
+                                />
+                            </div>
+                        </DashboardCard>
+                    </div>
+                </div>
+
+                {/* 3. PRONÓSTICO HOY */}
+                <div key="forecast" className={`bg-white rounded-xl transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
+                     <div className="h-full w-full" style={{ pointerEvents: isEditMode ? 'none' : 'auto' }}>
+                        <WeatherForecast 
+                                apiKey={OPENWEATHER_API_KEY} 
+                                city={DEFAULT_CITY} 
+                                days={1}
+                                className="h-full"
+                        />
+                    </div>
+                </div>
+
+                {/* 4. ASESORAMIENTO CRÍTICO */}
+                <div key="advisory" className={`bg-white rounded-xl transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
+                     <DashboardCard 
+                        title="Asesoramiento Crítico" 
+                        icon={<FaBell />} 
+                        titleColor="text-amber-600"
+                        className="h-full"
+                    >
+                        <div className="overflow-y-auto h-[90%] -mx-5 px-5">
+                            <SprayAdvisory apiKey={OPENWEATHER_API_KEY} city={DEFAULT_CITY} />
+                        </div>
+                    </DashboardCard>
+                </div>
+
+                {/* 5. GRÁFICO PRODUCCIÓN */}
+                <div key="chart" className={`bg-white rounded-xl transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
+                     <DashboardCard 
+                        title="Producción vs. Meta" 
+                        icon={<FaChartLine />} 
+                        titleColor="text-purple-600"
+                        className="h-full"
+                    >
+                        <div className="h-full flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border border-purple-100 p-4">
+                            <FaChartLine className="text-6xl text-purple-300 mb-4" />
+                            <p className="text-sm font-medium text-gray-600">Gráfica en desarrollo</p>
+                            <div className="mt-4 grid grid-cols-2 gap-4 w-full px-2">
+                                <div className="text-center p-2 bg-white rounded-lg shadow-sm">
+                                    <p className="text-xs text-gray-500 mb-1">Producción</p>
+                                    <p className="text-lg font-bold text-green-600">{totalProduction.toFixed(0)} kg</p>
+                                </div>
+                                <div className="text-center p-2 bg-white rounded-lg shadow-sm">
+                                    <p className="text-xs text-gray-500 mb-1">Cultivo</p>
+                                    <p className="text-sm font-semibold text-gray-700 truncate">{currentCropName}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </DashboardCard>
+                </div>
+
+                {/* 6. PRONÓSTICO 5 DÍAS */}
+                <div key="forecast_5" className={`bg-white rounded-xl transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
+                     <DashboardCard 
+                        title="Pronóstico 5 Días" 
+                        icon={<FaCloudSun />} 
+                        titleColor="text-blue-600"
+                        className="h-full"
+                    >
+                        <div className="overflow-x-auto -mx-5 px-5 h-full">
+                                <WeatherForecast 
+                                    apiKey={OPENWEATHER_API_KEY} 
+                                    city={DEFAULT_CITY} 
+                                    days={1} 
+                                    className="h-full"
+                                />
+                        </div>
+                    </DashboardCard>
+                </div>
+
+                {/* 7. INFORMACIÓN RÁPIDA */}
+                <div key="quick_info" className={`bg-white rounded-xl transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
+                     <DashboardCard 
+                        title="Información Rápida" 
+                        icon={<FaSeedling />} 
+                        titleColor="text-green-600"
+                        className="h-full"
+                    >
+                        <div className="h-full flex flex-col justify-center space-y-4 p-2">
+                            <div className="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100">
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                                        <FaSeedling className="text-white" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500 font-medium">Cultivo</p>
+                                        <p className="text-sm font-bold text-gray-800">{currentCropName}</p>
+                                    </div>
+                                </div>
+                            </div>
+                             <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-100">
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                                        <FaChartLine className="text-white" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500 font-medium">Total</p>
+                                        <p className="text-base font-bold text-green-600">{totalProduction.toFixed(2)} kg</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </DashboardCard>
+                </div>
+
+                 {/* 8. CONDICIONES SPRAY */}
+                 <div key="spray_conditions" className={`bg-white rounded-xl transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
+                    <div className="h-full overflow-hidden">
+                        <SprayConditions apiKey={OPENWEATHER_API_KEY} city={DEFAULT_CITY} />
+                    </div>
+                </div>
+
+                 {/* 9. HISTORIAL MANO DE OBRA */}
+                 <div key="labor_history" className={`bg-white rounded-xl transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
+                    <DashboardCard
+                        title="Historial de Registros"
+                        icon={<FaListAlt />}
+                        titleColor="text-gray-700"
+                        badge={`${timesheets ? timesheets.length : 0}`}
+                        className="h-full"
+                    >
+                        <div className="overflow-y-auto h-[90%] -mx-5 px-5">
+                            <LaborCostDashboardDisplay 
+                                timesheets={timesheets || []}
+                                onEditRecord={handleEdit}
+                                onDeleteRecord={handleDelete}
+                            />
+                        </div>
+                    </DashboardCard>
+                </div>
+
+            </ResponsiveGridLayout>
+
+            {/* Estilos cargados desde HomeGrid.css */}
         </div>
     );
 };
 
+// Re-export HomeView wrapped component would be here if needed but we modified it inline
+// -------------------------------------------------------------------------------------
 
-
+// =======================================================================
+// === 5. HOME CONTENT PRINCIPAL (Componente Padre) - ViewTabs se mantiene igual
+// =======================================================================
 // =======================================================================
 // === 5. HOME CONTENT PRINCIPAL (Componente Padre)
 // =======================================================================
