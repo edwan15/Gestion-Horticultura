@@ -53,19 +53,39 @@ const GreenhouseDetailsModal = ({ isOpen, onClose, greenhouse, db, userId, posit
     if (!isOpen) return null;
 
     // Calculate position styles
-    // Default to right side if no position provided
-    const style = position ? {
-        top: Math.min(position.y, 400), // Prevent going too low
-        left: Math.min(position.x + 20, window.innerWidth - 400), // Prevent going offscreen right
-        position: 'absolute'
-    } : {
-        top: '1rem',
-        right: '1rem',
-        position: 'absolute'
+    // Use fixed positioning relative to viewport
+    const modalHeight = 400; // Approx height
+    const modalWidth = 320; // Approx width
+    
+    let style = {
+        position: 'fixed',
+        zIndex: 9999, // Ensure it's on top of everything
     };
 
+    if (position) {
+        // Check if it fits on the right
+        let left = position.x + 20;
+        if (left + modalWidth > window.innerWidth) {
+            left = position.x - modalWidth - 20; // Flip to left
+        }
+
+        // Check if it fits on the bottom
+        let top = position.y;
+        if (top + modalHeight > window.innerHeight) {
+            top = window.innerHeight - modalHeight - 20; // Pin to bottom edge with margin
+        }
+        
+        style.left = left;
+        style.top = top;
+    } else {
+        // Default fallback
+        style.top = '50%';
+        style.left = '50%';
+        style.transform = 'translate(-50%, -50%)';
+    }
+
     return (
-        <div style={style} className="z-[3000] w-80 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col max-h-[500px] animate-fade-in-up">
+        <div style={style} className="w-80 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col max-h-[500px] animate-fade-in-up">
             {/* Header */}
             <div className="bg-emerald-600 p-4 text-white flex justify-between items-start">
                 <div>

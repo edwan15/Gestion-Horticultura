@@ -59,17 +59,9 @@ const ActivitiesMap = ({ db, userId, activeTab }) => {
 
     // Helper to handle greenhouse selection and positioning
     const handleGreenhouseClick = (greenhouse, e) => {
-        // e.originalEvent prevents bubbling if needed, but here we need the leaflet event
-        
-        // We need the map instance to convert latlng to container point.
-        // Since we are inside the component rendering the map logic but outside the MapContainer for the modal...
-        // We can't easily access 'map' here without a Ref or Context.
-        // However, we can calculate relatively or just use the mouse event clientX/Y.
-        // Using clientX/Y relative to the container is easiest.
-        
-        const containerRect = e.originalEvent.target.closest('.leaflet-container').getBoundingClientRect();
-        const x = e.originalEvent.clientX - containerRect.left;
-        const y = e.originalEvent.clientY - containerRect.top;
+        // Use clientX/Y for fixed positioning to avoid overflow clipping
+        const x = e.originalEvent.clientX;
+        const y = e.originalEvent.clientY;
 
         setModalPosition({ x, y });
         setSelectedGreenhouse(greenhouse);
