@@ -75,18 +75,19 @@ const SideBar = ({ children }) => {
                 variants={desktopSidebarVariants}
                 animate={isOpen ? "open" : "closed"}
                 initial={false}
-                className="hidden lg:flex flex-col bg-green-900 text-white min-h-screen relative shadow-xl z-30 flex-shrink-0"
+                className="hidden lg:flex flex-col bg-white text-gray-700 min-h-screen relative shadow-xl z-30 flex-shrink-0 border-r border-gray-200"
             >
                 {/* Header del Sidebar */}
-                <div className="h-16 flex items-center justify-center border-b border-green-800/50 relative">
+                <div className="h-16 flex items-center justify-center bg-green-600 relative overflow-hidden">
+                     {/* Decorative background pattern or gradient could go here */}
                     <motion.div
-                        className="flex items-center gap-2 cursor-pointer overflow-hidden px-4"
+                        className="flex items-center gap-2 cursor-pointer z-10 px-4"
                         onClick={goHome}
                     >
-                        <FaSeedling className="text-2xl text-green-400 flex-shrink-0" />
+                        <FaSeedling className="text-2xl text-white flex-shrink-0" />
                         <motion.h1
                             animate={{ opacity: isOpen ? 1 : 0, width: isOpen ? "auto" : 0 }}
-                            className="text-xl font-bold tracking-wider whitespace-nowrap overflow-hidden"
+                            className="text-xl font-bold tracking-wider whitespace-nowrap overflow-hidden text-white"
                         >
                             HORTICULTURA
                         </motion.h1>
@@ -102,16 +103,16 @@ const SideBar = ({ children }) => {
                 </button>
 
                 {/* Contenido Scrollable */}
-                <div className="flex-1 overflow-y-auto py-4 px-3 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto py-4 px-0 custom-scrollbar">
                     
                     {/* Barra de Búsqueda */}
-                    <div className={`flex items-center bg-green-800/50 rounded-lg px-3 py-2 mb-6 transition-all ${!isOpen ? 'justify-center' : ''}`}>
-                        <BiSearchAlt2 className="text-xl text-green-300" />
+                    <div className={`mx-3 flex items-center bg-gray-100 rounded-lg px-3 py-2 mb-6 transition-all border border-gray-200 ${!isOpen ? 'justify-center' : ''}`}>
+                        <BiSearchAlt2 className="text-xl text-gray-500" />
                         {isOpen && (
                             <input
                                 type="text"
                                 placeholder="Buscar..."
-                                className="bg-transparent border-none outline-none text-sm text-white placeholder-green-300/70 ml-2 w-full"
+                                className="bg-transparent border-none outline-none text-sm text-gray-700 placeholder-gray-400 ml-2 w-full"
                             />
                         )}
                     </div>
@@ -124,15 +125,15 @@ const SideBar = ({ children }) => {
                 </div>
 
                 {/* Footer del Sidebar */}
-                <div className="p-4 border-t border-green-800/50">
+                <div className="p-4 border-t border-gray-100 bg-gray-50">
                     <div className={`flex items-center ${!isOpen ? 'justify-center' : 'gap-3'}`}>
-                        <div className="w-8 h-8 rounded-full bg-green-700 flex items-center justify-center text-xs font-bold">
+                        <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center text-xs font-bold shadow-md">
                             HF
                         </div>
                         {isOpen && (
                             <div className="overflow-hidden">
-                                <p className="text-sm font-medium truncate">Horticultura SL</p>
-                                <p className="text-xs text-green-300 truncate">Plan Enterprise</p>
+                                <p className="text-sm font-bold text-gray-800 truncate">Horticultura SL</p>
+                                <p className="text-xs text-green-600 font-semibold truncate">Plan Enterprise</p>
                             </div>
                         )}
                     </div>

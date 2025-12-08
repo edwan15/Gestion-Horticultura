@@ -2,147 +2,224 @@ import React, { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom"; 
 import { MdKeyboardArrowRight } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion"; 
+import ReactDOM from 'react-dom';
 
-const SideBarItem = ({ isOpen, product, isMobile }) => {
+const SideBarItem = ({ isOpen, product, isMobile, closeMobileMenu }) => {
     const [isExpanded, setIsExpanded] = useState(false);
+    const [isHovered, setIsHovered] = useState(false); // For Desktop Popover
+    const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+    const [hoverTimeout, setHoverTimeout] = useState(null);
     const location = useLocation();
 
-    // 🛑 NUEVOS COLORES PARA ALTO CONTRASTE SOBRE FONDO AZUL-900 🛑
+    // ----------------------------------------------------------------------
+    // ESTILOS (Light Theme para Desktop / Dark Theme Adapter para Mobile)
+    // ----------------------------------------------------------------------
 
-    // 1. Clases para un elemento activo (seleccionado)
-    const activeBg = "bg-green-600 shadow-xl"; // Fondo verde sólido (para que destaque mucho)
-    const activeText = "text-white"; 
-    
-    // 2. Clases para un elemento inactivo
-    // Si es Móvil (fondo claro): Texto Negro -> Hover Blanco
-    // Si es Desktop (fondo oscuro): Texto Claro -> Hover Blanco
-    const inactiveText = isMobile 
-        ? "text-gray-900 hover:text-white" 
-        : "text-gray-300 hover:text-white";
-        
-    const hoverBg = "hover:bg-green-800"; // Fondo verde oscuro un poco más claro para hover
-    
-    // 3. Color de acento para Íconos y Flechas (siempre visible)
-    const iconAccent = "text-green-400";
+    // Desktop Styles (Wisecrop-like)
+    // Active: Left Green Border, Light Green BG, Green Text
+    const desktopActive = "border-l-4 border-green-600 bg-green-50 text-green-700 font-bold";
+    // Hover: Left Gray Border, Light Gray BG
+    const desktopHover = "border-l-4 border-gray-300 bg-gray-50 text-gray-700"; 
+    // Default: Transparent Border, Dark Gray Text
+    const desktopDefault = "border-l-4 border-transparent text-gray-600 hover:text-gray-900";
 
-    // Clase base para cualquier elemento del menú
-    const baseClass = "flex items-center p-3 my-1 rounded-xl cursor-pointer transition-all duration-300";
-    
-    // Variante de Framer Motion para la lista colapsable (se mantiene igual)
-    const subMenuVariants = {
-        hidden: { height: 0, opacity: 0, transition: { duration: 0.3 } },
-        visible: { height: "auto", opacity: 1, transition: { duration: 0.3 } },
-    };
+    // Mobile Styles (Keeping original logic roughly but adapted)
+    const mobileActive = "bg-green-600 shadow-xl text-white";
+    const mobileInactive = "text-gray-900 hover:text-white hover:bg-green-800";
+
+    const baseClass = "flex items-center p-3 my-0.5 cursor-pointer transition-all duration-200 relative";
+    const mobileBaseClass = "flex items-center p-3 my-1 rounded-xl cursor-pointer transition-all duration-300";
+
+    // Check if active
+    const isActiveLink = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
+    const isParentActive = product.childrens && product.childrens.some(child => isActiveLink(child.path));
+
 
     // -----------------------------------------------------------
-    // 1. ÍTEM CON SUBMENÚ (product.childrens existe)
+    // 1. DESKTOP RENDER (Popover / Floating Menu - Portal)
     // -----------------------------------------------------------
-    if (product.childrens && product.childrens.length > 0) {
-        // Determina si alguno de los subítems está activo para resaltar el menú padre
-        const isParentActive = product.childrens.some(child => 
-            location.pathname.startsWith(child.path)
-        );
+    if (!isMobile) {
         
-        // Clase condicional para el menú padre
-        const parentLinkClass = isParentActive 
-            ? `${baseClass} ${activeBg} ${activeText}` // Activo: Fondo verde, Texto blanco
-            : `${baseClass} ${inactiveText} ${hoverBg}`; // Inactivo: Texto claro, Hover azul-800
+        const handleMouseEnter = (e) => {
+            if (hoverTimeout) clearTimeout(hoverTimeout);
+            
+            const rect = e.currentTarget.getBoundingClientRect();
+            setMenuPosition({
+                top: rect.top,
+                left: rect.right + 5 // 5px gap relative to item
+            });
+            setIsHovered(true);
+        };
 
+        const handleMouseLeave = () => {
+            const timeout = setTimeout(() => {
+                setIsHovered(false);
+            }, 150); // Small delay to allow moving mouse to the menu
+            setHoverTimeout(timeout);
+        };
 
-        return (
-            <div className="text-sm">
-                {/* ENCABEZADO DEL MENÚ PADRE */}
-                <motion.div 
-                    className={parentLinkClass} 
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    whileHover={{ scale: 1.02 }}
-                >
-                    {/* Icono y Título */}
-                    <span className="flex gap-4 items-center w-full">
-                        {product.icon && (
-                            // 🛑 ICONO EN COLOR DE ACENTO
-                            <div className={`text-xl ${iconAccent}`}>{product.icon}</div>
-                        )}
-                        {isOpen && (
-                            // 🛑 TEXTO PRINCIPAL MÁS GRUESO Y CLARO
-                            <span className={`text-base font-semibold flex-grow ${!isOpen && "hidden"}`}>
-                                {product.title}
-                            </span>
-                        )}
-                    </span>
-                    
-                    {/* Flecha de Expansión/Colapso */}
-                    {isOpen && (
-                        // 🛑 FLECHA EN COLOR DE ACENTO
-                        <MdKeyboardArrowRight
-                            className={`text-2xl ${iconAccent} duration-300 ${isExpanded ? "rotate-90" : "rotate-0"}`}
-                        />
-                    )}
-                </motion.div>
-                
-                {/* SUBMENÚ COLAPSABLE */}
-                <AnimatePresence initial={false}>
-                    {isExpanded && isOpen && (
-                        <motion.div
-                            key="subMenu"
-                            initial="hidden"
-                            animate="visible"
-                            exit="hidden"
-                            variants={subMenuVariants}
-                            className="overflow-hidden" 
+        if (product.childrens && product.childrens.length > 0) {
+            return (
+                <>
+                    <div 
+                        className="relative w-full"
+                        onMouseEnter={handleMouseEnter}
+                        onMouseLeave={handleMouseLeave}
+                    >
+                        <div 
+                            className={`${baseClass} ${
+                                isParentActive ? desktopActive : (isHovered ? desktopHover : desktopDefault)
+                            }`}
                         >
-                            {product.childrens.map((child, index) => (
-                                <NavLink
-                                    key={index}
-                                    to={child.path}
-                                    className={({ isActive }) => 
-                                        // 🛑 Subítemes: Texto claro, Fondo/Hover azul-800
-                                        `${baseClass} ml-8 text-sm 
-                                        ${isActive ? activeBg + ' ' + activeText : inactiveText + ' ' + hoverBg}`
-                                    }
-                                >
-                                    {/* Icono (Si existe) y Título del subítem */}
-                                    {child.icon && <div className={`text-lg mr-3 ${iconAccent}`}>{child.icon}</div>}
-                                    <span className="truncate">{child.title}</span>
-                                </NavLink>
-                            ))}
-                        </motion.div>
+                            {/* Icon */}
+                            <div className={`text-xl min-w-[2.5rem] flex justify-center ${
+                                isParentActive ? "text-green-600" : "text-gray-400"
+                            }`}>
+                                {product.icon}
+                            </div>
+                            
+                            {isOpen && (
+                                <span className="flex-1 truncate">{product.title}</span>
+                            )}
+
+                            {isOpen && (
+                                <MdKeyboardArrowRight className={`text-gray-400 ${isHovered ? 'opacity-100' : 'opacity-50'}`} />
+                            )}
+                        </div>
+                    </div>
+
+                    {/* POPOVER MENU (Portal to Body) */}
+                    {isHovered && ReactDOM.createPortal(
+                        <motion.div
+                            initial={{ opacity: 0, x: -10, scale: 0.95 }}
+                            animate={{ opacity: 1, x: 0, scale: 1 }}
+                            exit={{ opacity: 0, x: -10, scale: 0.95 }}
+                            transition={{ duration: 0.15 }}
+                            className="fixed bg-white rounded-lg shadow-2xl border border-gray-200 z-[9999] overflow-hidden"
+                            style={{ 
+                                top: menuPosition.top, 
+                                left: menuPosition.left,
+                                minWidth: "14rem" 
+                            }}
+                            onMouseEnter={() => {
+                                if (hoverTimeout) clearTimeout(hoverTimeout);
+                            }}
+                            onMouseLeave={() => {
+                                setIsHovered(false);
+                            }}
+                        >
+                            <div className="bg-green-50 px-4 py-3 border-b border-gray-100 flex items-center gap-2">
+                                <span className="text-green-600 text-lg">{product.icon}</span>
+                                <span className="font-bold text-gray-800 text-sm">{product.title}</span>
+                            </div>
+                            <div className="py-1 bg-white">
+                                {product.childrens.map((child, idx) => (
+                                    <NavLink
+                                        key={idx}
+                                        to={child.path}
+                                        className={({ isActive }) => `
+                                            flex items-center px-4 py-2 text-sm transition-colors cursor-pointer
+                                            ${isActive 
+                                                ? "bg-green-50 text-green-700 font-semibold border-l-4 border-green-500" 
+                                                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 border-l-4 border-transparent hover:border-gray-300"
+                                            }
+                                        `}
+                                    >
+                                        {child.icon && <span className="mr-3 text-lg opacity-70">{child.icon}</span>}
+                                        {child.title}
+                                    </NavLink>
+                                ))}
+                            </div>
+                        </motion.div>,
+                        document.body
                     )}
-                </AnimatePresence>
-            </div>
-        );
-    } 
-    
+                </>
+            );
+        } else {
+            // Simple Item Desktop
+            return (
+                <NavLink
+                    to={product.path}
+                    className={({ isActive }) => 
+                        `${baseClass} ${isActive ? desktopActive : desktopDefault} hover:border-gray-300 hover:bg-gray-50`
+                    }
+                >
+                    <div className={`text-xl min-w-[2.5rem] flex justify-center ${
+                        isActiveLink(product.path) ? "text-green-600" : "text-gray-400"
+                    }`}>
+                        {product.icon}
+                    </div>
+                    {isOpen && <span className="truncate">{product.title}</span>}
+                </NavLink>
+            );
+        }
+    }
+
     // -----------------------------------------------------------
-    // 2. ÍTEM SIMPLE (product.childrens NO existe)
+    // 2. MOBILE RENDER (Accordion / Original Style)
     // -----------------------------------------------------------
     else {
-        return (
-            <NavLink
-                to={product.path}
-                className={({ isActive }) => 
-                    // 🛑 Ítem simple: Activo con fondo verde, Inactivo con texto claro y hover azul-800
-                    `${baseClass} ${isActive ? activeBg + ' ' + activeText : inactiveText + ' ' + hoverBg}`
-                }
-            >
-                <motion.div
-                    whileHover={{x: 5}} // Animación de desplazamiento sutil
-                    whileTap={{scale: 0.98}}
-                    className="flex gap-4 items-center w-full"
-                >
-                    {product.icon && (
-                        // 🛑 ICONO EN COLOR DE ACENTO
-                        <div className={`text-xl ${iconAccent}`}>{product.icon}</div>
-                    )}
-                    {isOpen && (
-                        // 🛑 TEXTO PRINCIPAL MÁS GRUESO Y CLARO
-                        <span className={`text-base font-semibold ${!isOpen && "hidden"}`}>
-                            {product.title}
+        if (product.childrens && product.childrens.length > 0) {
+            const parentLinkClass = isParentActive 
+                ? `${mobileBaseClass} ${mobileActive}` 
+                : `${mobileBaseClass} ${mobileInactive}`;
+
+            return (
+                <div className="text-sm">
+                    <motion.div 
+                        className={parentLinkClass} 
+                        onClick={() => setIsExpanded(!isExpanded)}
+                        whileTap={{ scale: 0.98 }}
+                    >
+                        <span className="flex gap-4 items-center w-full">
+                            {product.icon && <div className="text-xl">{product.icon}</div>}
+                            <span className="text-base font-semibold flex-grow">{product.title}</span>
                         </span>
-                    )}
-                </motion.div>
-            </NavLink>
-        );
+                        <MdKeyboardArrowRight className={`text-2xl duration-300 ${isExpanded ? "rotate-90" : "rotate-0"}`} />
+                    </motion.div>
+                    
+                    <AnimatePresence>
+                        {isExpanded && (
+                            <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="overflow-hidden" 
+                            >
+                                {product.childrens.map((child, index) => (
+                                    <NavLink
+                                        key={index}
+                                        to={child.path}
+                                        onClick={closeMobileMenu}
+                                        className={({ isActive }) => 
+                                            `${mobileBaseClass} ml-8 text-sm ${isActive ? mobileActive : mobileInactive}`
+                                        }
+                                    >
+                                        {child.icon && <div className="text-lg mr-3">{child.icon}</div>}
+                                        <span className="truncate">{child.title}</span>
+                                    </NavLink>
+                                ))}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            );
+        } else {
+            return (
+                <NavLink
+                    to={product.path}
+                    onClick={closeMobileMenu}
+                    className={({ isActive }) => 
+                        `${mobileBaseClass} ${isActive ? mobileActive : mobileInactive}`
+                    }
+                >
+                    <motion.div whileTap={{scale: 0.98}} className="flex gap-4 items-center w-full">
+                        {product.icon && <div className="text-xl">{product.icon}</div>}
+                        <span className="text-base font-semibold">{product.title}</span>
+                    </motion.div>
+                </NavLink>
+            );
+        }
     }
 };
 
