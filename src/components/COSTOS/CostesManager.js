@@ -814,14 +814,14 @@ const CostesManager = () => {
                                                                             date = new Date(timestamp); // Intento de parsear string
                                                                         }
 
-                                                                        return !isNaN(date) ? date.toLocaleString('es-ES', {
-                                                                            year: 'numeric', 
-                                                                            month: '2-digit', 
-                                                                            day: '2-digit',
-                                                                            hour: '2-digit', 
-                                                                            minute: '2-digit',
-                                                                            hour12: false
-                                                                        }) : '';
+                                                        return !isNaN(date) ? date.toLocaleString('es-ES', {
+                                                            day: '2-digit',
+                                                            month: '2-digit',
+                                                            year: 'numeric',
+                                                            hour: '2-digit',
+                                                            minute: '2-digit',
+                                                            hour12: false
+                                                        }) : '';
                                                                     })()}
                                                                 </span>
                                                             )}

@@ -723,14 +723,15 @@ const DashboardCard = ({
     titleColor = 'text-gray-800', 
     className = '', 
     children,
-    badge = null 
+    badge = null,
+    noPadding = false 
 }) => (
     <div className={`
         bg-white 
-        rounded-lg 
-        shadow-sm 
+        rounded-none 
+        shadow-xl 
         border border-gray-200
-        hover:shadow-md 
+        hover:shadow-2xl 
         transition-all 
         duration-300 
         overflow-hidden
@@ -739,36 +740,36 @@ const DashboardCard = ({
         {/* Header con diseño profesional */}
         <div className={`
             flex items-center justify-between 
-            px-5 py-4 
+            px-3 py-2 
             border-b border-gray-100
             bg-gradient-to-r from-gray-50 to-white
         `}>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
                 {icon && (
                     <div className={`
-                        w-10 h-10 
-                        rounded-lg 
+                        w-8 h-8 
+                        rounded-md 
                         bg-gradient-to-br from-gray-100 to-gray-50
                         flex items-center justify-center
-                        text-xl
+                        text-lg
                         ${titleColor}
                     `}>
                         {icon}
                     </div>
                 )}
-                <h3 className={`text-base font-semibold ${titleColor}`}>
+                <h3 className={`text-sm font-semibold ${titleColor}`}>
                     {title}
                 </h3>
             </div>
             {badge && (
-                <span className="px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">
+                <span className="px-2 py-0.5 text-[10px] font-medium bg-gray-100 text-gray-600 rounded-full">
                     {badge}
                 </span>
             )}
         </div>
         
         {/* Contenido */}
-        <div className="p-5">
+        <div className="p-2 flex-1 min-h-0 flex flex-col">
             {children}
         </div>
     </div>
@@ -1079,19 +1080,39 @@ const DashboardCard = ({
 // === 4. COMPONENTE HomeView (Con react-grid-layout)
 // =======================================================================
 
-// Definición del layout por defecto (Desktop - lg)
-// w: ancho (en columnas de un total de 12), h: alto (en unidades de fila)
+// Definición del layout por defecto (Sistema de 2 Columnas)
+// w: 1 (Media pantalla), w: 2 (Pantalla completa)
 const defaultLayouts = {
     lg: [
-        { i: 'summary', x: 0, y: 0, w: 12, h: 3 }, // Resumen compacto superior (YA ES MOVIBLE)
-        { i: 'map', x: 0, y: 3, w: 6, h: 10 },    // Mapa mitad izquierda (Altura 10)
-        { i: 'forecast', x: 6, y: 3, w: 6, h: 5 }, // Pronóstico mitad derecha arriba (Altura 5)
-        { i: 'advisory', x: 6, y: 8, w: 6, h: 5 }, // Alertas mitad derecha abajo (Altura 5) -> 5+5=10 (Alineado con Mapa)
-        { i: 'chart', x: 0, y: 13, w: 6, h: 8 },  // Gráfico abajo izquierda (Altura 8)
-        { i: 'forecast_5', x: 6, y: 13, w: 6, h: 8 }, // Pronóstico 5 días abajo derecha (Altura 8) -> Alineado
-        { i: 'quick_info', x: 0, y: 21, w: 6, h: 6 }, // Info rápida izquierda (Altura 6)
-        { i: 'spray_conditions', x: 6, y: 21, w: 6, h: 6 }, // Condiciones derecha (Altura 6) -> Alineado
-        { i: 'labor_history', x: 0, y: 27, w: 12, h: 8 } // Historial completo abajo (Altura 8)
+        { i: 'summary', x: 0, y: 0, w: 2, h: 3 }, // Resumen (Top, Ancho completo)
+        
+        // Fila 1 Principal
+        { i: 'map', x: 0, y: 3, w: 1, h: 9 },    // Mapa (Izquierda)
+        { i: 'forecast', x: 1, y: 3, w: 1, h: 5 }, // Pronóstico (Derecha Arriba)
+        { i: 'advisory', x: 1, y: 8, w: 1, h: 4 }, // Alertas (Derecha Abajo)
+
+        // Fila 2 Secundaria
+        { i: 'chart', x: 0, y: 12, w: 1, h: 6 },  // Gráfico (Izquierda)
+        { i: 'forecast_5', x: 1, y: 12, w: 1, h: 6 }, // Pronóstico 5 días (Derecha)
+
+        // Fila 3 Info Rápida
+        { i: 'quick_info', x: 0, y: 18, w: 1, h: 6 }, // Info (Izquierda)
+        { i: 'spray_conditions', x: 1, y: 18, w: 1, h: 6 }, // Condiciones (Derecha)
+
+        // Fila Final
+        { i: 'labor_history', x: 0, y: 24, w: 2, h: 8 } // Historial (Ancho completo)
+    ],
+    // Layout para móviles (1 Columna forzada)
+    sm: [
+         { i: 'summary', x: 0, y: 0, w: 1, h: 3 },
+         { i: 'map', x: 0, y: 3, w: 1, h: 8 },
+         { i: 'forecast', x: 0, y: 11, w: 1, h: 5 },
+         { i: 'advisory', x: 0, y: 16, w: 1, h: 4 },
+         { i: 'chart', x: 0, y: 20, w: 1, h: 6 },
+         { i: 'forecast_5', x: 0, y: 26, w: 1, h: 6 },
+         { i: 'quick_info', x: 0, y: 32, w: 1, h: 6 },
+         { i: 'spray_conditions', x: 0, y: 38, w: 1, h: 6 },
+         { i: 'labor_history', x: 0, y: 44, w: 1, h: 8 }
     ]
 };
 
@@ -1104,7 +1125,8 @@ export const HomeView = ({
     greenhouseConfig, 
     timesheets,
     handleEdit,
-    handleDelete
+    handleDelete,
+    isEditMode 
 }) => {
     
     // Lógica existente
@@ -1120,7 +1142,7 @@ export const HomeView = ({
     const handleMapSelect = (id) => { setSelectedGreenhouseId(id); };
 
     // --- ESTADO PARA MODO EDICIÓN ---
-    const [isEditMode, setIsEditMode] = useState(false);
+    // REMOVED LOCAL STATE: const [isEditMode, setIsEditMode] = useState(false);
 
     // Función auxiliar para obtener layout guardado o el por defecto
     const getLayoutFromLS = () => {
@@ -1154,33 +1176,8 @@ export const HomeView = ({
     return (
         <div className="p-6 bg-[#F5F7FA] min-h-screen relative">
             
-            {/* --- CABECERA DE CONTROLES (Flotante o Integrada) --- */}
-            <div className="flex justify-end mb-4">
-                 <button 
-                    onClick={() => setIsEditMode(!isEditMode)}
-                    className={`
-                        flex items-center space-x-2 px-4 py-2 rounded-lg font-semibold shadow-sm transition-all
-                        ${isEditMode 
-                            ? 'bg-green-600 text-white shadow-green-200 ring-2 ring-green-300' 
-                            : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}
-                    `}
-                 >
-                    {isEditMode ? (
-                        <>
-                            <FaSave className="text-lg" />
-                            <span>Guardar Diseño</span>
-                        </>
-                    ) : (
-                        <>
-                             {/* Icono de Ajustes/Edición similar a la imagen */}
-                             <div className="relative group">
-                                <FaTools className="text-lg transform group-hover:rotate-45 transition-transform duration-300" />
-                            </div>
-                            <span>Editar Vistas</span>
-                        </>
-                    )}
-                 </button>
-            </div>
+            {/* --- CABECERA DE CONTROLES (REMOVIDA) --- */}
+            {/* The button was here, now moved to ViewTabs in HomeContent */}
 
              {/* NOTA VISUAL EN MODO EDICIÓN */}
              {isEditMode && (
@@ -1192,16 +1189,16 @@ export const HomeView = ({
 
             {/* --- GRID LAYOUT --- */}
             <ResponsiveGridLayout
-                className="layout"
+                className="layout bg-slate-50/70" // Added background to grid area specifically if needed, or rely on parent.
                 layouts={layouts}
                 // Breakpoints estándar (lg = desktop, md = tablet, etc)
-                breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-                // Columnas (12 es el estándar para mucha flexibilidad)
-                cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-                // Altura de fila base (30px permite ajuste fino)
+                breakpoints={{ lg: 1200, md: 768, sm: 480, xs: 0 }}
+                // Columnas: SISTEMA DE 2 COLUMNAS (Mucho más limpio y uniforme)
+                cols={{ lg: 2, md: 2, sm: 1, xs: 1 }}
+                // Altura de fila base
                 rowHeight={30}
-                // Padding entre widgets [x, y]
-                margin={[20, 20]}
+                // Margin uniforme y espacioso [x, y]
+                margin={[24, 24]}
                 // Solo permitir drag/resize si estamos en modo edición
                 isDraggable={isEditMode}
                 isResizable={isEditMode}
@@ -1211,21 +1208,18 @@ export const HomeView = ({
             >
                 
                 {/* 1. RESUMEN GLOBAL (Widget Estático o Dinámico si se desea) */}
-                <div key="summary" className={`bg-white rounded-xl transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
+                <div key="summary" className={`bg-white rounded-none shadow-xl border border-gray-200 transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
                     <SummaryCard timesheets={timesheets} />
                     {isEditMode && <div className="absolute top-2 right-2 text-xs bg-green-100 text-green-800 px-2 rounded">Resumen</div>}
                 </div>
 
                 {/* 2. MAPA DE INVERNADEROS */}
-                <div key="map" className={`bg-white rounded-xl transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
+                <div key="map" className={`bg-white rounded-none transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
                     <div className="h-full w-full" style={{ pointerEvents: isEditMode ? 'none' : 'auto' }}>
                         <DashboardCard 
-                            title="Visión General" 
-                            icon={<FaMapMarkerAlt />} 
-                            titleColor="text-gray-700"
-                            className="h-full"
+                            className="h-full overflow-hidden flex flex-col" // Added flex flex-col to ensure content takes space correctly
                         >
-                             <div className="h-full relative z-0">
+                             <div className="flex-1 relative z-0 min-h-0"> {/* flex-1 and min-h-0 are crucial for nested flex scrolling/sizing */}
                                 <GreenhouseMap 
                                     greenhouses={greenhouses} 
                                     onGreenhouseSelect={handleMapSelect} 
@@ -1237,7 +1231,7 @@ export const HomeView = ({
                 </div>
 
                 {/* 3. PRONÓSTICO HOY */}
-                <div key="forecast" className={`bg-white rounded-xl transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
+                <div key="forecast" className={`bg-white rounded-none shadow-xl border border-gray-200 transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
                      <div className="h-full w-full" style={{ pointerEvents: isEditMode ? 'none' : 'auto' }}>
                         <WeatherForecast 
                                 apiKey={OPENWEATHER_API_KEY} 
@@ -1249,21 +1243,21 @@ export const HomeView = ({
                 </div>
 
                 {/* 4. ASESORAMIENTO CRÍTICO */}
-                <div key="advisory" className={`bg-white rounded-xl transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
+                <div key="advisory" className={`bg-white rounded-none transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
                      <DashboardCard 
                         title="Asesoramiento Crítico" 
                         icon={<FaBell />} 
                         titleColor="text-amber-600"
                         className="h-full"
                     >
-                        <div className="overflow-y-auto h-[90%] -mx-5 px-5">
+                        <div className="overflow-y-auto h-[90%] -mx-2 px-2">
                             <SprayAdvisory apiKey={OPENWEATHER_API_KEY} city={DEFAULT_CITY} />
                         </div>
                     </DashboardCard>
                 </div>
 
                 {/* 5. GRÁFICO PRODUCCIÓN */}
-                <div key="chart" className={`bg-white rounded-xl transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
+                <div key="chart" className={`bg-white rounded-none transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
                      <DashboardCard 
                         title="Producción vs. Meta" 
                         icon={<FaChartLine />} 
@@ -1288,14 +1282,14 @@ export const HomeView = ({
                 </div>
 
                 {/* 6. PRONÓSTICO 5 DÍAS */}
-                <div key="forecast_5" className={`bg-white rounded-xl transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
+                <div key="forecast_5" className={`bg-white rounded-none transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
                      <DashboardCard 
                         title="Pronóstico 5 Días" 
                         icon={<FaCloudSun />} 
                         titleColor="text-blue-600"
                         className="h-full"
                     >
-                        <div className="overflow-x-auto -mx-5 px-5 h-full">
+                        <div className="overflow-x-auto -mx-2 px-2 h-full">
                                 <WeatherForecast 
                                     apiKey={OPENWEATHER_API_KEY} 
                                     city={DEFAULT_CITY} 
@@ -1307,7 +1301,7 @@ export const HomeView = ({
                 </div>
 
                 {/* 7. INFORMACIÓN RÁPIDA */}
-                <div key="quick_info" className={`bg-white rounded-xl transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
+                <div key="quick_info" className={`bg-white rounded-none transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
                      <DashboardCard 
                         title="Información Rápida" 
                         icon={<FaSeedling />} 
@@ -1342,14 +1336,14 @@ export const HomeView = ({
                 </div>
 
                  {/* 8. CONDICIONES SPRAY */}
-                 <div key="spray_conditions" className={`bg-white rounded-xl transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
+                 <div key="spray_conditions" className={`bg-white rounded-none shadow-xl border border-gray-200 transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
                     <div className="h-full overflow-hidden">
                         <SprayConditions apiKey={OPENWEATHER_API_KEY} city={DEFAULT_CITY} />
                     </div>
                 </div>
 
                  {/* 9. HISTORIAL MANO DE OBRA */}
-                 <div key="labor_history" className={`bg-white rounded-xl transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
+                 <div key="labor_history" className={`bg-white rounded-none transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
                     <DashboardCard
                         title="Historial de Registros"
                         icon={<FaListAlt />}
@@ -1357,7 +1351,7 @@ export const HomeView = ({
                         badge={`${timesheets ? timesheets.length : 0}`}
                         className="h-full"
                     >
-                        <div className="overflow-y-auto h-[90%] -mx-5 px-5">
+                        <div className="overflow-y-auto h-[90%] -mx-2 px-2">
                             <LaborCostDashboardDisplay 
                                 timesheets={timesheets || []}
                                 onEditRecord={handleEdit}
@@ -1396,7 +1390,8 @@ const HomeContent = (props) => {
             
     // 🚨 NUEVOS ESTADOS PARA EDICIÓN
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [editingRecord, setEditingRecord] = useState(null); 
+    const [editingRecord, setEditingRecord] = useState(null);
+    const [isEditMode, setIsEditMode] = useState(false); // <--- New State here
 
     // 2. OBTENER PROYECTOS Y ENTIDADES (Objetos)
     const { availableLocals, availableEntityObjects, loadingData } = useProjectAndEntityData(db, userId, setNotification); 
@@ -1407,9 +1402,7 @@ const HomeContent = (props) => {
     // 4. CARGAR LOS TIMESHEETS GLOBALMENTE
     const { timesheets, loadingTimesheets, errorTimesheets } = useTimesheetsData(db, userId, setNotification); 
 
-
     const { ...restOfProps } = props;
-
 
     // =======================================================================
     // === CÁLCULO DE COSTES Y PREPARACIÓN DE LISTAS PARA SELECTS
@@ -1513,124 +1506,112 @@ const HomeContent = (props) => {
         }
     };
 
-    // --- Barra de Navegación de Vistas (Se mantiene igual) ---
+    // --- Modal de Navegación/Ajustes (Dropdown) ---
+    const NavigationModal = ({ isOpen, onClose, currentView, onViewChange, isEditMode, toggleEditMode }) => {
+        if (!isOpen) return null;
+        
+        const menuOptions = [
+            { id: 'home', label: 'Dashboard', icon: <FaHome className="w-5 h-5"/>, color: 'text-blue-600' },
+            { id: 'costs', label: 'Costes', icon: <FaEuroSign className="w-5 h-5"/>, color: 'text-blue-600' },
+            { id: 'employee_management', label: 'Personal', icon: <FaUserFriends className="w-5 h-5"/>, color: 'text-purple-600' },
+            { id: 'management', label: 'Gestión', icon: <span className="text-xl">⚙️</span>, color: 'text-gray-600' },
+            { id: 'labor', label: 'Mano de Obra', icon: <span className="text-xl">👨‍🌾</span>, color: 'text-red-600' },
+        ];
 
-    const ViewTabs = () => (
-    // Contenedor principal: Quitamos el 'flex' de aquí y dejamos solo el borde inferior
-    <div className="mb-6 border-b border-gray-300"> 
-        {/* Nuevo Contenedor de Pestañas: 
-            - 'flex' mantiene los botones en línea.
-            - 'overflow-x-auto' permite el scroll horizontal si es necesario.
-            - 'whitespace-nowrap' asegura que los elementos NO se envuelvan.
-        */}
-        <div className="flex overflow-x-auto whitespace-nowrap"> 
-            <button
-                onClick={() => { setActiveView('home'); setNotification(null); }}
-                // Eliminé 'text-sm' de los botones para que el tamaño base sea sensible, pero puedes mantenerlo si quieres botones pequeños.
-                className={`py-2 px-4 flex items-center space-x-2 font-medium border-b-2 transition-colors duration-200 flex-shrink-0
-                    ${ activeView === 'home' ? "border-blue-600 text-blue-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
-            >
-                <FaHome className="text-lg"/> <span>Dashboard</span>
-            </button>
-            <button
-                onClick={() => { setActiveView('costs'); setNotification(null); }}
-                className={`py-2 px-4 flex items-center space-x-2 font-medium border-b-2 transition-colors duration-200 flex-shrink-0
-                    ${ activeView === 'costs' ? "border-blue-600 text-blue-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
-            >
-                <FaEuroSign className="text-lg"/> <span>Costes</span>
-            </button>
-            <button
-                onClick={() => { setActiveView('employee_management'); setNotification(null); }}
-                className={`py-2 px-4 flex items-center space-x-2 font-medium border-b-2 transition-colors duration-200 flex-shrink-0
-                    ${ activeView === 'employee_management' ? "border-purple-600 text-purple-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
-            >
-                <FaUserFriends className="text-lg"/> <span>Personal</span>
-            </button>
-            <button
-                onClick={() => { setActiveView('management'); setNotification(null); }}
-                className={`py-2 px-4 flex items-center space-x-2 font-medium border-b-2 transition-colors duration-200 flex-shrink-0
-                    ${ activeView === 'management' ? "border-purple-600 text-purple-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
-            >
-                <span role="img" aria-label="settings">⚙️</span> <span>Gestión</span>
-            </button>
-            <button
-                onClick={() => { setActiveView('labor'); setNotification(null); }}
-                className={`py-2 px-4 flex items-center space-x-2 font-medium border-b-2 transition-colors duration-200 flex-shrink-0
-                    ${ activeView === 'labor' ? "border-red-600 text-red-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
-            >
-                <span role="img" aria-label="man">👨‍🌾</span> <span>Mano de Obra</span>
-            </button>
-        </div>
-    </div>
-);
-    // const ViewTabs = () => (
-    //     <div className="flex justify-start mb-6 border-b border-gray-300">
-    //         <button
-    //             onClick={() => { setActiveView('home'); setNotification(null); }}
-    //             className={`py-2 px-4 flex items-center space-x-2 text-sm font-medium border-b-2 transition-colors duration-200 ${ activeView === 'home' ? "border-blue-600 text-blue-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
-    //         >
-    //             <FaHome className="text-lg"/> <span>Dashboard</span>
-    //         </button>
-    //         <button
-    //             onClick={() => { setActiveView('costs'); setNotification(null); }}
-    //             className={`py-2 px-4 flex items-center space-x-2 text-sm font-medium border-b-2 transition-colors duration-200 ${ activeView === 'costs' ? "border-blue-600 text-blue-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
-    //         >
-    //             <FaEuroSign className="text-lg"/> <span>Costes</span>
-    //         </button>
-    //         <button
-    //             onClick={() => { setActiveView('employee_management'); setNotification(null); }}
-    //             className={`py-2 px-4 flex items-center space-x-2 text-sm font-medium border-b-2 transition-colors duration-200 ${ activeView === 'employee_management' ? "border-purple-600 text-purple-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
-    //         >
-    //             <FaUserFriends className="text-lg"/> <span>Personal</span>
-    //         </button>
-    //         <button
-    //             onClick={() => { setActiveView('management'); setNotification(null); }}
-    //             className={`py-2 px-4 flex items-center space-x-2 text-sm font-medium border-b-2 transition-colors duration-200 ${ activeView === 'management' ? "border-purple-600 text-purple-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
-    //         >
-    //             <span role="img" aria-label="settings">⚙️</span> <span>Gestión</span>
-    //         </button>
-    //         <button
-    //             onClick={() => { setActiveView('labor'); setNotification(null); }}
-    //             className={`py-2 px-4 flex items-center space-x-2 text-sm font-medium border-b-2 transition-colors duration-200 ${ activeView === 'labor' ? "border-red-600 text-red-600 font-bold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
-    //         >
-    //             <span role="img" aria-label="man">👨‍🌾</span> <span>Mano de Obra</span>
-    //         </button>
-    //     </div>
-    // );
-
-
-    // --- Estado de Carga y Restricciones de Acceso ---
-    if (loadingAuth || loadingData || loadingTimesheets || loadingWorkers) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <p className="text-xl text-indigo-600 animate-pulse">
-                    {loadingAuth ? "Cargando autenticación..." : loadingData ? "Cargando datos maestros..." : loadingWorkers ? "Cargando lista de trabajadores..." : "Cargando registros de trabajo..."}
-                </p>
-            </div>
-        );
-    }
-    
-    if (!userId) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="p-10 text-center bg-white rounded-xl shadow-lg">
-                    <p className="text-xl text-red-600 font-semibold mb-4">Acceso Denegado</p>
-                    <p className="text-gray-600">Debe iniciar sesión para acceder al panel de gestión.</p>
+            <>
+                {/* Overlay transparente para cerrar al hacer clic fuera */}
+                <div className="fixed inset-0 z-[100] bg-transparent" onClick={onClose}></div>
+                
+                {/* Dropdown Menu */}
+                <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 w-64 p-2 animate-fadeIn z-[101]">
+                    <div className="mb-2 px-2 py-2 border-b border-gray-100 flex justify-between items-center">
+                        <h3 className="text-sm font-bold text-gray-700">Vistas & Ajustes</h3>
+                        <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+                            <FaTimes />
+                        </button>
+                    </div>
+                    
+                    <div className="space-y-1">
+                        {menuOptions.map((option) => (
+                            <button
+                                key={option.id}
+                                onClick={() => { onViewChange(option.id); onClose(); }}
+                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors
+                                    ${currentView === option.id 
+                                        ? 'bg-blue-50 text-blue-700 font-semibold' 
+                                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}
+                                `}
+                            >
+                                <span className={`${currentView === option.id ? option.color : 'text-gray-400'}`}>
+                                    {option.icon}
+                                </span>
+                                {option.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="mt-2 pt-2 border-t border-gray-100 px-2">
+                        <button 
+                            onClick={() => { toggleEditMode(); onClose(); }}
+                            className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium border transition-colors
+                                ${isEditMode 
+                                    ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100' 
+                                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-blue-600'}
+                            `}
+                        >
+                            {isEditMode ? (
+                                <>
+                                    <FaSave /> Guardar Diseño
+                                </>
+                            ) : (
+                                <>
+                                    <FaEdit /> Editar Vistas
+                                </>
+                            )}
+                        </button>
+                    </div>
                 </div>
-            </div>
+            </>
         );
-    }
+    };
 
+    // --- Barra de Herramientas Compacta ---
+    const [isNavOpen, setIsNavOpen] = useState(false);
 
     return (
         <div className="min-h-screen bg-[#F5F7FA]">
             
-            {/* Título y Navegación de Vistas */}
-            <div className="p-4 sm:p-6 pb-0">
-                <h1 className="text-3xl font-extrabold text-gray-800 mb-2">
-                    {activeView === 'home' ? 'Gestión de Producción' : 'Análisis de Costes Empresarial'}
-                </h1>
-                <ViewTabs />
+            {/* Cabecera Compacta / Barra de Acciones */}
+            <div className="px-6 py-3 bg-[#F5F7FA] flex items-center justify-between">
+                
+                {/* Botón Ajustes (Dropdown) */}
+                <div className="relative">
+                    <button 
+                        onClick={() => setIsNavOpen(!isNavOpen)}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200
+                            ${isNavOpen ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' : 'bg-transparent text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm'}
+                        `}
+                    >
+                        <FaTools className="text-xs" />
+                        <span>Ajustes</span>
+                    </button>
+
+                    <NavigationModal 
+                        isOpen={isNavOpen} 
+                        onClose={() => setIsNavOpen(false)}
+                        currentView={activeView}
+                        onViewChange={(view) => { setActiveView(view); setNotification(null); }}
+                        isEditMode={isEditMode}
+                        toggleEditMode={() => setIsEditMode(!isEditMode)}
+                    />
+                </div>
+
+                {isEditMode && (
+                    <div className="text-xs font-medium text-green-700 bg-green-50 px-3 py-1 rounded-full border border-green-200 animate-pulse">
+                        Modo Edición
+                    </div>
+                )}
             </div>
 
             {/* MOSTRAR NOTIFICACIÓN */}
@@ -1652,7 +1633,7 @@ const HomeContent = (props) => {
 
 
             {/* Renderizado de la Vista Activa */}
-            {activeView === 'home' && (<HomeView {...restOfProps} timesheets={timesheets} />)}
+            {activeView === 'home' && (<HomeView {...restOfProps} timesheets={timesheets} isEditMode={isEditMode} />)}
 
             {activeView === 'costs' && (
                 <div className="p-4 sm:p-6 pt-0">

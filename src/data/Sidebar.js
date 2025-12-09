@@ -1,11 +1,11 @@
 import { RxDashboard } from "react-icons/rx";
-import { AiFillFileAdd } from "react-icons/ai";
+import { AiFillFileAdd, AiFillFileText } from "react-icons/ai";
 import { MdManageAccounts, MdOutlineSupportAgent, MdPeopleOutline, MdLocalShipping, MdOutlineGrass } from "react-icons/md";
 import { SiAdafruit } from "react-icons/si";
 import { WiDaySunny, WiHumidity } from "react-icons/wi";
 import { GiFarmTractor } from "react-icons/gi"; 
 import { IoIosListBox } from "react-icons/io"; 
-import { FaUsersCog, FaChessKing, FaExchangeAlt, FaFileContract, FaCommentDollar, FaTractor } from "react-icons/fa";
+import { FaUsersCog, FaChessKing, FaExchangeAlt, FaFileContract, FaCommentDollar, FaTractor, FaChartLine } from "react-icons/fa";
 import { BsDropletFill } from "react-icons/bs"; 
 
 const Menu = [
@@ -41,9 +41,9 @@ const Menu = [
         path: "/tarea",
       },
        {
-        title: "Carga de Trailer",
-        icon: <MdLocalShipping />,
-        path: "/produccion",
+        title: "Actividad de Campo",
+        icon: <AiFillFileText /> ,
+        path: "/field-activities",
       },
     ],
   },
@@ -71,8 +71,27 @@ const Menu = [
         icon: <FaFileContract />,
         path: "/order-product",
       },
+      {
+        title: "Inventario Costes",
+        icon: <FaCommentDollar />, // Using FaCommentDollar or similar relevant icon
+        path: "/inventario-costes",
+      },
      
     ],
+  },
+
+  // ----------------------------------------------------
+  // COSTES
+  // ----------------------------------------------------
+  {
+    title: "Costes",
+    icon: <FaCommentDollar />,
+    path: "/costes",
+  },
+  {
+    title: "Seguimiento Costes",
+    icon: <FaChartLine />, // You might need to import FaChartLine or use another icon
+    path: "/seguimiento-costes",
   },
   
   // ----------------------------------------------------
@@ -92,11 +111,7 @@ const Menu = [
         icon: <FaCommentDollar />,
         path: "/analizer-work",
       },
-      {
-        title: "Costes",
-        icon: <FaCommentDollar />,
-        path: "/costes",
-      },
+
       {
         title: "Gestión de Finca",
         icon: <FaTractor />,

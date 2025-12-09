@@ -179,7 +179,7 @@ const ActivitiesMap = ({ db, userId, activeTab }) => {
     if (loading) return <div className="h-full w-full flex items-center justify-center text-gray-400">Cargando mapa...</div>;
 
     return (
-        <div className="h-[600px] w-full rounded-xl shadow-lg overflow-hidden border border-gray-200 relative">
+        <div className="h-full w-full relative bg-white overflow-hidden">
             {/* Toolbar */}
             <div className="absolute top-4 left-16 z-[1000] bg-white rounded-md shadow-md border border-gray-300 flex">
                 <button

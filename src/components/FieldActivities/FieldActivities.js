@@ -89,7 +89,7 @@ const FieldActivities = () => {
             </div>
 
             {/* Content Area */}
-            <div className="flex-1 min-h-0">
+            <div className={`w-full ${viewMode === 'map' ? 'h-[calc(100vh-220px)] relative rounded-xl overflow-hidden shadow-lg border border-gray-200' : 'flex-1 min-h-0'}`}>
                 {viewMode === 'list' ? (
                     <ActivitiesList 
                         db={db} 

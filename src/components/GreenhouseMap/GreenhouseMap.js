@@ -46,14 +46,50 @@ const greenhouseIcon = new L.Icon({
 // =======================================================================
 const MapViewUpdater = ({ markers, defaultCenter }) => {
     const map = useMap();
+    // Clave única para localStorage
+    const STORAGE_KEY = 'greenhouseMap_viewState';
 
     useEffect(() => {
-        if (markers.length > 0) {
-            const bounds = L.latLngBounds(markers.map(m => [m.lat, m.lng]));
-            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
-        } else if (defaultCenter) {
-             map.setView(defaultCenter, 14);
+        // 1. Intentar restaurar vista guardada
+        const savedView = localStorage.getItem(STORAGE_KEY);
+        let hasRestored = false;
+
+        if (savedView) {
+            try {
+                const { center, zoom } = JSON.parse(savedView);
+                if (center && zoom) {
+                    map.setView(center, zoom);
+                    hasRestored = true;
+                }
+            } catch (e) {
+                console.error("Error parsing saved map view", e);
+            }
         }
+
+        // 2. Si no se restauró, usar lógica original (markers o default)
+        if (!hasRestored) {
+            if (markers.length > 0) {
+                const bounds = L.latLngBounds(markers.map(m => [m.lat, m.lng]));
+                map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+            } else if (defaultCenter) {
+                map.setView(defaultCenter, 14);
+            }
+        }
+
+        // 3. Guardar estado al mover el mapa
+        const onMoveEnd = () => {
+            const center = map.getCenter();
+            const zoom = map.getZoom();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ center, zoom }));
+        };
+
+        map.on('moveend', onMoveEnd);
+        map.on('zoomend', onMoveEnd);
+
+        return () => {
+            map.off('moveend', onMoveEnd);
+            map.off('zoomend', onMoveEnd);
+        };
     }, [map, markers, defaultCenter]);
 
     return null;
@@ -138,7 +174,7 @@ const GreenhouseMap = () => {
     }
 
     return (
-        <div className="h-96 w-full rounded-xl shadow-lg request-fullscreen overflow-hidden border border-gray-200 relative z-0">
+        <div className="h-full w-full overflow-hidden relative z-0">
              <MapContainer 
                 center={farmCenter} 
                 zoom={14} 

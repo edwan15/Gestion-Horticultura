@@ -1,74 +1,111 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { NavLink, useLocation } from "react-router-dom"; 
 import { MdKeyboardArrowRight } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion"; 
 import ReactDOM from 'react-dom';
 
 const SideBarItem = ({ isOpen, product, isMobile, closeMobileMenu }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
-    const [isHovered, setIsHovered] = useState(false); // For Desktop Popover
+    const [isExpanded, setIsExpanded] = useState(false); // Mobile state
+    
+    // Desktop State
+    const [showPopover, setShowPopover] = useState(false);
     const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
-    const [hoverTimeout, setHoverTimeout] = useState(null);
+    const popoverRef = useRef(null);
+    const buttonRef = useRef(null);
+    const inactivityTimerRef = useRef(null);
+
     const location = useLocation();
 
     // ----------------------------------------------------------------------
-    // ESTILOS (Light Theme para Desktop / Dark Theme Adapter para Mobile)
-    // ----------------------------------------------------------------------
-
-    // Desktop Styles (Wisecrop-like)
-    // Active: Left Green Border, Light Green BG, Green Text
+    // STYLES ... (Keep existing style constants)
     const desktopActive = "border-l-4 border-green-600 bg-green-50 text-green-700 font-bold";
-    // Hover: Left Gray Border, Light Gray BG
     const desktopHover = "border-l-4 border-gray-300 bg-gray-50 text-gray-700"; 
-    // Default: Transparent Border, Dark Gray Text
     const desktopDefault = "border-l-4 border-transparent text-gray-600 hover:text-gray-900";
-
-    // Mobile Styles (Keeping original logic roughly but adapted)
     const mobileActive = "bg-green-600 shadow-xl text-white";
     const mobileInactive = "text-gray-900 hover:text-white hover:bg-green-800";
-
     const baseClass = "flex items-center p-3 my-0.5 cursor-pointer transition-all duration-200 relative";
     const mobileBaseClass = "flex items-center p-3 my-1 rounded-xl cursor-pointer transition-all duration-300";
 
-    // Check if active
     const isActiveLink = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
     const isParentActive = product.childrens && product.childrens.some(child => isActiveLink(child.path));
 
+    // 🛑 LOGIC FOR CLICK OUTSIDE & AUTO-CLOSE (DESKTOP) 🛑
+    useEffect(() => {
+        if (!showPopover) return;
+
+        // 1. Click Outside Handler
+        const handleClickOutside = (event) => {
+            if (
+                popoverRef.current && 
+                !popoverRef.current.contains(event.target) && 
+                buttonRef.current && 
+                !buttonRef.current.contains(event.target)
+            ) {
+                setShowPopover(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        
+        // 2. Inactivity Timer (6 seconds)
+        const resetTimer = () => {
+            if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+            inactivityTimerRef.current = setTimeout(() => {
+                setShowPopover(false);
+            }, 6000);
+        };
+
+        // Start timer initially
+        resetTimer();
+
+        // Listeners to reset timer on activity inside popover
+        const popoverElement = popoverRef.current;
+        if (popoverElement) {
+            popoverElement.addEventListener("mousemove", resetTimer);
+            popoverElement.addEventListener("click", resetTimer);
+            popoverElement.addEventListener("keydown", resetTimer);
+        }
+
+        return () => {
+             document.removeEventListener("mousedown", handleClickOutside);
+             if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+             if (popoverElement) {
+                popoverElement.removeEventListener("mousemove", resetTimer);
+                popoverElement.removeEventListener("click", resetTimer);
+                popoverElement.removeEventListener("keydown", resetTimer);
+            }
+        };
+    }, [showPopover]);
+
+    // Toggle Popover on Click
+    const handleDesktopClick = (e) => {
+        if (showPopover) {
+            setShowPopover(false);
+        } else {
+            const rect = e.currentTarget.getBoundingClientRect();
+            setMenuPosition({
+                top: rect.top,
+                left: rect.right + 5
+            });
+            setShowPopover(true);
+        }
+    };
 
     // -----------------------------------------------------------
     // 1. DESKTOP RENDER (Popover / Floating Menu - Portal)
     // -----------------------------------------------------------
     if (!isMobile) {
-        
-        const handleMouseEnter = (e) => {
-            if (hoverTimeout) clearTimeout(hoverTimeout);
-            
-            const rect = e.currentTarget.getBoundingClientRect();
-            setMenuPosition({
-                top: rect.top,
-                left: rect.right + 5 // 5px gap relative to item
-            });
-            setIsHovered(true);
-        };
-
-        const handleMouseLeave = () => {
-            const timeout = setTimeout(() => {
-                setIsHovered(false);
-            }, 150); // Small delay to allow moving mouse to the menu
-            setHoverTimeout(timeout);
-        };
-
         if (product.childrens && product.childrens.length > 0) {
             return (
                 <>
                     <div 
+                        ref={buttonRef}
                         className="relative w-full"
-                        onMouseEnter={handleMouseEnter}
-                        onMouseLeave={handleMouseLeave}
+                        onClick={handleDesktopClick}
                     >
                         <div 
                             className={`${baseClass} ${
-                                isParentActive ? desktopActive : (isHovered ? desktopHover : desktopDefault)
+                                isParentActive ? desktopActive : (showPopover ? desktopHover : desktopDefault)
                             }`}
                         >
                             {/* Icon */}
@@ -83,14 +120,15 @@ const SideBarItem = ({ isOpen, product, isMobile, closeMobileMenu }) => {
                             )}
 
                             {isOpen && (
-                                <MdKeyboardArrowRight className={`text-gray-400 ${isHovered ? 'opacity-100' : 'opacity-50'}`} />
+                                <MdKeyboardArrowRight className={`text-gray-400 ${showPopover ? 'rotate-90 text-green-600' : ''} transition-transform`} />
                             )}
                         </div>
                     </div>
 
                     {/* POPOVER MENU (Portal to Body) */}
-                    {isHovered && ReactDOM.createPortal(
+                    {showPopover && ReactDOM.createPortal(
                         <motion.div
+                            ref={popoverRef}
                             initial={{ opacity: 0, x: -10, scale: 0.95 }}
                             animate={{ opacity: 1, x: 0, scale: 1 }}
                             exit={{ opacity: 0, x: -10, scale: 0.95 }}
@@ -100,12 +138,6 @@ const SideBarItem = ({ isOpen, product, isMobile, closeMobileMenu }) => {
                                 top: menuPosition.top, 
                                 left: menuPosition.left,
                                 minWidth: "14rem" 
-                            }}
-                            onMouseEnter={() => {
-                                if (hoverTimeout) clearTimeout(hoverTimeout);
-                            }}
-                            onMouseLeave={() => {
-                                setIsHovered(false);
                             }}
                         >
                             <div className="bg-green-50 px-4 py-3 border-b border-gray-100 flex items-center gap-2">
@@ -117,6 +149,7 @@ const SideBarItem = ({ isOpen, product, isMobile, closeMobileMenu }) => {
                                     <NavLink
                                         key={idx}
                                         to={child.path}
+                                        onClick={() => setShowPopover(false)} // Close on selection
                                         className={({ isActive }) => `
                                             flex items-center px-4 py-2 text-sm transition-colors cursor-pointer
                                             ${isActive 

@@ -55,7 +55,7 @@ const formatDate = (dateStr, options = {}) => {
 // === COMPONENT
 // =======================================================================
 
-const WeatherForecast = ({ city = "Balsicas,es", apiKey, lat, lon }) => {
+const WeatherForecast = ({ city = "Balsicas,es", apiKey, lat, lon, className = "" }) => {
   const [forecastList, setForecastList] = useState([]);
   const [selectedDayIndex, setSelectedDayIndex] = useState(0); // 0 es hoy, 1 mañana, etc.
   const [loading, setLoading] = useState(true);
@@ -146,7 +146,7 @@ const WeatherForecast = ({ city = "Balsicas,es", apiKey, lat, lon }) => {
   const { icon: currentIcon, color: currentColor, label: currentLabel } = getWeatherConfig(currentDay.weather.main);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-full font-sans">
+    <div className={`overflow-hidden flex flex-col h-full font-sans ${className}`}>
       {/* HEADER: Título y Fecha Seleccionada */}
       <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
         <div>

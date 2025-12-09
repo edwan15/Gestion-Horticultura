@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 
@@ -57,8 +57,10 @@ import HelpSupport from "./Pages/HelpSupport/HelpSupport";
 import NotificationManagement from "./Pages/NotificationManagement/NotificationManagement";
 // import { CostDashboard } from "./components/COSTOS/CostDashboard";
 import  CostesManager  from "./components/COSTOS/CostesManager";
+import CostesDashboard from "./components/COSTOS/CostesDashboard";
 import FarmSettings from "./Pages/FarmSettings/FarmSettings";
 import FieldActivities from "./components/FieldActivities";
+import InventoryCostes from "./components/COSTOS/InventoryCostes";
 
 
 axios.defaults.withCredentials = true;
@@ -190,16 +192,7 @@ function App() {
                 />
                 
                 <Routes>
-                    {/* RUTAS PÚBLICAS */}
-                    <Route path="/" element={<Home />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/forgot" element={<Forgot />} />
-                    <Route path="/reset" element={<Reset />} />
-                    <Route path="/unauthorized" element={<UnauthorizedPage />} />
-
-                    {/* --- RUTAS PROTEGIDAS POR ROL (TODAS USAN ProtectedLayout) --- */}
-
+                    <Route path="/" element={<Navigate to="/panel" replace />} />
                     {/* Dashboard */}
                     <Route
                         path="/panel"
@@ -224,6 +217,10 @@ function App() {
                         element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><WeatherPage /></ProtectedLayout></RoleRoute>}
                     />
                     <Route
+                        path="/inventario-costes"
+                        element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><InventoryCostes /></ProtectedLayout></RoleRoute>}
+                    />
+                    <Route
                         path="/edit-product/:id"
                         element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><EditProduct /></ProtectedLayout></RoleRoute>}
                     />
@@ -246,11 +243,13 @@ function App() {
                         path="/profile"
                         element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><Profile /></ProtectedLayout></RoleRoute>}
                     />
-
-                    {/* Perfil */}
                     <Route
                         path="/costes"
                         element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><CostesManager /></ProtectedLayout></RoleRoute>}
+                    />
+                    <Route
+                        path="/seguimiento-costes"
+                        element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><CostesDashboard /></ProtectedLayout></RoleRoute>}
                     />
 
                     {/* Perfil */}
