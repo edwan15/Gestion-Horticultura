@@ -230,15 +230,17 @@ const CostesManager = () => {
         switch (filters.period) {
             case 'ultimo_mes':
                 startDate = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
-                endDate = today;
+                endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 30); // Permitir ver futuro cercano también
                 break;
             case 'este_mes':
                 startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-                endDate = today;
+                // Fin de mes actual
+                endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
                 break;
             case 'este_año':
                 startDate = new Date(today.getFullYear(), 0, 1);
-                endDate = today;
+                // Fin de año actual
+                endDate = new Date(today.getFullYear(), 11, 31);
                 break;
             case 'personalizado':
                 startDate = filters.dateFrom ? new Date(filters.dateFrom) : null;

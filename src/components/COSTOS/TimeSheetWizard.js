@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
     collection,
     query,
@@ -8,7 +8,8 @@ import {
     serverTimestamp,
 } from 'firebase/firestore';
 import { auth } from '../../firebaseConfig'; 
-import { FaUsers, FaTools, FaClock, FaSeedling, FaTruck, FaFileAlt, FaCheckCircle, FaLeaf, FaArrowRight, FaArrowLeft } from 'react-icons/fa';
+import { FaUsers, FaTools, FaClock, FaSeedling, FaTruck, FaFileAlt, FaCheckCircle, FaLeaf, FaArrowRight, FaArrowLeft, FaFileUpload } from 'react-icons/fa';
+import * as XLSX from 'xlsx';
 
 // ------------------------------------
 // --- FUNCIÓN DE ID DE APLICACIÓN ---
@@ -24,6 +25,7 @@ const appId = getAppId();
 const WORKERS_COLLECTION_PATH = `artifacts/${appId}/public/data/workers`;
 const TIMESHEET_COLLECTION_PATH = `artifacts/${appId}/public/data/timesheets`;
 const MACHINERYS_COLLECTION_PATH = `artifacts/${appId}/public/data/machinery`;
+const LOCAL_COLLECTION_PATH = `artifacts/${appId}/public/data/locals`; // Assuming this exists or needed for mapping
 
 const OPERATIONS = [
     { id: '01', name: 'Fumigar', emoji: '🌿' },
@@ -43,6 +45,10 @@ const OPERATIONS = [
     { id: '15', name: 'Labores pre-trasplante', emoji: '🌿' },
     { id: '16', name: 'Desbrozar', emoji: '🪓' },
     { id: '17', name: 'Supervisión', emoji: '👁️' },
+    { id: '18', name: 'Blanqueo', emoji: '🖌️' },
+    { id: '19', name: 'Limpieza balsa', emoji: '🧹' },
+    { id: '98', name: 'Fertilizantes', emoji: '🌾' },
+    { id: '99', name: 'Fitosanitarios', emoji: '🧪' },
 ];
 
 const formatDate = (date) => {
@@ -56,6 +62,227 @@ const formatDate = (date) => {
 
     return [year, month, day].join('-');
 };
+
+// --- HELPERS EXCEL ---
+
+const cleanString = (str) => {
+    return str ? String(str).toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
+};
+
+const findBestMatch = (target, options, key = 'name') => {
+    const targetClean = cleanString(target);
+    if (!targetClean) return null;
+    return options.find(opt => cleanString(opt[key]).includes(targetClean)) || null;
+};
+
+// Función para parsear Excel
+const processExcelFile = async (file, dbWorkers, dbLocals) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: null });
+
+                // 1. Encontrar Fila de Encabezados (Busca "TRABAJADOR")
+                let headerRowIndex = -1;
+                let workerColIndex = -1;
+                
+                for (let i = 0; i < Math.min(20, jsonData.length); i++) {
+                    const row = jsonData[i];
+                    if (!row) continue;
+                    const foundIndex = row.findIndex(cell => cell && String(cell).toUpperCase().includes("TRABAJADOR"));
+                    if (foundIndex !== -1) {
+                        headerRowIndex = i;
+                        workerColIndex = foundIndex;
+                        break;
+                    }
+                }
+
+                if (headerRowIndex === -1) throw new Error("No se encontró la columna 'TRABAJADOR' en las primeras 20 filas.");
+
+                // 2. Buscar Fecha (Arriba del encabezado)
+                let detectedDate = formatDate(new Date()); // Default hoy
+                for (let i = 0; i < headerRowIndex; i++) {
+                    const row = jsonData[i];
+                    if (!row) continue;
+                    // Buscar celda que contenga "FECHA"
+                    const dateLabelIndex = row.findIndex(cell => cell && String(cell).toUpperCase().includes("FECHA"));
+                    if (dateLabelIndex !== -1) {
+                        // Buscar fecha en la misma fila (celdas adyacentes) o en el texto
+                        // Intentar parsear las celdas siguientes
+                        for (let k = 1; k <= 3; k++) {
+                           const potentialDate = row[dateLabelIndex + k];
+                           if (potentialDate) {
+                               // Si es numero serial de excel
+                               if (typeof potentialDate === 'number' && potentialDate > 20000) {
+                                    const dateObj = new Date((potentialDate - (25567 + 2)) * 86400 * 1000); // Ajuste básico Excel epoch
+                                    detectedDate = formatDate(dateObj);
+                                    break;
+                               }
+                               // Si es string
+                               if (typeof potentialDate === 'string' && (potentialDate.match(/\d{2}\/\d{2}\/\d{4}/) || potentialDate.match(/\d{4}-\d{2}-\d{2}/))) {
+                                    // Parse string basic
+                                    // Asumiendo DD/MM/YYYY
+                                    if(potentialDate.includes('/')) {
+                                        const [d, m, y] = potentialDate.split('/');
+                                        detectedDate = `${y}-${m}-${d}`;
+                                    } else {
+                                        detectedDate = potentialDate;
+                                    }
+                                    break;
+                               }
+                           }
+                        }
+                    }
+                }
+
+                const parsedRecords = [];
+                const errors = [];
+
+                // 3. Iterar Filas de Datos
+                for (let i = headerRowIndex + 1; i < jsonData.length; i++) {
+                    const row = jsonData[i];
+                    if (!row || !row[workerColIndex]) continue; // Saltar filas vacías
+
+                    const workerNameRaw = row[workerColIndex];
+                    const matchedWorker = findBestMatch(workerNameRaw, dbWorkers, 'name');
+
+                    if (!matchedWorker) {
+                        errors.push(`Fila ${i + 1}: Trabajador "${workerNameRaw}" no encontrado en el sistema.`);
+                        continue;
+                    }
+
+                    // 4. Leer Bloques de Tareas (Tarea | Horas | Parcela)
+                    // Asumimos que los bloques empiezan inmediatamente después de alguna columna o seguimos el patrón del excel
+                    // Según imagen: TOTAL H (B) | TRABAJADOR (C) | TAREA (D) | HORAS (E) | PARCELA (F) | ... (G separador?) | TAREA (H)...
+                    // Columna inicial de bloques: woekerColIndex + 1
+                    
+                    let currentStartTime = "08:00"; // Inicio jornada por defecto
+
+                    let col = workerColIndex + 1;
+                    while (col < row.length) {
+                        // Intentar leer un bloque de 3: Tarea, Horas, Parcela
+                        // A veces hay columnas vacias entre bloques. Buscamos donde haya un valor de Tarea
+                        
+                        const tareaVal = row[col];
+                        
+                        // Si no hay tarea, saltamos columna (posible separador)
+                        if (!tareaVal) {
+                            col++; 
+                            continue;
+                        }
+
+                        const pHours = row[col + 1];
+                        const pParcela = row[col + 2];
+
+                        // HELPER LOCAL: Normalizar ID (5 -> 05)
+                        const normalizeId = (val) => {
+                            const s = String(val).trim();
+                            // Si es un solo dígito numérico, agregar 0 al inicio
+                            return /^\d$/.test(s) ? '0' + s : s;
+                        };
+
+                        const normalizedInputId = normalizeId(tareaVal);
+
+                        // Validar si es una tarea válida (ID o Nombre)
+                        // 1. Intento por ID normalizado ('5' -> '05')
+                        // 2. Intento por ID exacto (por si acaso)
+                        // 3. Intento por Nombre
+                        let matchedOp = OPERATIONS.find(op => op.id === normalizedInputId) || 
+                                        OPERATIONS.find(op => op.id === String(tareaVal)) ||
+                                        findBestMatch(tareaVal, OPERATIONS, 'name');
+
+                        if (!matchedOp) {
+                            // Debug: console.log(`No match for task: ${tareaVal} (norm: ${normalizedInputId})`);
+                             col++;
+                             continue;
+                        }
+
+                        const hoursDuration = parseFloat(pHours) || 0;
+                        if (hoursDuration <= 0) {
+                            col += 3; 
+                            continue;
+                        }
+
+                        // Calcular Horas Inicio/Fin
+                        // Helper para sumar horas
+                        const addHours = (timeStr, h) => {
+                            const [hh, mm] = timeStr.split(':').map(Number);
+                            let totalMin = hh * 60 + mm + (h * 60);
+                            let newH = Math.floor(totalMin / 60);
+                            let newM = totalMin % 60;
+                            if(newH >= 24) newH = newH - 24;
+                            return `${String(newH).padStart(2,'0')}:${String(newM).padStart(2,'0')}`;
+                        };
+
+                        const nextTime = addHours(currentStartTime, hoursDuration);
+                        
+                        // Match Parcela/Local
+                        let matchedLocal = null;
+                        if (pParcela) {
+                            const pStr = String(pParcela).trim();
+                            
+                            // Intento 1: Match exacto de ID
+                            matchedLocal = dbLocals.find(l => l.id === pStr);
+                            
+                            // Intento 2: Buscar numero como PALABRA COMPLETA en el nombre
+                            // Usamos \b para evitar que "2" haga match con "2026" o "12"
+                            if (!matchedLocal) {
+                                try {
+                                    // Escapar caracteres especiales del regex por seguridad
+                                    const safeStr = pStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                                    const regex = new RegExp(`\\b${safeStr}\\b`, 'i');
+                                    
+                                    matchedLocal = dbLocals.find(l => {
+                                         // Normalizar nombre del local tambien
+                                         return regex.test(l.name);
+                                    });
+                                } catch (e) {
+                                    console.warn("Regex error for local match", e);
+                                    // Fallback simple si falla regex
+                                    matchedLocal = dbLocals.find(l => l.name.toLowerCase().includes(pStr.toLowerCase()));
+                                }
+                            }
+                        }
+
+                        parsedRecords.push({
+                            workerId: matchedWorker.id,
+                            workerName: matchedWorker.name,
+                            ratePerHour: matchedWorker.ratePerHour || 0,
+                            operationId: matchedOp.id,
+                            operationName: matchedOp.name,
+                            date: detectedDate,
+                            startTime: currentStartTime,
+                            endTime: nextTime,
+                            breakHours: 0,
+                            breakMinutes: 0,
+                            localId: matchedLocal ? matchedLocal.id : '',
+                            localName: matchedLocal ? matchedLocal.name : (pParcela ? `Parcela ${pParcela}` : 'General'),
+                            machineryId: null, // No soportado en este excel simple
+                            totalHours: hoursDuration,
+                            status: 'pending' // Para UI de revisión
+                        });
+
+                        currentStartTime = nextTime;
+                        col += 3; // Avanzar al siguiente bloque
+                    }
+                }
+
+                resolve({ records: parsedRecords, errors, date: detectedDate });
+
+            } catch (err) {
+                reject(err);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    });
+};
+
+
 
 // ------------------------------------
 // --- COMPONENTES DE LOS PASOS ---
@@ -115,23 +342,41 @@ const ProgressBar = ({ currentStep }) => {
 };
 
 // B. Step 1: Selección de Trabajador - MODERN CARD DESIGN
-const Step1_WorkerSelection = ({ workers, onSelect, formData, onNext }) => {
+const Step1_WorkerSelection = ({ workers, onSelect, formData, onNext, onExcelUpload }) => {
     const selectedCount = formData.workerIds.length;
+    const fileInputRef = useRef(null);
     
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                 <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
                     <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
                         <FaUsers className="text-white text-xl"/>
                     </div>
                     Selecciona Trabajadores
                 </h2>
-                {selectedCount > 0 && (
-                    <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-lg shadow-lg">
-                        <span className="font-bold">{selectedCount}</span> seleccionado{selectedCount !== 1 ? 's' : ''}
-                    </div>
-                )}
+                
+                <div className="flex gap-2">
+                    <input 
+                        type="file" 
+                        ref={fileInputRef}
+                        accept=".xlsx, .xls"
+                        className="hidden"
+                        onChange={onExcelUpload}
+                    />
+                    <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 flex items-center gap-2 transition-all text-sm font-semibold"
+                    >
+                        <FaFileUpload /> Importar Excel
+                    </button>
+                    
+                    {selectedCount > 0 && (
+                        <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-lg shadow-lg">
+                            <span className="font-bold">{selectedCount}</span> seleccionado{selectedCount !== 1 ? 's' : ''}
+                        </div>
+                    )}
+                </div>
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[400px] overflow-y-auto p-2">
@@ -505,7 +750,7 @@ const Step6_MachinerySelection = ({ machineryList, onSelect, formData, setCurren
 };
 
 // G. Step 7: Resumen - COLOR-CODED INFORMATION CARDS
-const Step7_Summary = ({ formData, calculateHours, onSave, workers, setCurrentStep }) => {
+const Step7_Summary = ({ formData, calculateHours, onSave, onSaveAndContinue, workers, setCurrentStep }) => {
     
     const selectedWorkers = workers.filter(w => formData.workerIds.includes(w.id));
     const workerNames = selectedWorkers.map(w => w.name).join(', ');
@@ -532,7 +777,7 @@ const Step7_Summary = ({ formData, calculateHours, onSave, workers, setCurrentSt
                 <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
                     <FaFileAlt className="text-white text-xl"/>
                 </div>
-                Resumen de Tarea
+                Resumen de Tarea - Confirmación
             </h2>
             
             <div className="grid md:grid-cols-2 gap-4">
@@ -592,18 +837,126 @@ const Step7_Summary = ({ formData, calculateHours, onSave, workers, setCurrentSt
                 </div>
             </div>
 
-            <div className="flex justify-between pt-4">
+            <div className="flex flex-col md:flex-row justify-between pt-6 gap-4">
                 <button
                     onClick={() => setCurrentStep(1)}
-                    className="px-8 py-3 bg-gray-500 text-white rounded-xl hover:bg-gray-600 font-semibold flex items-center gap-2 transition-all duration-300 hover:shadow-lg"
+                    className="px-6 py-3 bg-gray-500 text-white rounded-xl hover:bg-gray-600 font-semibold flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-lg"
                 >
-                    🔄 Nuevo Registro
+                    🔄 Descartar
+                </button>
+                
+                <div className="flex flex-col md:flex-row gap-4">
+                    <button
+                        onClick={onSaveAndContinue}
+                        className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:shadow-xl font-bold flex items-center justify-center gap-2 transition-all duration-300 hover:scale-105"
+                    >
+                         💾 Guardar y Añadir Otra Tarea (+1)
+                    </button>
+                    
+                    <button
+                        onClick={onSave}
+                        className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:shadow-xl font-bold flex items-center justify-center gap-2 transition-all duration-300 hover:scale-105 border-2 border-white/20"
+                    >
+                        <FaCheckCircle /> Guardar y Finalizar
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// H. Step 8: Resumen y Confirmación por Lotes de Excel
+const Step8_BatchSummary = ({ records, onConfirm, onCancel, workers }) => {
+    
+    // Cálculos de Totales
+    const totalRecords = records.length;
+    const uniqueWorkers = [...new Set(records.map(r => r.workerId))].length;
+    const totalHours = records.reduce((sum, r) => sum + r.totalHours, 0);
+    
+    const totalCost = records.reduce((sum, r) => {
+        const rate = parseFloat(r.ratePerHour) || 0;
+        return sum + (r.totalHours * rate);
+    }, 0);
+
+    return (
+        <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                    <FaFileAlt className="text-white text-xl"/>
+                </div>
+                Verificación Final de Importación
+            </h2>
+
+            {/* Tarjeta de Resumen Financiero */}
+            <div className="bg-gradient-to-r from-green-600 to-emerald-700 p-6 rounded-2xl shadow-xl text-white">
+                <div className="grid md:grid-cols-4 gap-6 text-center">
+                    <div>
+                        <p className="text-sm opacity-80 mb-1">Total Registros</p>
+                        <p className="text-3xl font-bold">{totalRecords}</p>
+                    </div>
+                    <div>
+                        <p className="text-sm opacity-80 mb-1">Trabajadores</p>
+                        <p className="text-3xl font-bold">{uniqueWorkers}</p>
+                    </div>
+                    <div>
+                        <p className="text-sm opacity-80 mb-1">Total Horas</p>
+                        <p className="text-3xl font-bold">{totalHours.toFixed(2)} h</p>
+                    </div>
+                    <div className="bg-white/10 rounded-xl p-2">
+                        <p className="text-sm opacity-90 mb-1">COSTE ESTIMADO</p>
+                        <p className="text-3xl font-extrabold">{totalCost.toFixed(2)} €</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Lista Detallada */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden max-h-[400px] overflow-y-auto">
+                <table className="w-full text-sm text-left">
+                    <thead className="bg-gray-50 text-gray-600 uppercase font-semibold sticky top-0 bg-white shadow-sm z-10">
+                        <tr>
+                            <th className="px-4 py-3">Trabajador</th>
+                            <th className="px-4 py-3">Tarea</th>
+                            <th className="px-4 py-3">Fecha</th>
+                            <th className="px-4 py-3">Horario</th>
+                            <th className="px-4 py-3 text-right">Horas</th>
+                            <th className="px-4 py-3 text-right">Coste</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                        {records.map((rec, i) => {
+                            const cost = (rec.totalHours * (parseFloat(rec.ratePerHour) || 0)).toFixed(2);
+                            return (
+                                <tr key={i} className="hover:bg-green-50 transition-colors">
+                                    <td className="px-4 py-3 font-medium text-gray-800">{rec.workerName}</td>
+                                    <td className="px-4 py-3">
+                                        <div className="flex flex-col">
+                                            <span className="font-semibold text-gray-700">{rec.operationName}</span>
+                                            <span className="text-xs text-gray-500">{rec.localName}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-4 py-3 text-gray-500">{rec.date}</td>
+                                    <td className="px-4 py-3 text-gray-500 text-xs">{rec.startTime} - {rec.endTime}</td>
+                                    <td className="px-4 py-3 text-right font-bold">{rec.totalHours}</td>
+                                    <td className="px-4 py-3 text-right text-gray-600">{cost} €</td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+            </div>
+
+            <div className="flex justify-between pt-6">
+                <button
+                    onClick={onCancel}
+                    className="px-8 py-3 bg-gray-500 text-white rounded-xl hover:bg-gray-600 font-semibold flex items-center gap-2 transition-all duration-300 shadow-md"
+                >
+                    🚨 Cancelar Todo
                 </button>
                 <button
-                    onClick={onSave}
-                    className="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:shadow-xl font-bold flex items-center gap-2 transition-all duration-300 hover:scale-105 text-lg"
+                    onClick={onConfirm}
+                    className="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-700 text-white rounded-xl hover:shadow-xl font-bold flex items-center gap-2 transition-all duration-300 hover:scale-105 text-lg"
                 >
-                    <FaCheckCircle /> Guardar {selectedWorkers.length} Registros
+                    <FaCheckCircle /> Confirmar y Guardar ({totalRecords})
                 </button>
             </div>
         </div>
@@ -637,6 +990,11 @@ const TimeSheetWizard = ({ db, userId, setErrorMessage, availableLocals = [] }) 
     const [workers, setWorkers] = useState([]);
     const [machineryList, setMachineryList] = useState([]);
     const [loading, setLoading] = useState(true);
+    
+    // --- EXCEL STATES ---
+    const [excelRecords, setExcelRecords] = useState([]);
+    const [showExcelPreview, setShowExcelPreview] = useState(false);
+    const [excelErrors, setExcelErrors] = useState([]);
 
     useEffect(() => {
         if (!db || !userId) return;
@@ -665,6 +1023,123 @@ const TimeSheetWizard = ({ db, userId, setErrorMessage, availableLocals = [] }) 
             unsubscribeMachinery();
         };
     }, [db, userId, setErrorMessage]);
+
+    // --- HANDLERS EXCEL ---
+
+    const handleExcelUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setLoading(true);
+        try {
+            // Usamos availableLocals que viene por props para mapear parcelas
+            const { records, errors, date } = await processExcelFile(file, workers, availableLocals);
+            
+            setExcelRecords(records);
+            setExcelErrors(errors);
+            
+            // Si hay fecha detectada en el excel, actualizar
+            if (date) {
+                setFormData(prev => ({ ...prev, date: date }));
+            }
+            
+            setShowExcelPreview(true);
+            setLoading(false);
+        } catch (error) {
+            console.error("Error processing excel:", error);
+            setErrorMessage({ message: "Error al leer el archivo Excel. Verifique el formato.", type: 'error' });
+            setLoading(false);
+        }
+        
+        // Reset input
+        e.target.value = null;
+    };
+
+    const handlePreviewExcelBatch = () => {
+        if (excelRecords.length === 0) return;
+        
+        // Cierra el modal de previsualización simple
+        setShowExcelPreview(false);
+        // Avanza al Paso 8: Resumen Detallado y Financiero
+        setCurrentStep(8);
+    };
+
+    const handleFinalBatchSave = async () => {
+        // Validación final
+        if (excelRecords.length === 0) return;
+        
+        const isConfirmed = window.confirm(`¿CONFIRMACIÓN FINAL: Guardar ${excelRecords.length} registros en la base de datos?`);
+        if (!isConfirmed) return;
+
+        setLoading(true);
+        const successCount = 0;
+        const failCount = 0;
+
+        try {
+            // Promise.allSettled es mejor para que no falle todo si uno falla
+            const results = await Promise.allSettled(excelRecords.map(async (record) => {
+                // Limpiar status y asegurar tipos básicos
+                const { status, ...validRecord } = record;
+                
+                // Sanitize undefined
+                const sanitizedRecord = Object.fromEntries(
+                    Object.entries(validRecord).map(([k, v]) => [k, v === undefined ? null : v])
+                );
+
+                return addDoc(collection(db, TIMESHEET_COLLECTION_PATH), {
+                    ...sanitizedRecord,
+                    createdBy: userId,
+                    createdAt: serverTimestamp(),
+                    editedBy: auth.currentUser?.email || 'Sistema Excel',
+                });
+            }));
+
+            // Analizar resultados
+            const savedCount = results.filter(r => r.status === 'fulfilled').length;
+            const failures = results.filter(r => r.status === 'rejected');
+
+            if (failures.length > 0) {
+                console.error("Algunos registros fallaron:", failures);
+                setErrorMessage({ 
+                    message: `⚠️ Hubo problemas: ${savedCount} guardados, ${failures.length} fallidos. Revise consola.`, 
+                    type: 'error' 
+                });
+            } else {
+                setErrorMessage({ 
+                    message: `✅ ¡Importación Exitosa! ${savedCount} registros guardados y procesados.`, 
+                    type: 'success' 
+                });
+                // Limpieza Total solo si todo ok (o parcial?)
+                setExcelRecords([]);
+                setExcelErrors([]);
+                setFormData(initialData);
+                setCurrentStep(1);
+            }
+            
+            setLoading(false);
+            
+        } catch (error) {
+            console.error("Error crítico saving excel records:", error);
+            setErrorMessage({ message: `❌ Error de sistema al guardar: ${error.message}`, type: 'error' });
+            setLoading(false);
+        }
+    };
+    
+    // Si se cancela desde el Paso 8
+    const handleCancelBatch = () => {
+        const confirmCancel = window.confirm("¿Estás seguro de cancelar toda la importación? Se perderán los datos leídos del Excel.");
+        if (confirmCancel) {
+            setExcelRecords([]);
+            setExcelErrors([]);
+            setCurrentStep(1);
+        }
+    };
+
+    const handleCancelExcel = () => {
+        setShowExcelPreview(false);
+        setExcelRecords([]);
+        setExcelErrors([]);
+    };
 
     const calculateHours = useMemo(() => {
         const start = formData.startTime.split(':').map(Number);
@@ -737,16 +1212,15 @@ const TimeSheetWizard = ({ db, userId, setErrorMessage, availableLocals = [] }) 
         handleNext();
     };
 
-    const handleSave = async () => {
+    // --- Lógica de Guardado Flexible ---
+    
+    const saveData = async (onSuccessCallback) => {
         setErrorMessage(null);
 
         if (formData.workerIds.length === 0) {
             setErrorMessage({ message: "❌ Debe seleccionar al menos un trabajador.", type: 'error' });
             return;
         }
-
-        const isConfirmed = window.confirm(`¿Está seguro de que desea guardar ${formData.workerIds.length} registros de tiempo?`);
-        if (!isConfirmed) return;
 
         try {
             const recordsToSave = formData.workerIds.map(workerId => {
@@ -779,15 +1253,63 @@ const TimeSheetWizard = ({ db, userId, setErrorMessage, availableLocals = [] }) 
 
             await Promise.all(savePromises);
             
-            setErrorMessage({ message: `✅ ¡Se han registrado ${recordsToSave.length} tareas con éxito!`, type: 'success' });
-            
-            setFormData(initialData);
-            setCurrentStep(1);
+            if (onSuccessCallback) onSuccessCallback(recordsToSave.length);
             
         } catch (error) {
             console.error("Error al guardar los registros:", error);
             setErrorMessage({ message: `❌ Error al guardar los registros: ${error.message}`, type: 'error' });
         }
+    };
+
+    const handleSaveAndFinish = () => {
+        const isConfirmed = window.confirm(`¿Está seguro de que desea guardar y FINALIZAR?`);
+        if (!isConfirmed) return;
+
+        saveData((count) => {
+            setErrorMessage({ message: `✅ ¡Se han registrado ${count} tareas y el proceso ha finalizado!`, type: 'success' });
+            setFormData(initialData);
+            setCurrentStep(1);
+        });
+    };
+
+    const handleSaveAndContinue = () => {
+        const isConfirmed = window.confirm(`¿Desea guardar y AÑADIR OTRA actividad para los mismos trabajadores?`);
+        if (!isConfirmed) return;
+
+        saveData((count) => {
+            setErrorMessage({ message: `✅ Tareas guardadas. Ahora añade la siguiente tarea para ${formData.workerNames.join(', ')}.`, type: 'success' });
+            
+            // INTELIGENCIA DE TIEMPO:
+            // 1. Nueva Hora Inicio = Antigua Hora Fin
+            // 2. Nueva Hora Fin = Sugerencia (+4h o fin de jornada)
+            const nextStart = formData.endTime;
+            
+            setFormData(prev => ({
+                ...prev,
+                // MANTENER: WorkerIds, WorkerNames, Date
+                // RESETEAR:
+                operationId: '',
+                operationName: '',
+                localId: '',
+                localName: '',
+                machineryId: null,
+                // ACTUALIZAR TIEMPOS:
+                startTime: nextStart,
+                endTime: calculateNextEndTime(nextStart),
+                breakHours: '00',
+                breakMinutes: '00',
+            }));
+            
+            // Volver al Paso 2 (Operación)
+            setCurrentStep(2);
+        });
+    };
+
+    const calculateNextEndTime = (startTimeStr) => {
+        const [hours, minutes] = startTimeStr.split(':').map(Number);
+        let newHours = hours + 4; 
+        if (newHours >= 24) newHours = 23; 
+        return `${String(newHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
     };
     
     const renderStep = () => {
@@ -800,7 +1322,15 @@ const TimeSheetWizard = ({ db, userId, setErrorMessage, availableLocals = [] }) 
         
         switch (currentStep) {
             case 1:
-                return <Step1_WorkerSelection workers={workers} onSelect={handleWorkerSelect} formData={formData} onNext={handleNext} />;
+                return (
+                    <Step1_WorkerSelection 
+                        workers={workers} 
+                        onSelect={handleWorkerSelect} 
+                        formData={formData} 
+                        onNext={handleNext} 
+                        onExcelUpload={handleExcelUpload}
+                    />
+                );
             case 2:
                 return <Step2_OperationSelection operations={OPERATIONS} onSelect={handleOperationSelect} onBack={handleBack} />;
             case 3:
@@ -811,14 +1341,32 @@ const TimeSheetWizard = ({ db, userId, setErrorMessage, availableLocals = [] }) 
             case 6:
                 return <Step6_MachinerySelection machineryList={machineryList} onSelect={(id) => {setFormData(prev => ({ ...prev, machineryId: id })); handleNext();}} formData={formData} setCurrentStep={setCurrentStep} />;
             case 7:
-                return <Step7_Summary formData={formData} calculateHours={calculateHours} onSave={handleSave} workers={workers} setCurrentStep={setCurrentStep} />;
+                return (
+                    <Step7_Summary 
+                        formData={formData} 
+                        calculateHours={calculateHours} 
+                        onSave={handleSaveAndFinish}
+                        onSaveAndContinue={handleSaveAndContinue} 
+                        workers={workers} 
+                        setCurrentStep={setCurrentStep} 
+                    />
+                );
+            case 8:
+                return (
+                    <Step8_BatchSummary 
+                        records={excelRecords}
+                        onConfirm={handleFinalBatchSave}
+                        onCancel={handleCancelBatch}
+                        workers={workers}
+                    />
+                );
             default:
                 return <p className="text-red-500">Paso no encontrado.</p>;
         }
     };
 
     return (
-        <div className="w-full">
+        <div className="w-full relative">
             {/* Modern Header with Branding */}
             <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-4 sm:p-6 md:p-8 rounded-xl md:rounded-2xl shadow-2xl mb-4 sm:mb-6 md:mb-8 text-white">
                 <div className="flex items-center gap-3 sm:gap-4">
@@ -835,6 +1383,89 @@ const TimeSheetWizard = ({ db, userId, setErrorMessage, availableLocals = [] }) 
             <div className="bg-white p-4 sm:p-6 md:p-8 rounded-xl md:rounded-2xl shadow-xl">
                 {renderStep()}
             </div>
+
+            {/* MODAL DE PREVISUALIZACIÓN EXCEL */}
+            {showExcelPreview && (
+                 <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-gray-900/80 backdrop-blur-sm">
+                    <div className="bg-white w-full max-w-5xl h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+                        
+                        <div className="bg-blue-600 p-4 text-white flex justify-between items-center">
+                            <h3 className="text-xl font-bold flex items-center gap-2">
+                                <FaFileAlt /> Vista Previa Importación Excel
+                            </h3>
+                            <button onClick={handleCancelExcel} className="hover:bg-blue-700 p-2 rounded-lg transition-colors">
+                                ✖
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+                            {/* Errores */}
+                            {excelErrors.length > 0 && (
+                                <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                                    <h4 className="font-bold text-red-700 mb-2">Advertencias ({excelErrors.length}):</h4>
+                                    <ul className="list-disc pl-5 text-sm text-red-600 space-y-1">
+                                        {excelErrors.slice(0, 5).map((err, i) => <li key={i}>{err}</li>)}
+                                        {excelErrors.length > 5 && <li>... y {excelErrors.length - 5} más.</li>}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {/* Tabla de Registros */}
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-gray-100 text-gray-600 uppercase font-semibold">
+                                        <tr>
+                                            <th className="px-4 py-3">Fecha</th>
+                                            <th className="px-4 py-3">Trabajador</th>
+                                            <th className="px-4 py-3">Tarea</th>
+                                            <th className="px-4 py-3">Horario</th>
+                                            <th className="px-4 py-3 text-center">Horas</th>
+                                            <th className="px-4 py-3">Cultivo/Local</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        {excelRecords.map((rec, i) => (
+                                            <tr key={i} className="hover:bg-blue-50 transition-colors">
+                                                <td className="px-4 py-3">{rec.date}</td>
+                                                <td className="px-4 py-3 font-medium text-gray-800">{rec.workerName}</td>
+                                                <td className="px-4 py-3">
+                                                    <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-semibold">
+                                                        {rec.operationName}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 text-gray-500">{rec.startTime} - {rec.endTime}</td>
+                                                <td className="px-4 py-3 font-bold text-center">{rec.totalHours}</td>
+                                                <td className="px-4 py-3 text-gray-500">{rec.localName}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                {excelRecords.length === 0 && (
+                                    <div className="p-8 text-center text-gray-500">No se encontraron registros válidos.</div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="p-4 border-t border-gray-100 flex justify-end gap-3 bg-white">
+                             <button
+                                onClick={handleCancelExcel}
+                                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium transition-colors"
+                             >
+                                Cancelar
+                             </button>
+                             <button
+                                onClick={handlePreviewExcelBatch}
+                                disabled={excelRecords.length === 0}
+                                className={`px-6 py-2 text-white rounded-lg font-bold flex items-center gap-2 shadow-lg transition-transform transform hover:scale-105 ${
+                                    excelRecords.length > 0 ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700' : 'bg-gray-400 cursor-not-allowed'
+                                }`}
+                             >
+                                <FaCheckCircle /> Continuar a Verificación
+                             </button>
+                        </div>
+                    </div>
+                 </div>
+            )}
         </div>
     );
 };

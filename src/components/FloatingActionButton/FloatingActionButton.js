@@ -383,17 +383,25 @@ const FloatingActionButton = () => {
                 />
             )}
 
-            {/* Mensaje de error mejorado */}
+            {/* Mensaje de error / éxito mejorado */}
             {errorMessage && (
-                <div className="fixed bottom-24 right-6 z-50 bg-red-50 border-l-4 border-red-500 text-red-800 px-4 py-3 rounded-lg shadow-2xl max-w-md error-message-slide-in">
-                    <div className="flex items-start">
+                <div className={`fixed bottom-24 right-6 z-50 px-4 py-3 rounded-lg shadow-2xl max-w-md error-message-slide-in border-l-4 ${
+                    errorMessage.type === 'success' ? 'bg-green-50 border-green-500 text-green-800' : 'bg-red-50 border-red-500 text-red-800'
+                }`}>
+                    <div className="flex items-start gap-3">
                         <div className="flex-1">
-                            <p className="text-sm font-semibold mb-1">Error</p>
-                            <p className="text-xs">{errorMessage}</p>
+                            <p className="text-sm font-semibold mb-1">
+                                {errorMessage.type === 'success' ? 'Éxito' : 'Notificación'}
+                            </p>
+                            <p className="text-xs">
+                                {typeof errorMessage === 'object' ? errorMessage.message : errorMessage}
+                            </p>
                         </div>
                         <button
                             onClick={() => setErrorMessage("")}
-                            className="ml-4 text-red-600 hover:text-red-800 font-bold text-lg leading-none transition-colors"
+                            className={`font-bold text-lg leading-none transition-colors ${
+                                errorMessage.type === 'success' ? 'text-green-600 hover:text-green-800' : 'text-red-600 hover:text-red-800'
+                            }`}
                         >
                             ×
                         </button>

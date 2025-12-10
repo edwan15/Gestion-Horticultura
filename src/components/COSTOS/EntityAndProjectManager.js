@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { collection, query, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
-import { FaBuilding, FaSeedling, FaPlus, FaChartLine } from 'react-icons/fa';
+import { collection, query, onSnapshot, addDoc, serverTimestamp, deleteDoc, doc } from 'firebase/firestore';
+import { FaBuilding, FaSeedling, FaPlus, FaChartLine, FaTrash } from 'react-icons/fa';
 
 // Función auxiliar para obtener el App ID
 const getAppId = () => {
@@ -162,6 +162,28 @@ const EntityAndProjectManager = ({ db, userId, setErrorMessage, errorMessage }) 
         createNewItem('project', newProjectName);
     };
 
+    // --- Función de Eliminación ---
+    const handleDeleteItem = async (id, type, name) => {
+        if (!window.confirm(`¿Estás seguro de que deseas eliminar permanentemente ${type === 'entity' ? 'la entidad' : 'el proyecto'} "${name}"? Esta acción no se puede deshacer.`)) {
+            return;
+        }
+
+        let path;
+        if (type === 'entity') {
+            path = `artifacts/${appId}/public/data/entities`;
+        } else if (type === 'project') {
+            path = `artifacts/${appId}/public/data/projects`;
+        }
+
+        try {
+            await deleteDoc(doc(db, path, id));
+            // No necesitamos actualizar el estado manualmente porque onSnapshot lo hará
+        } catch (error) {
+            console.error(`Error deleting ${type}:`, error);
+            setErrorMessage(`Error al eliminar ${type === 'entity' ? 'entidad' : 'proyecto'}: ` + error.message);
+        }
+    };
+
     // --- UI DE RENDERIZADO ---
     if (isLoading) {
         return (
@@ -260,7 +282,7 @@ const EntityAndProjectManager = ({ db, userId, setErrorMessage, errorMessage }) 
                                 {entities.map(entity => (
                                     <li 
                                         key={entity.id} 
-                                        className="p-3 bg-purple-50 rounded-lg border border-purple-100 hover:bg-purple-100 transition-colors"
+                                        className="p-3 bg-purple-50 rounded-lg border border-purple-100 hover:bg-purple-100 transition-colors flex justify-between items-center"
                                     >
                                         <div className="flex items-center space-x-2">
                                             <FaBuilding className="text-purple-500 text-sm" />
@@ -268,6 +290,13 @@ const EntityAndProjectManager = ({ db, userId, setErrorMessage, errorMessage }) 
                                                 {entity.name}
                                             </span>
                                         </div>
+                                        <button
+                                            onClick={() => handleDeleteItem(entity.id, 'entity', entity.name)}
+                                            className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                                            title="Eliminar Entidad"
+                                        >
+                                            <FaTrash className="text-sm" />
+                                        </button>
                                     </li>
                                 ))}
                             </ul>
@@ -321,7 +350,7 @@ const EntityAndProjectManager = ({ db, userId, setErrorMessage, errorMessage }) 
                                 {projects.map(project => (
                                     <li 
                                         key={project.id} 
-                                        className="p-3 bg-green-50 rounded-lg border border-green-100 hover:bg-green-100 transition-colors"
+                                        className="p-3 bg-green-50 rounded-lg border border-green-100 hover:bg-green-100 transition-colors flex justify-between items-center"
                                     >
                                         <div className="flex items-center space-x-2">
                                             <FaSeedling className="text-green-500 text-sm" />
@@ -329,6 +358,13 @@ const EntityAndProjectManager = ({ db, userId, setErrorMessage, errorMessage }) 
                                                 {project.name}
                                             </span>
                                         </div>
+                                        <button
+                                            onClick={() => handleDeleteItem(project.id, 'project', project.name)}
+                                            className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                                            title="Eliminar Proyecto"
+                                        >
+                                            <FaTrash className="text-sm" />
+                                        </button>
                                     </li>
                                 ))}
                             </ul>
