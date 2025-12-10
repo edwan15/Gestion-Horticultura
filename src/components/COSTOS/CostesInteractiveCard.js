@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
     FaSeedling, FaUsers, FaUserTie, FaTags, FaChevronRight, FaEllipsisV, 
-    FaArrowUp, FaArrowDown, FaEuroSign, FaChartPie 
+    FaArrowUp, FaEuroSign, FaChartPie, FaSpinner
 } from 'react-icons/fa';
 import { MdBusiness } from 'react-icons/md';
 
@@ -85,49 +85,163 @@ const ListItem = ({ title, subtitle, value, percentage, type = 'default' }) => {
     );
 };
 
-const CostesInteractiveCard = () => {
+const CostesInteractiveCard = ({ timesheets = [], loading = false }) => {
     const [activeTab, setActiveTab] = useState('cultivo');
     const [selectedPeriod, setSelectedPeriod] = useState('ultimo_mes');
     const navigate = useNavigate();
 
-    // Mock Data placeholders - Replaced later with real data props
-    const renderContent = () => {
-        switch (activeTab) {
-            case 'cultivo':
-                return (
-                    <div className="animate-fadeIn space-y-1">
-                        <ListItem title="Inv 2 Calabacín 2026" subtitle="2.751,55 €/ha" value="3.081,73" percentage="12%" type="cultivo" />
-                        <ListItem title="Inv 4 Calabacín 2026" subtitle="3.874,71 €/ha" value="6.005,80" percentage="29%" type="cultivo" />
-                        <ListItem title="General Balsicas 2026" subtitle="143.444,00 €/ha" value="1.434,44" percentage="8%" type="cultivo" />
-                    </div>
-                );
-            case 'entidad':
-                return (
-                    <div className="animate-fadeIn space-y-1">
-                        <ListItem title="Nutricontrol S.L." subtitle="Riego y Automatización" value="2.450,00" percentage="15%" type="entidad" />
-                        <ListItem title="Semillas Almería" subtitle="Insumos" value="1.200,50" percentage="5%" type="entidad" />
-                        <ListItem title="Transportes Gomez" subtitle="Logística" value="890,20" percentage="2%" type="entidad" />
-                    </div>
-                );
-            case 'trabajador':
-                return (
-                    <div className="animate-fadeIn space-y-1">
-                        <ListItem title="Juan Pérez" subtitle="Encargado" value="1.800,00" type="trabajador" />
-                        <ListItem title="María García" subtitle="Peón Especializado" value="1.450,00" type="trabajador" />
-                        <ListItem title="Equipo Recolección" subtitle="Cuadrilla A" value="4.500,00" percentage="10%" type="trabajador" />
-                    </div>
-                );
-            case 'categoria':
-                return (
-                    <div className="animate-fadeIn space-y-1">
-                        <ListItem title="Mano de Obra" subtitle="Salarios y SS" value="8.500,00" percentage="45%" type="categoria" />
-                        <ListItem title="Insumos" subtitle="Fertilizantes/Fito" value="4.200,00" percentage="22%" type="categoria" />
-                        <ListItem title="Maquinaria" subtitle="Mantenimiento/Combustible" value="1.300,00" percentage="8%" type="categoria" />
-                    </div>
-                );
+    // 1. DATA FILTERING LOGIC (Same as CostesManager)
+    const filteredData = useMemo(() => {
+        if (!timesheets.length) return [];
+        
+        const today = new Date();
+        let startDate, endDate;
+
+        switch (selectedPeriod) {
+            case 'ultimo_mes':
+                startDate = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+                endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 30); 
+                break;
+            case 'ultimo_trimestre':
+                 startDate = new Date(today.getFullYear(), today.getMonth() - 3, today.getDate());
+                 endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 30);
+                 break;
+            case 'anio_actual':
+                startDate = new Date(today.getFullYear(), 0, 1);
+                endDate = new Date(today.getFullYear(), 11, 31);
+                break;
             default:
-                return null;
+                startDate = null; endDate = null;
         }
+
+        return timesheets.filter(item => {
+            if (!startDate) return true;
+            const itemDate = new Date(item.date);
+            // Adjust end date to include the full day
+            let adjustedEndDate = new Date(endDate);
+            adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
+            
+            return itemDate >= startDate && itemDate < adjustedEndDate;
+        });
+    }, [timesheets, selectedPeriod]);
+
+    // 2. AGGREGATION LOGIC
+    const aggregatedData = useMemo(() => {
+        const groups = {};
+        let grandTotal = 0;
+
+        filteredData.forEach(item => {
+            const hours = parseFloat(item.totalHours || 0);
+            const rate = parseFloat(item.ratePerHour || 0);
+            const cost = hours * rate;
+            grandTotal += cost;
+
+            // Determine grouping key and name based on activeTab
+            let key, name, subtitle;
+            
+            switch (activeTab) {
+                case 'cultivo':
+                    key = item.localId || 'unknown';
+                    name = item.localName || 'Desconocido';
+                    subtitle = 'Cultivo / Local'; // Could be €/ha if area data was available
+                    break;
+                case 'trabajador':
+                    key = item.workerId || 'unknown';
+                    name = item.workerName || 'Desconocido';
+                    subtitle = 'Personal';
+                    break;
+                case 'entidad':
+                    // Current timesheets don't have supplier entities, so this is mostly empty
+                    // We could map it to something else or just leave it blank
+                    key = 'na';
+                    // Optional: You could group by 'Supplier' if you had expense records
+                    name = 'Sin registros'; 
+                    subtitle = 'N/A';
+                    break;
+                case 'categoria':
+                    key = 'mano_obra';
+                    name = 'Mano de Obra';
+                    subtitle = 'Salarios y SS';
+                    break;
+                default:
+                    key = 'unknown'; name = 'Unknown'; subtitle = '';
+            }
+
+            // Skip invalid keys? No, show them as Unknown
+            if (activeTab === 'entidad') return; // Skip for now as we don't have data
+
+            if (!groups[key]) {
+                groups[key] = {
+                    key,
+                    name,
+                    subtitle,
+                    totalCost: 0,
+                };
+            }
+            groups[key].totalCost += cost;
+        });
+
+        // Convert groups to array and sort by cost descending
+        const results = Object.values(groups).sort((a, b) => b.totalCost - a.totalCost);
+
+        // Calculate percentages
+        return {
+            items: results.map(group => ({
+                ...group,
+                percentage: grandTotal > 0 ? ((group.totalCost / grandTotal) * 100).toFixed(1) : 0
+            })),
+            totalFilteredCost: grandTotal
+        };
+
+    }, [filteredData, activeTab]);
+
+    // 3. COUNTS FOR TABS
+    const counts = useMemo(() => {
+        // We need to count unique items for each category based on FULL filtered data, regardless of active tab
+        const uniqueCultivos = new Set(filteredData.map(i => i.localId).filter(Boolean)).size;
+        const uniqueWorkers = new Set(filteredData.map(i => i.workerId).filter(Boolean)).size;
+        // const uniqueEntities = 0; // Placeholder
+        const uniqueCategories = 1; // "Mano de Obra"
+
+        return {
+            cultivo: uniqueCultivos,
+            entidad: 0,
+            trabajador: uniqueWorkers,
+            categoria: uniqueCategories
+        };
+    }, [filteredData]);
+
+    const renderContent = () => {
+        if (loading) {
+            return (
+                <div className="flex justify-center items-center h-40">
+                    <FaSpinner className="animate-spin text-emerald-500 text-2xl" />
+                </div>
+            );
+        }
+
+        if (aggregatedData.items.length === 0) {
+             return (
+                <div className="flex flex-col justify-center items-center h-40 text-gray-400">
+                    <p className="text-sm">No hay datos para este periodo</p>
+                </div>
+            );
+        }
+
+        return (
+            <div className="animate-fadeIn space-y-1">
+                {aggregatedData.items.map((item) => (
+                    <ListItem 
+                        key={item.key}
+                        title={item.name} 
+                        subtitle={item.subtitle} 
+                        value={item.totalCost.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} 
+                        percentage={`${item.percentage}%`} 
+                        type={activeTab} 
+                    />
+                ))}
+            </div>
+        );
     };
 
     return (
@@ -163,7 +277,7 @@ const CostesInteractiveCard = () => {
                     id="cultivo" 
                     label="Cultivo" 
                     icon={FaSeedling} 
-                    count={7} 
+                    count={counts.cultivo} 
                     isActive={activeTab === 'cultivo'} 
                     onClick={setActiveTab}
                     color="emerald"
@@ -173,7 +287,7 @@ const CostesInteractiveCard = () => {
                     id="entidad" 
                     label="Entidad" 
                     icon={MdBusiness} 
-                    count={10} 
+                    count={counts.entidad} 
                     isActive={activeTab === 'entidad'} 
                     onClick={setActiveTab}
                     color="blue"
@@ -183,7 +297,7 @@ const CostesInteractiveCard = () => {
                     id="trabajador" 
                     label="Trabajador" 
                     icon={FaUsers} 
-                    count={0} 
+                    count={counts.trabajador} 
                     isActive={activeTab === 'trabajador'} 
                     onClick={setActiveTab}
                     color="purple"
@@ -193,7 +307,7 @@ const CostesInteractiveCard = () => {
                     id="categoria" 
                     label="Categoría" 
                     icon={FaChartPie} 
-                    count={3} 
+                    count={counts.categoria} 
                     isActive={activeTab === 'categoria'} 
                     onClick={setActiveTab}
                     color="amber"
@@ -204,11 +318,13 @@ const CostesInteractiveCard = () => {
             <div className="flex-1 p-2 overflow-y-auto custom-scrollbar bg-white">
                 {renderContent()}
                 
-                <div className="mt-2 flex justify-center">
-                    <button className="text-[10px] font-semibold text-gray-400 hover:text-emerald-600 border border-gray-100 hover:border-emerald-300 px-3 py-1 rounded-full transition-all duration-300">
-                        Mostrar más
-                    </button>
-                </div>
+                {aggregatedData.items.length > 5 && (
+                    <div className="mt-2 flex justify-center">
+                        <button className="text-[10px] font-semibold text-gray-400 hover:text-emerald-600 border border-gray-100 hover:border-emerald-300 px-3 py-1 rounded-full transition-all duration-300">
+                            Mostrar más
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Footer Summary */}
@@ -217,7 +333,8 @@ const CostesInteractiveCard = () => {
                     <div>
                         <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-0">Promedio / ha</p>
                         <div className="text-lg font-bold text-gray-700 leading-tight">
-                            21.840,20 <span className="text-[10px] font-normal text-gray-400">€/ha</span>
+                            {/* Placeholder for now as we don't have hectare data */}
+                            -- <span className="text-[10px] font-normal text-gray-400">€/ha</span>
                         </div>
                     </div>
                     <div className="text-right">
@@ -225,7 +342,7 @@ const CostesInteractiveCard = () => {
                             <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Total
                         </p>
                         <div className="text-xl font-extrabold text-blue-900 tracking-tight leading-none">
-                            23.820,33 <span className="text-sm font-normal text-gray-400">€</span>
+                            {aggregatedData.totalFilteredCost.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-sm font-normal text-gray-400">€</span>
                         </div>
                     </div>
                 </div>
