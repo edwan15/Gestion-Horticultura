@@ -34,11 +34,12 @@ import { selectUserId } from '../../features/auth/authSlice/authSlice';
 
 // --- Componentes que se asume que están importados de otros archivos ---
 // <=== SOLICITADO: Importación del componente WeatherForecast
+import ActivitiesMap from '../FieldActivities/ActivitiesMap';
 import WeatherForecast from '../COSTOS/WeatherForecast'; 
 
-import GreenhouseMap from '../GreenhouseMap/GreenhouseMap'; 
+// import GreenhouseMap from '../GreenhouseMap/GreenhouseMap'; 
 import GreenhouseSummaryCard from '../../Pages/produccionC/GreenhouseSummaryCard'; 
-import { CostDashboard} from '../COSTOS/CostDashboard'; 
+import { CostDashboard } from '../COSTOS/CostDashboard'; 
 import EntityAndProjectManager from '../COSTOS/EntityAndProjectManager';
 import EmployeeManagement from '../COSTOS/EmployeeManagement';
 import TimeSheetWizard from '../COSTOS/TimeSheetWizard'; 
@@ -1126,7 +1127,9 @@ export const HomeView = ({
     timesheets,
     handleEdit,
     handleDelete,
-    isEditMode 
+    isEditMode,
+    userId,
+    db
 }) => {
     
     // Lógica existente
@@ -1220,10 +1223,15 @@ export const HomeView = ({
                             className="h-full overflow-hidden flex flex-col" // Added flex flex-col to ensure content takes space correctly
                         >
                              <div className="flex-1 relative z-0 min-h-0"> {/* flex-1 and min-h-0 are crucial for nested flex scrolling/sizing */}
-                                <GreenhouseMap 
+                                {/* <GreenhouseMap 
                                     greenhouses={greenhouses} 
                                     onGreenhouseSelect={handleMapSelect} 
                                     selectedGreenhouseId={selectedGreenhouseId} 
+                                /> */}
+                                <ActivitiesMap 
+                                    db={db} 
+                                    userId={userId} 
+                                    activeTab="all" 
                                 />
                             </div>
                         </DashboardCard>
@@ -1633,7 +1641,7 @@ const HomeContent = (props) => {
 
 
             {/* Renderizado de la Vista Activa */}
-            {activeView === 'home' && (<HomeView {...restOfProps} timesheets={timesheets} isEditMode={isEditMode} />)}
+            {activeView === 'home' && (<HomeView {...restOfProps} timesheets={timesheets} isEditMode={isEditMode} userId={userId} db={db} />)}
 
             {activeView === 'costs' && (
                 <div className="p-4 sm:p-6 pt-0">

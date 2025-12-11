@@ -75,7 +75,7 @@ const SideBar = ({ children }) => {
                 variants={desktopSidebarVariants}
                 animate={isOpen ? "open" : "closed"}
                 initial={false}
-                className="hidden lg:flex flex-col bg-white text-gray-700 min-h-screen relative shadow-xl z-30 flex-shrink-0 border-r border-gray-200"
+                className="hidden lg:flex flex-col bg-white text-gray-700 min-h-screen relative shadow-xl z-[3000] flex-shrink-0 border-r border-gray-200"
             >
                 {/* Header del Sidebar */}
                 <div className="h-16 flex items-center justify-center bg-green-600 relative overflow-hidden">
@@ -172,7 +172,7 @@ const SideBar = ({ children }) => {
                                     stiffness: 300,
                                     opacity: { duration: 0.2 }
                                 }}
-                                className="fixed top-0 left-0 w-80 h-full z-50 lg:hidden flex flex-col shadow-2xl"
+                                className="fixed top-0 left-0 w-80 h-full z-[3050] lg:hidden flex flex-col shadow-2xl"
                                 style={{
                                     background: 'rgba(255, 255, 255, 0.85)',
                                     backdropFilter: 'blur(20px) saturate(180%)',

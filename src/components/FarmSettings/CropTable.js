@@ -10,7 +10,7 @@ const getAppId = () => {
     return "default-calendar-app-id";
 };
 
-const CropTable = ({ db, userId }) => {
+const CropTable = ({ db, userId, currentUser }) => {
     const [crops, setCrops] = useState([]);
     const [parcels, setParcels] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -86,17 +86,26 @@ const CropTable = ({ db, userId }) => {
 
     const handleSave = async (cropData) => {
         try {
+            const updateInfo = {
+                updatedBy: {
+                    name: currentUser?.displayName || currentUser?.email || 'Usuario',
+                    photoURL: currentUser?.photoURL || null,
+                    email: currentUser?.email
+                },
+                updatedAt: serverTimestamp(),
+            };
+
             if (editingCrop) {
                 await updateDoc(doc(db, CROPS_PATH, editingCrop.id), {
                     ...cropData,
-                    updatedAt: serverTimestamp(),
+                    ...updateInfo
                 });
             } else {
                 await addDoc(collection(db, CROPS_PATH), {
                     ...cropData,
                     userId,
                     createdAt: serverTimestamp(),
-                    updatedAt: serverTimestamp(),
+                    ...updateInfo
                 });
             }
             setIsModalOpen(false);
@@ -178,6 +187,9 @@ const CropTable = ({ db, userId }) => {
                                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
                                         Estado
                                     </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
+                                        Actualizado en
+                                    </th>
                                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
                                         Acciones
                                     </th>
@@ -212,6 +224,43 @@ const CropTable = ({ db, userId }) => {
                                             }`}>
                                                 {crop.archived ? 'Archivado' : 'Activo'}
                                             </span>
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-gray-600">
+                                            {(() => {
+                                                const isOwner = crop.userId === currentUser?.uid;
+                                                const userToDisplay = crop.updatedBy || (isOwner ? {
+                                                    name: currentUser?.displayName || currentUser?.email || 'Usuario',
+                                                    photoURL: currentUser?.photoURL,
+                                                    email: currentUser?.email
+                                                } : null);
+
+                                                const dateToDisplay = crop.updatedAt || crop.createdAt;
+                                                
+                                                // Usar la foto actual si es el dueño y la guardada no existe
+                                                const finalPhotoURL = userToDisplay?.photoURL || (isOwner ? currentUser?.photoURL : null);
+
+                                                if (userToDisplay) {
+                                                    return (
+                                                        <div className="flex items-center gap-2">
+                                                            {finalPhotoURL ? (
+                                                                <img src={finalPhotoURL} alt="User" className="w-8 h-8 rounded-full object-cover border border-gray-200" />
+                                                            ) : (
+                                                                <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold border border-emerald-200">
+                                                                    {(userToDisplay.name || 'U').charAt(0).toUpperCase()}
+                                                                </div>
+                                                            )}
+                                                            <div className="flex flex-col">
+                                                                <span className="text-xs font-medium text-gray-900">{userToDisplay.name}</span>
+                                                                <span className="text-[10px] text-gray-500">
+                                                                    {dateToDisplay?.seconds ? new Date(dateToDisplay.seconds * 1000).toLocaleDateString() + ' ' + new Date(dateToDisplay.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
+
+                                                return <span className="text-xs text-gray-400">-</span>;
+                                            })()}
                                         </td>
                                         <td className="px-4 py-3 text-center">
                                             <div className="flex items-center justify-center gap-2">

@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
     FaSeedling, FaUsers, FaUserTie, FaTags, FaChevronRight, FaEllipsisV, 
-    FaArrowUp, FaEuroSign, FaChartPie, FaSpinner
+    FaArrowUp, FaEuroSign, FaChartPie, FaSpinner, FaFilter, FaCheckSquare, FaSquare
 } from 'react-icons/fa';
 import { MdBusiness } from 'react-icons/md';
 
@@ -85,12 +85,102 @@ const ListItem = ({ title, subtitle, value, percentage, type = 'default' }) => {
     );
 };
 
+const FilterDropdown = ({ options, selectedIds, onSelectionChange, onClose }) => {
+    const dropdownRef = useRef(null);
+
+    // Close on click outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                onClose();
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [onClose]);
+
+    const handleToggleAll = () => {
+        if (selectedIds.length === options.length) {
+            onSelectionChange([]);
+        } else {
+            onSelectionChange(options.map(o => o.id));
+        }
+    };
+
+    const handleToggle = (id) => {
+        if (selectedIds.includes(id)) {
+            onSelectionChange(selectedIds.filter(sid => sid !== id));
+        } else {
+            onSelectionChange([...selectedIds, id]);
+        }
+    };
+
+    return (
+        <div ref={dropdownRef} className="absolute top-8 right-0 w-64 bg-white rounded-lg shadow-xl border border-gray-100 z-50 animate-fadeIn">
+            <div className="p-2 border-b border-gray-100">
+                <button 
+                    onClick={handleToggleAll}
+                    className="flex items-center gap-2 w-full px-2 py-1.5 hover:bg-gray-50 rounded text-xs font-semibold text-emerald-600 transition-colors"
+                >
+                    {selectedIds.length === options.length ? <FaCheckSquare /> : <FaSquare className="text-gray-300" />}
+                    Seleccionar todos
+                </button>
+            </div>
+            <div className="max-h-48 overflow-y-auto custom-scrollbar p-1">
+                {options.map(option => (
+                    <button
+                        key={option.id}
+                        onClick={() => handleToggle(option.id)}
+                        className="flex items-center gap-2 w-full px-2 py-1.5 hover:bg-gray-50 rounded text-xs text-gray-600 text-left transition-colors"
+                    >
+                        {selectedIds.includes(option.id) ? 
+                            <FaCheckSquare className="text-emerald-500 flex-shrink-0" /> : 
+                            <FaSquare className="text-gray-300 flex-shrink-0" />
+                        }
+                        <span className="truncate">{option.name}</span>
+                    </button>
+                ))}
+            </div>
+            <div className="p-2 border-t border-gray-100 flex justify-end">
+                <button 
+                    onClick={onClose}
+                    className="px-3 py-1 bg-emerald-500 text-white text-[10px] font-bold rounded shadow-sm hover:bg-emerald-600 transition-colors"
+                >
+                    OK
+                </button>
+            </div>
+        </div>
+    );
+};
+
 const CostesInteractiveCard = ({ timesheets = [], loading = false }) => {
     const [activeTab, setActiveTab] = useState('cultivo');
     const [selectedPeriod, setSelectedPeriod] = useState('ultimo_mes');
     const navigate = useNavigate();
 
-    // 1. DATA FILTERING LOGIC (Same as CostesManager)
+    // Filter Logic States
+    const [showFilter, setShowFilter] = useState(false);
+    const [selectedLocalIds, setSelectedLocalIds] = useState([]);
+
+    // Extract available crops (locals) from data
+    const availableCrops = useMemo(() => {
+        const cropsMap = new Map();
+        timesheets.forEach(item => {
+            if (item.localId && item.localName) {
+                cropsMap.set(item.localId, item.localName);
+            }
+        });
+        return Array.from(cropsMap.entries()).map(([id, name]) => ({ id, name }));
+    }, [timesheets]);
+
+    // Initialize selected IDs with all crops when they load
+    useEffect(() => {
+        if (availableCrops.length > 0 && selectedLocalIds.length === 0) {
+            setSelectedLocalIds(availableCrops.map(c => c.id));
+        }
+    }, [availableCrops]);
+
+    // 1. DATA FILTERING LOGIC
     const filteredData = useMemo(() => {
         if (!timesheets.length) return [];
         
@@ -115,15 +205,25 @@ const CostesInteractiveCard = ({ timesheets = [], loading = false }) => {
         }
 
         return timesheets.filter(item => {
-            if (!startDate) return true;
-            const itemDate = new Date(item.date);
-            // Adjust end date to include the full day
-            let adjustedEndDate = new Date(endDate);
-            adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
-            
-            return itemDate >= startDate && itemDate < adjustedEndDate;
+            // Date Filter
+            if (startDate) {
+                const itemDate = new Date(item.date);
+                let adjustedEndDate = new Date(endDate);
+                adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
+                if (itemDate < startDate || itemDate >= adjustedEndDate) return false;
+            }
+
+            // Crop Filter
+            // If item has a localId, check if it's in selected list. 
+            // If item has NO localId (rare but possible), we might want to include it or exclude it. 
+            // For now, let's assume if it has a localId, it must be selected.
+            if (item.localId && !selectedLocalIds.includes(item.localId)) {
+                return false;
+            }
+
+            return true;
         });
-    }, [timesheets, selectedPeriod]);
+    }, [timesheets, selectedPeriod, selectedLocalIds]);
 
     // 2. AGGREGATION LOGIC
     const aggregatedData = useMemo(() => {
@@ -151,10 +251,7 @@ const CostesInteractiveCard = ({ timesheets = [], loading = false }) => {
                     subtitle = 'Personal';
                     break;
                 case 'entidad':
-                    // Current timesheets don't have supplier entities, so this is mostly empty
-                    // We could map it to something else or just leave it blank
                     key = 'na';
-                    // Optional: You could group by 'Supplier' if you had expense records
                     name = 'Sin registros'; 
                     subtitle = 'N/A';
                     break;
@@ -167,8 +264,7 @@ const CostesInteractiveCard = ({ timesheets = [], loading = false }) => {
                     key = 'unknown'; name = 'Unknown'; subtitle = '';
             }
 
-            // Skip invalid keys? No, show them as Unknown
-            if (activeTab === 'entidad') return; // Skip for now as we don't have data
+            if (activeTab === 'entidad') return;
 
             if (!groups[key]) {
                 groups[key] = {
@@ -197,10 +293,8 @@ const CostesInteractiveCard = ({ timesheets = [], loading = false }) => {
 
     // 3. COUNTS FOR TABS
     const counts = useMemo(() => {
-        // We need to count unique items for each category based on FULL filtered data, regardless of active tab
         const uniqueCultivos = new Set(filteredData.map(i => i.localId).filter(Boolean)).size;
         const uniqueWorkers = new Set(filteredData.map(i => i.workerId).filter(Boolean)).size;
-        // const uniqueEntities = 0; // Placeholder
         const uniqueCategories = 1; // "Mano de Obra"
 
         return {
@@ -223,7 +317,7 @@ const CostesInteractiveCard = ({ timesheets = [], loading = false }) => {
         if (aggregatedData.items.length === 0) {
              return (
                 <div className="flex flex-col justify-center items-center h-40 text-gray-400">
-                    <p className="text-sm">No hay datos para este periodo</p>
+                    <p className="text-sm">No hay datos para este periodo o filtro</p>
                 </div>
             );
         }
@@ -245,30 +339,60 @@ const CostesInteractiveCard = ({ timesheets = [], loading = false }) => {
     };
 
     return (
-        <div className="bg-white rounded-none shadow-xl border border-gray-100 overflow-hidden flex flex-col h-full font-sans">
+        <div className="bg-white rounded-none shadow-xl border border-gray-100 overflow-visible flex flex-col h-full font-sans relative">
             {/* Header */}
             <div className="p-3 border-b border-gray-100 flex justify-between items-center bg-white">
-                <div 
-                    onClick={() => navigate('/costes')}
-                    className="cursor-pointer group"
-                >
-                    <h2 className="text-sm font-bold text-gray-800 flex items-center gap-2 group-hover:text-emerald-600 transition-colors">
-                        Costes <FaChevronRight className="text-[10px] text-emerald-500 group-hover:text-emerald-600" />
-                    </h2>
+                <div className="flex items-center gap-1.5" onClick={() => navigate('/costes')}>
+                     <div className="cursor-pointer group flex items-center gap-1">
+                        <h2 className="text-sm font-bold text-gray-800 flex items-center gap-2 group-hover:text-emerald-600 transition-colors">
+                            Costes <FaChevronRight className="text-[10px] text-emerald-500 group-hover:text-emerald-600" />
+                        </h2>
+                    </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                     {/* Filter Button */}
+                     <div className="relative">
+                        <button 
+                            onClick={() => setShowFilter(!showFilter)}
+                            className={`p-1.5 rounded-full transition-all duration-300 ${showFilter || selectedLocalIds.length < availableCrops.length ? 'text-emerald-600 bg-emerald-50 ring-1 ring-emerald-200' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+                            title="Filtrar por Cultivo"
+                        >
+                            <FaFilter className="text-xs" />
+                            {selectedLocalIds.length < availableCrops.length && (
+                                <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                                </span>
+                            )}
+                        </button>
+                        
+                        {/* Filter Dropdown */}
+                        {showFilter && (
+                            <FilterDropdown 
+                                options={availableCrops}
+                                selectedIds={selectedLocalIds}
+                                onSelectionChange={setSelectedLocalIds}
+                                onClose={() => setShowFilter(false)}
+                            />
+                        )}
+                     </div>
+
                     <select 
                         value={selectedPeriod}
                         onChange={(e) => setSelectedPeriod(e.target.value)}
-                        className="text-[10px] text-gray-500 bg-transparent border-none focus:ring-0 p-0 font-medium cursor-pointer hover:text-emerald-600 transition-colors"
+                        className="text-[10px] text-gray-500 bg-transparent border-none focus:ring-0 p-0 font-medium cursor-pointer hover:text-emerald-600 transition-colors pr-4"
                         onClick={(e) => e.stopPropagation()} 
                     >
                         <option value="ultimo_mes">Último mes</option>
                         <option value="ultimo_trimestre">Último trimestre</option>
                         <option value="anio_actual">Año actual</option>
                     </select>
+                
+                    <button className="text-gray-400 hover:text-gray-600 p-1.5 rounded-full hover:bg-gray-100">
+                        <FaEllipsisV className="text-xs" />
+                    </button>
                 </div>
-                <button className="text-gray-400 hover:text-gray-600 p-1.5 rounded-full hover:bg-gray-100">
-                    <FaEllipsisV className="text-xs" />
-                </button>
             </div>
 
             {/* Tabs */}

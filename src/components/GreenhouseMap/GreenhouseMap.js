@@ -245,7 +245,7 @@ const GreenhouseMap = () => {
             </MapContainer>
             
             {/* Optional Overlay Legend or Info */}
-            <div className="absolute bottom-4 left-4 z-[1000] bg-white/90 backdrop-blur-sm p-3 rounded-lg shadow-md border border-gray-200 text-xs text-gray-600">
+            <div className="absolute bottom-4 left-4 z-[400] bg-white/90 backdrop-blur-sm p-3 rounded-lg shadow-md border border-gray-200 text-xs text-gray-600">
                 <p className="font-bold text-gray-800 mb-1">Leyenda</p>
                 <div className="flex items-center gap-2">
                     <span className="w-3 h-3 rounded-full bg-green-500 border border-white shadow-sm"></span>

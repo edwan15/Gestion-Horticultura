@@ -23,14 +23,16 @@ const TABS = [
 
 const FarmSettings = () => {
     const [activeTab, setActiveTab] = useState('farm');
-    const [userId, setUserId] = useState(null);
+    const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
     // Autenticación
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((user) => {
             if (user) {
-                setUserId(user.uid);
+                setCurrentUser(user);
+            } else {
+                setCurrentUser(null);
             }
             setLoading(false);
         });
@@ -48,7 +50,7 @@ const FarmSettings = () => {
         );
     }
 
-    if (!userId) {
+    if (!currentUser) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
@@ -61,13 +63,13 @@ const FarmSettings = () => {
     const renderTabContent = () => {
         switch (activeTab) {
             case 'farm':
-                return <FarmForm db={db} userId={userId} />;
+                return <FarmForm db={db} userId={currentUser.uid} />;
             case 'parcels':
-                return <ParcelTable db={db} userId={userId} />;
+                return <ParcelTable db={db} userId={currentUser.uid} currentUser={currentUser} />;
             case 'crops':
-                return <CropTable db={db} userId={userId} />;
+                return <CropTable db={db} userId={currentUser.uid} currentUser={currentUser} />;
             case 'zones':
-                return <HomogeneousZoneTable db={db} userId={userId} />;
+                return <HomogeneousZoneTable db={db} userId={currentUser.uid} />;
             default:
                 return null;
         }

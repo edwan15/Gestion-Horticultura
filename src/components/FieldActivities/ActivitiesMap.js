@@ -181,7 +181,7 @@ const ActivitiesMap = ({ db, userId, activeTab }) => {
     return (
         <div className="h-full w-full relative bg-white overflow-hidden">
             {/* Toolbar */}
-            <div className="absolute top-4 left-16 z-[1000] bg-white rounded-md shadow-md border border-gray-300 flex">
+            <div className="absolute top-4 left-16 z-[400] bg-white rounded-md shadow-md border border-gray-300 flex">
                 <button
                     onClick={() => setIsEditMode(!isEditMode)}
                     className={`p-2 flex items-center gap-2 text-sm font-bold ${

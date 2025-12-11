@@ -32,7 +32,7 @@ const Header = ({ onMenuToggle }) => {
                 initial={{ y: -60, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.4 }}
-                className="sticky top-0 z-40 flex justify-between items-center h-16 px-4 sm:px-6 bg-white shadow-sm border-b border-gray-200"
+                className="sticky top-0 z-[2900] flex justify-between items-center h-16 px-4 sm:px-6 bg-white shadow-sm border-b border-gray-200"
             >
                 
                 {/* 1. SECCIÓN IZQUIERDA: Menu + Logo/Título + Admin Selector */}

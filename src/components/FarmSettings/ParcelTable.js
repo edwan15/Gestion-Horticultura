@@ -10,16 +10,17 @@ const getAppId = () => {
     return "default-calendar-app-id";
 };
 
-const ParcelTable = ({ db, userId }) => {
+const ParcelTable = ({ db, userId, currentUser }) => {
+    const [crops, setCrops] = useState([]);
     const [parcels, setParcels] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingParcel, setEditingParcel] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
-
-    const appId = getAppId();
-    const PARCELS_PATH = `artifacts/${appId}/public/data/parcels`;
+    const APP_ID = getAppId();
+    const PARCELS_PATH = `artifacts/${APP_ID}/public/data/parcels`;
+    const CROPS_PATH = `artifacts/${APP_ID}/public/data/crops`;
 
     // Cargar parcelas en tiempo real
     useEffect(() => {
@@ -42,6 +43,31 @@ const ParcelTable = ({ db, userId }) => {
 
         return () => unsubscribe();
     }, [db, userId]);
+
+    // Cargar cultivos en tiempo real para mostrar en la tabla
+    useEffect(() => {
+        const q = query(
+            collection(db, CROPS_PATH),
+            where("userId", "==", userId)
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const data = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            setCrops(data);
+        }, (error) => {
+            console.error("Error loading crops in ParcelTable:", error);
+        });
+
+        return () => unsubscribe();
+    }, [db, userId]);
+
+    const getCropNameForParcel = (parcelId) => {
+        const foundCrop = crops.find(c => c.parcelId === parcelId && !c.archived);
+        return foundCrop ? foundCrop.name : '-';
+    };
 
     const handleAddNew = () => {
         setEditingParcel(null);
@@ -66,11 +92,20 @@ const ParcelTable = ({ db, userId }) => {
 
     const handleSave = async (parcelData) => {
         try {
+            const updateInfo = {
+                updatedBy: {
+                    name: currentUser?.displayName || currentUser?.email || 'Usuario',
+                    photoURL: currentUser?.photoURL || null,
+                    email: currentUser?.email
+                },
+                updatedAt: serverTimestamp(),
+            };
+
             if (editingParcel) {
                 // Actualizar
                 await updateDoc(doc(db, PARCELS_PATH, editingParcel.id), {
                     ...parcelData,
-                    updatedAt: serverTimestamp(),
+                    ...updateInfo
                 });
             } else {
                 // Crear nuevo
@@ -78,7 +113,7 @@ const ParcelTable = ({ db, userId }) => {
                     ...parcelData,
                     userId,
                     createdAt: serverTimestamp(),
-                    updatedAt: serverTimestamp(),
+                    ...updateInfo
                 });
             }
             setIsModalOpen(false);
@@ -147,10 +182,16 @@ const ParcelTable = ({ db, userId }) => {
                                         Área (ha)
                                     </th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
+                                        Cultivos
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
                                         Tipo de suelo
                                     </th>
                                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
                                         Visible
+                                    </th>
+                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
+                                        Actualizado en
                                     </th>
                                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
                                         Acciones
@@ -170,6 +211,11 @@ const ParcelTable = ({ db, userId }) => {
                                             {parcel.area ? `${parcel.area} ha` : '-'}
                                         </td>
                                         <td className="px-4 py-3 text-sm text-gray-600">
+                                            <div className="bg-gray-100 text-gray-700 px-2 py-1 rounded inline-block text-xs font-medium">
+                                                {getCropNameForParcel(parcel.id)}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-gray-600">
                                             {parcel.soilType || '-'}
                                         </td>
                                         <td className="px-4 py-3 text-center">
@@ -178,6 +224,43 @@ const ParcelTable = ({ db, userId }) => {
                                             ) : (
                                                 <FaEyeSlash className="inline text-gray-400" />
                                             )}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-gray-600">
+                                            {(() => {
+                                                const isOwner = parcel.userId === currentUser?.uid;
+                                                const userToDisplay = parcel.updatedBy || (isOwner ? {
+                                                    name: currentUser?.displayName || currentUser?.email || 'Usuario',
+                                                    photoURL: currentUser?.photoURL,
+                                                    email: currentUser?.email
+                                                } : null);
+
+                                                const dateToDisplay = parcel.updatedAt || parcel.createdAt;
+                                                
+                                                // Usar la foto actual si es el dueño y la guardada no existe
+                                                const finalPhotoURL = userToDisplay?.photoURL || (isOwner ? currentUser?.photoURL : null);
+
+                                                if (userToDisplay) {
+                                                    return (
+                                                        <div className="flex items-center gap-2">
+                                                            {finalPhotoURL ? (
+                                                                <img src={finalPhotoURL} alt="User" className="w-8 h-8 rounded-full object-cover border border-gray-200" />
+                                                            ) : (
+                                                                <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold border border-emerald-200">
+                                                                    {(userToDisplay.name || 'U').charAt(0).toUpperCase()}
+                                                                </div>
+                                                            )}
+                                                            <div className="flex flex-col">
+                                                                <span className="text-xs font-medium text-gray-900">{userToDisplay.name}</span>
+                                                                <span className="text-[10px] text-gray-500">
+                                                                    {dateToDisplay?.seconds ? new Date(dateToDisplay.seconds * 1000).toLocaleDateString() + ' ' + new Date(dateToDisplay.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
+
+                                                return <span className="text-xs text-gray-400">-</span>;
+                                            })()}
                                         </td>
                                         <td className="px-4 py-3 text-center">
                                             <div className="flex items-center justify-center gap-2">
@@ -233,13 +316,14 @@ const ParcelTable = ({ db, userId }) => {
                 </>
             )}
 
-            {/* Modal */}
+            {/* Modal - Standard Enterprise Modal */}
             {isModalOpen && (
                 <ParcelModal
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
                     onSave={handleSave}
                     parcel={editingParcel}
+                    onDelete={handleDelete}
                 />
             )}
         </div>
