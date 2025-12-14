@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { 
     FaEuroSign, FaMapMarkerAlt, FaSeedling, FaCloudSun, FaBell, FaCalculator, 
     FaMoneyBillWave, FaListAlt, FaRulerCombined, FaClock, FaCalendarAlt, FaChartLine,
@@ -1177,7 +1178,7 @@ export const HomeView = ({
     `;
 
     return (
-        <div className="p-6 bg-[#F5F7FA] min-h-screen relative">
+        <div className="bg-[#F0F2F5] min-h-screen relative">
             
             {/* --- CABECERA DE CONTROLES (REMOVIDA) --- */}
             {/* The button was here, now moved to ViewTabs in HomeContent */}
@@ -1584,43 +1585,45 @@ const HomeContent = (props) => {
         );
     };
 
-    // --- Barra de Herramientas Compacta ---
+    // --- Portal para la Barra de Herramientas en el Header ---
     const [isNavOpen, setIsNavOpen] = useState(false);
+    const portalTarget = document.getElementById('header-actions-portal');
 
     return (
-        <div className="min-h-screen bg-[#F5F7FA]">
+        <div className="min-h-screen bg-[#F0F2F5]">
             
-            {/* Cabecera Compacta / Barra de Acciones */}
-            <div className="px-6 py-3 bg-[#F5F7FA] flex items-center justify-between">
-                
-                {/* Botón Ajustes (Dropdown) */}
-                <div className="relative">
+             {/* RENDERIZADO DEL BOTÓN DE AJUSTES EN EL HEADER (PORTAL) */}
+             {portalTarget && createPortal(
+                <div className="relative ml-4">
                     <button 
-                        onClick={() => setIsNavOpen(!isNavOpen)}
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200
-                            ${isNavOpen ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' : 'bg-transparent text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm'}
-                        `}
-                    >
-                        <FaTools className="text-xs" />
-                        <span>Ajustes</span>
-                    </button>
-
+                         onClick={() => setIsNavOpen(!isNavOpen)}
+                         className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200
+                         ${isNavOpen ? 'bg-green-50 text-green-700 shadow-sm border border-green-200' : 'text-gray-600 hover:bg-gray-100'}`}
+                     >
+                         <FaTools className="text-lg" />
+                         <span className="hidden sm:inline">Ajustes</span>
+                     </button>
+                    
                     <NavigationModal 
                         isOpen={isNavOpen} 
                         onClose={() => setIsNavOpen(false)}
                         currentView={activeView}
-                        onViewChange={(view) => { setActiveView(view); setNotification(null); }}
+                        onViewChange={(view) => setActiveView(view)}
                         isEditMode={isEditMode}
                         toggleEditMode={() => setIsEditMode(!isEditMode)}
                     />
-                </div>
+                </div>,
+                portalTarget
+            )}
 
-                {isEditMode && (
-                    <div className="text-xs font-medium text-green-700 bg-green-50 px-3 py-1 rounded-full border border-green-200 animate-pulse">
-                        Modo Edición
-                    </div>
-                )}
-            </div>
+            {/* BARRA SUPERIOR ELIMINADA PARA SUBIR LOS COMPONENTES */}
+            
+            {/* NOTIFICACIÓN DE MODO EDICIÓN (Mantenida localmente si es necesario, o mover también) */}
+             {isEditMode && (
+                <div className="mx-6 mt-4 p-2 text-xs font-medium text-green-700 bg-green-50 rounded-full border border-green-200 text-center animate-pulse">
+                    Modo Edición Activo
+                </div>
+            )}
 
             {/* MOSTRAR NOTIFICACIÓN */}
             <AnimatePresence>

@@ -1,46 +1,9 @@
-// import React from 'react';
-// import { Link } from 'react-router-dom';
-
-// const UnauthorizedPage = () => {
-//   return (
-//     <div style={{ 
-//       display: 'flex', 
-//       flexDirection: 'column', 
-//       alignItems: 'center', 
-//       justifyContent: 'center', 
-//       minHeight: '100vh', 
-//       textAlign: 'center',
-//       backgroundColor: '#f8d7da',
-//       color: '#721c24',
-//       padding: '20px'
-//     }}>
-//       <h1 style={{ fontSize: '3rem', marginBottom: '20px' }}>🚫 Acceso Denegado (Error 403)</h1>
-//       <p style={{ fontSize: '1.2rem', marginBottom: '30px' }}>
-//         Tu rol actual ("invitado" o "usuario") no tiene permiso para ver esta página. 
-//         Si crees que esto es un error, contacta al administrador.
-//       </p>
-//       <Link 
-//         to="/panel" 
-//         style={{ 
-//           textDecoration: 'none', 
-//           padding: '10px 20px', 
-//           backgroundColor: '#dc3545', 
-//           color: 'white', 
-//           borderRadius: '5px' 
-//         }}
-//       >
-//         Volver al Panel
-//       </Link>
-//     </div>
-//   );
-// };
-
-// export default UnauthorizedPage;
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ShieldAlert, Home, Mail } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import { selectRole } from '../features/auth/authSlice/authSlice';
 
 // 1. Variantes para animaciones de Framer Motion
 const containerVariants = {
@@ -59,89 +22,121 @@ tap: { scale: 0.95 },
 };
 
 const UnauthorizedPage = () => {
-    const userRole = "Usuario Estándar";
+    const userRole = useSelector(selectRole) || "Usuario";
     
     return (
-        <motion.div
-            className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 text-center p-6 transition-colors duration-300"
-            variants={containerVariants}
-            initial="initial"
-            animate="animate"
-        >
-            {/* 2. Icono animado */}
+        <div className="relative h-screen w-full overflow-hidden font-sans">
+            {/* 1. Fondo de Agricultura (Imagen Generada) */}
+            <div 
+                className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transform scale-105"
+                style={{ 
+                    backgroundImage: "url('/assets/unauthorized_bg.png')",
+                    filter: "brightness(0.8)" 
+                }}
+            />
+            
+            {/* 2. Overlay Oscuro y Difuso para legibilidad */}
+            <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/70 via-black/50 to-black/80 backdrop-blur-sm" />
+
+            {/* 3. Contenido Principal - Usamos h-full y flex para centrar mejor */}
             <motion.div
-                variants={iconVariants}
+                className="relative z-20 flex flex-col items-center justify-center h-full text-center p-4"
+                variants={containerVariants}
                 initial="initial"
                 animate="animate"
-                className="mb-8 p-5 bg-red-100 dark:bg-red-900/50 rounded-full shadow-xl transition-all duration-300"
             >
-                <ShieldAlert className="w-20 h-20 text-red-600 dark:text-red-400"/>
+                {/* Icono animado */}
+                <motion.div
+                    variants={iconVariants}
+                    initial="initial"
+                    animate="animate"
+                    className="mb-4 p-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-full shadow-2xl transition-all duration-300"
+                >
+                    <ShieldAlert className="w-16 h-16 text-red-500 dropping-shadow-lg"/>
+                </motion.div>
+
+                {/* Título y Código de Error */}
+                <motion.h1
+                    className="text-4xl md:text-5xl font-extrabold text-white mb-1 tracking-tight drop-shadow-lg"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0, transition: { delay: 0.3 } }}
+                >
+                    Acceso Denegado
+                </motion.h1>
+                <motion.p
+                    className="text-lg md:text-xl font-bold text-red-400 mb-6 tracking-wider uppercase"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1, transition: { delay: 0.4 } }}
+                >
+                    Código de Error 403
+                </motion.p>
+
+                {/* Mensaje personalizado con rol */}
+                <motion.div
+                    className="max-w-xl bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10 shadow-2xl mb-8 text-gray-100"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1, transition: { delay: 0.5 } }}
+                >
+                    <p className="text-base md:text-lg leading-snug">
+                        Lo sentimos, el recurso que intentas consultar requiere permisos de nivel
+                        <span className="block my-1 text-xl font-bold text-green-400">
+                            Administrador
+                        </span>
+                        Tu perfil actual está identificado como:
+                        <span className="block my-1 text-xl font-bold text-red-400">
+                            "{userRole}"
+                        </span>
+                        Por motivos de seguridad, no tienes autorización para acceder aquí.
+                    </p>
+                </motion.div>
+
+                {/* Opciones de navegación (Botones avanzados) */}
+                <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+
+                    {/* Botón de Volver al Panel (Principal) */}
+                    <motion.div
+                        variants={buttonVariants}
+                        whileHover="hover"
+                        whileTap="tap"
+                        className="inline-flex"
+                    >
+                        <Link 
+                            to="/panel" 
+                            className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-500 text-white rounded-full font-bold text-base shadow-lg hover:shadow-green-500/30 transition-all duration-300 w-full sm:w-auto"
+                        >
+                            <Home className="w-5 h-5"/>
+                            Volver al Panel
+                        </Link>
+                    </motion.div>
+
+                    {/* Botón de Contactar al Administrador (Secundario) */}
+                    <motion.div
+                        variants={buttonVariants}
+                        whileHover="hover"
+                        whileTap="tap"
+                        className="inline-flex"
+                    >
+                        <Link 
+                            to="/contact-us" 
+                            className="flex items-center justify-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-full font-bold text-base shadow-lg backdrop-blur-sm transition-all duration-300 w-full sm:w-auto"
+                        >
+                            <Mail className="w-5 h-5"/>
+                            Contactar Soporte
+                        </Link>
+                    </motion.div>
+
+                </div>
+                
+                {/* Footer sencillo */}
+                <motion.p 
+                    className="mt-6 text-xs text-gray-400"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1, transition: { delay: 1 } }}
+                >
+                    &copy; {new Date().getFullYear()} Gestión Agrícola Integral Horticultura
+                </motion.p>
             </motion.div>
-
-            {/* 3. Título y Código de Error */}
-            <motion.h1
-                className="text-5xl md:text-6xl font-extrabold text-gray-800 dark:text-gray-100 mb-2"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1, transition: { delay: 0.3 } }}
-            >
-                Acceso Denegado
-            </motion.h1>
-            <motion.p
-                className="text-xl font-semibold text-red-500 mb-6"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1, transition: { delay: 0.4 } }}
-            >
-                CÓDIGO DE ERROR 403
-            </motion.p>
-
-            {/* 4. Mensaje personalizado con rol */}
-           <motion.p
-    className="max-w-xl text-lg text-gray-600 dark:text-gray-300 mb-10 leading-relaxed"
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1, transition: { delay: 0.5 } }}
->
-    Lo sentimos, la página que intentas visitar requiere permisos de:
-    <span className="block my-2 text-xl font-bold text-green-500 dark:text-green-400">
-        "Administrador"
-    </span>
-    Tu rol actual es:
-    <span className="text-xl font-bold text-red-500 dark:text-red-400">
-        "{userRole}"
-    </span>
-    y no tiene autorización para acceder a este recurso. Por favor, regresa a un área permitida.
-</motion.p>
-
-            {/* 5. Opciones de navegación (Botones avanzados) */}
-            <div className="flex flex-col sm:flex-row gap-4">
-
-                {/* Botón de Volver al Panel (Principal) */}
-                <motion.div
-                    variants={buttonVariants}
-                    whileHover="hover"
-                    whileTap="tap"
-                    className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-lg text-white bg-red-600 hover:bg-red-700 transition-colors duration-300 cursor-pointer"
-                >
-                    <Link to="/panel" className="flex items-center gap-2">
-                        <Home className="w-5 h-5"/>
-                        Volver al Panel
-                    </Link>
-                </motion.div>
-
-                {/* Botón de Contactar al Administrador (Secundario) */}
-                <motion.div
-                    variants={buttonVariants}
-                    whileHover="hover"
-                    whileTap="tap"
-                    className="inline-flex items-center justify-center px-6 py-3 border border-red-600 text-base font-medium rounded-full shadow-lg text-red-600 bg-white dark:bg-gray-800 hover:bg-red-50 transition-colors duration-300 dark:hover:bg-gray-700 dark:border-red-400 dark:text-red-400 cursor-pointer"
-                >
-                    <Link to="/contact-us" className="flex items-center gap-2">
-                        <Mail className="w-5 h-5"/>
-                        Contactar Soporte
-                    </Link>
-                </motion.div>
-
-            </div>
-        </motion.div>
+        </div>
     );
 };
 

@@ -197,6 +197,8 @@ function App() {
                     <Route path="/register" element={<Register />} />
                     <Route path="/forgot" element={<Forgot />} />
                     <Route path="/reset/:token" element={<Reset />} />
+                    <Route path="/unauthorized" element={<UnauthorizedPage />} />
+
 
                     <Route path="/" element={<Navigate to="/panel" replace />} />
                     {/* Dashboard */}

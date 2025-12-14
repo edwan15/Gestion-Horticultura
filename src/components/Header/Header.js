@@ -83,6 +83,11 @@ const Header = ({ onMenuToggle }) => {
                     {/* Separador Vertical */}
                     <div className="h-6 w-px bg-gray-200 hidden sm:block"></div>
 
+                    {/* PORTAL TARGET */}
+                    <div id="header-actions-portal" className="flex items-center"></div>
+
+                    {/* Botón de Planes de Suscripción */}
+
                     {/* Botón de Planes de Suscripción */}
                     <button
                         onClick={() => setShowSubscriptionModal(true)}

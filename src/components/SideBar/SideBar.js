@@ -12,7 +12,7 @@ import { useAppContext } from '../SuperUser/AppContext';
 
 // Variantes para el menú de escritorio (Desktop/Tablet)
 const desktopSidebarVariants = {
-    open: { width: "17rem", transition: { duration: 0.4, ease: "easeInOut" } },
+    open: { width: "15rem", transition: { duration: 0.4, ease: "easeInOut" } },
     closed: { width: "5rem", transition: { duration: 0.4, ease: "easeInOut" } },
 };
 
