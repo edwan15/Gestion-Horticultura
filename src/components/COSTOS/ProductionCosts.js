@@ -10,7 +10,10 @@ import {
 import { useSelector } from 'react-redux';
 import { selectUserId } from '../../features/auth/authSlice/authSlice';
 import { db } from '../../firebaseConfig';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, setDoc, arrayUnion, arrayRemove } from 'firebase/firestore'; 
+import GreenhouseSelector from '../GreenhouseSelector';
+import { v4 as uuidv4 } from 'uuid';
+import { toast } from "react-toastify";
 
 const getAppId = () => {
     if (typeof window !== 'undefined' && window.__app_id) {
@@ -46,42 +49,137 @@ const StatCard = ({ title, value, unit, icon: Icon, trend, color = "emerald" }) 
 const ProductionCosts = () => {
     const userId = useSelector(selectUserId);
     const [dailyData, setDailyData] = useState({});
+    
+    // Filtering State
+    const [filterMode, setFilterMode] = useState('month'); // 'month' | 'range'
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+    const [dateRange, setDateRange] = useState({
+        start: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1).toISOString().split('T')[0],
+        end: new Date().toISOString().split('T')[0]
+    });
+
     const [loading, setLoading] = useState(true);
+    
+    // Greenhouse State
+    const [greenhouses, setGreenhouses] = useState([]);
+    const [greenhouseId, setGreenhouseId] = useState(null);
     const [greenhouseName, setGreenhouseName] = useState("");
 
+    // Pagination State
+    const [visibleRows, setVisibleRows] = useState(10);
+
     // Fetch Logic
+    // --- Greenhouse Management Logic ---
     useEffect(() => {
         if (!userId) return;
 
         const appId = getAppId();
-        const STORAGE_KEY = `${appId}_selected_greenhouse_id`;
-        const storedGreenhouseId = localStorage.getItem(STORAGE_KEY);
-        // We can optionally fetch the greenhouse name if needed, but the ID is enough for data
-        
-        if (storedGreenhouseId) {
-            console.log("ProductionCosts: Fetching data for greenhouse", storedGreenhouseId);
-            const docRef = doc(db, `artifacts/${appId}/users/${userId}/greenhouses/${storedGreenhouseId}/daily_data/data`);
-            
-            const unsubscribe = onSnapshot(docRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    setDailyData(docSnap.data());
-                } else {
-                    console.log("No data found for this greenhouse");
-                    setDailyData({});
-                }
-                setLoading(false);
-            }, (error) => {
-                console.error("Error fetching production daily data:", error);
-                setLoading(false);
-            });
+        const listRef = doc(db, `artifacts/${appId}/users/${userId}/greenhouse_list/meta`);
 
-            return () => unsubscribe();
-        } else {
-            console.log("No greenhouse selected in localStorage");
-            setLoading(false);
-        }
+        const unsubscribe = onSnapshot(listRef, (docSnap) => {
+            const data = docSnap.data() || { list: [] };
+            const list = data.list || [];
+            setGreenhouses(list);
+
+            if (list.length > 0) {
+                const STORAGE_KEY = `${appId}_selected_greenhouse_id`;
+                const storedId = localStorage.getItem(STORAGE_KEY);
+                
+                const initialGreenhouse = 
+                    list.find(g => g.id === storedId) ||
+                    list.find(g => g.id === greenhouseId) ||
+                    list[0];
+
+                if (initialGreenhouse) {
+                    setGreenhouseId(initialGreenhouse.id);
+                    setGreenhouseName(initialGreenhouse.name);
+                }
+            } else {
+                setGreenhouseId(null);
+                setGreenhouseName("Sin invernaderos");
+            }
+        });
+
+        return () => unsubscribe();
     }, [userId]);
+
+    // --- Data Fetching Logic ---
+    useEffect(() => {
+        if (!userId || !greenhouseId) {
+             setLoading(false);
+             return;
+        }
+
+        const appId = getAppId();
+        const docRef = doc(db, `artifacts/${appId}/users/${userId}/greenhouses/${greenhouseId}/daily_data/data`);
+        
+        const unsubscribe = onSnapshot(docRef, (docSnap) => {
+            if (docSnap.exists()) {
+                setDailyData(docSnap.data());
+            } else {
+                setDailyData({});
+            }
+            setLoading(false);
+        }, (error) => {
+            console.error("Error fetching production daily data:", error);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [userId, greenhouseId]);
+
+    // Greenhouse Actions
+    const handleSelectGreenhouse = (id, name) => {
+        setGreenhouseId(id);
+        setGreenhouseName(name);
+        const appId = getAppId();
+        localStorage.setItem(`${appId}_selected_greenhouse_id`, id);
+    };
+
+    const handleCreateGreenhouse = async (name) => {
+        if (!userId) return;
+        const newId = uuidv4();
+        const appId = getAppId();
+        const listRef = doc(db, `artifacts/${appId}/users/${userId}/greenhouse_list/meta`);
+        const newGreenhouse = { id: newId, name: name };
+
+        try {
+            await updateDoc(listRef, {
+                list: arrayUnion(newGreenhouse),
+            }).catch(async (error) => {
+                if (error.code === "not-found") {
+                    await setDoc(listRef, { list: [newGreenhouse] });
+                } else {
+                    throw error;
+                }
+            });
+            handleSelectGreenhouse(newId, name);
+            toast.success(`Invernadero "${name}" creado.`);
+        } catch (error) {
+            console.error("Error creating greenhouse:", error);
+            toast.error("Error al crear invernadero.");
+        }
+    };
+
+    const handleDeleteGreenhouse = async (id, name) => {
+        if (!window.confirm(`¿Eliminar ${name}?`)) return;
+        // Simplified delete for Cost view (full delete logic usually in main production page)
+        // Here we just remove from list to update view
+        try {
+             const appId = getAppId();
+             const listRef = doc(db, `artifacts/${appId}/users/${userId}/greenhouse_list/meta`);
+             const ghToDelete = greenhouses.find(g => g.id === id);
+             if(ghToDelete) {
+                await updateDoc(listRef, {
+                    list: arrayRemove(ghToDelete)
+                });
+                toast.success("Invernadero eliminado.");
+             }
+        } catch(e) {
+            console.error(e);
+            toast.error("Error al eliminar.");
+        }
+    };
 
     const processedData = useMemo(() => {
         // Transform dailyData (Object) to Array
@@ -105,7 +203,9 @@ const ProductionCosts = () => {
                 production: totalKg,
                 costPerKg: costPerKg,
                 investment: dailyInvestment,
-                efficiency: totalKg > 0 ? (dailyInvestment / totalKg) : 0
+                efficiency: totalKg > 0 ? (dailyInvestment / totalKg) : 0,
+                // Add formatted date here for global usage
+                formattedDate: `${dateKey.split('-')[2]}/${dateKey.split('-')[1]}`
             };
         });
 
@@ -113,24 +213,35 @@ const ProductionCosts = () => {
         return rawArray.sort((a, b) => new Date(a.date) - new Date(b.date));
     }, [dailyData]);
 
-    // Filter by selected month
-    const monthlyData = useMemo(() => {
-        return processedData.filter(d => d.month === selectedMonth);
-    }, [processedData, selectedMonth]);
+    // Filter logic
+    const filteredData = useMemo(() => {
+        if (filterMode === 'month') {
+            return processedData.filter(d => d.month === selectedMonth);
+        } else {
+            const start = new Date(dateRange.start);
+            const end = new Date(dateRange.end);
+            end.setHours(23, 59, 59); // Include full end day
+
+            return processedData.filter(d => {
+                const currentDate = new Date(d.date);
+                return currentDate >= start && currentDate <= end;
+            });
+        }
+    }, [processedData, selectedMonth, filterMode, dateRange]);
 
     // Calculate Aggregates
     const totals = useMemo(() => {
-        const totalProd = monthlyData.reduce((acc, curr) => acc + curr.production, 0);
-        const totalInv = monthlyData.reduce((acc, curr) => acc + curr.investment, 0);
+        const totalProd = filteredData.reduce((acc, curr) => acc + curr.production, 0);
+        const totalInv = filteredData.reduce((acc, curr) => acc + curr.investment, 0);
         const avgCost = totalProd > 0 ? (totalInv / totalProd) : 0;
         
         return {
             production: totalProd,
             investment: totalInv,
             avgCost: avgCost,
-            days: monthlyData.length
+            days: filteredData.length
         };
-    }, [monthlyData]);
+    }, [filteredData]);
 
     const months = [
         "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -138,9 +249,8 @@ const ProductionCosts = () => {
     ];
 
     // Chart Data Formatter
-    const chartData = monthlyData.map(d => ({
+    const chartData = filteredData.map(d => ({
         ...d,
-        formattedDate: `${d.day}/${d.month + 1}`,
         tooltipCost: d.costPerKg.toFixed(2),
         tooltipProd: d.production.toFixed(0)
     }));
@@ -159,17 +269,61 @@ const ProductionCosts = () => {
                     <p className="text-gray-500 mt-1">Análisis financiero y métricas de rendimiento agrícola</p>
                 </div>
                 
-                <div className="mt-4 md:mt-0 flex items-center gap-3 bg-gray-50 p-1.5 rounded-xl border border-gray-200">
-                    <FaCalendarAlt className="text-gray-400 ml-2" />
-                    <select 
-                        value={selectedMonth} 
-                        onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                        className="bg-transparent text-sm font-bold text-gray-700 focus:outline-none cursor-pointer"
-                    >
-                        {months.map((m, i) => (
-                            <option key={i} value={i}>{m}</option>
-                        ))}
-                    </select>
+                <div className="mt-4 md:mt-0 flex flex-col items-end gap-3">
+                    {/* Greenhouse Selector */}
+                    <div>
+                        <GreenhouseSelector
+                            greenhouses={greenhouses}
+                            greenhouseId={greenhouseId}
+                            handleSelectGreenhouse={handleSelectGreenhouse}
+                            handleCreateGreenhouse={handleCreateGreenhouse}
+                            handleDeleteGreenhouse={handleDeleteGreenhouse}
+                            showManagementButtons={true}
+                        />
+                    </div>
+
+                    {/* Filter Bar */}
+                    <div className="flex items-center gap-3 bg-gray-50 p-1.5 rounded-xl border border-gray-200">
+                        <select
+                            value={filterMode}
+                            onChange={(e) => setFilterMode(e.target.value)}
+                            className="text-xs font-bold text-gray-600 bg-transparent border-r border-gray-200 pr-2 mr-2 outline-none"
+                        >
+                            <option value="month">Mensual</option>
+                            <option value="range">Rango/Campaña</option>
+                        </select>
+
+                        {filterMode === 'month' ? (
+                            <div className="flex items-center gap-2">
+                                <FaCalendarAlt className="text-gray-400" />
+                                <select 
+                                    value={selectedMonth} 
+                                    onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                                    className="bg-transparent text-sm font-bold text-gray-700 focus:outline-none cursor-pointer"
+                                >
+                                    {months.map((m, i) => (
+                                        <option key={i} value={i}>{m}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        ) : (
+                             <div className="flex items-center gap-2 text-sm">
+                                <input 
+                                    type="date" 
+                                    value={dateRange.start}
+                                    onChange={(e) => setDateRange({...dateRange, start: e.target.value})}
+                                    className="bg-transparent border-none outline-none text-gray-600 font-medium w-28"
+                                />
+                                <span className="text-gray-400">-</span>
+                                <input 
+                                    type="date" 
+                                    value={dateRange.end}
+                                    onChange={(e) => setDateRange({...dateRange, end: e.target.value})}
+                                    className="bg-transparent border-none outline-none text-gray-600 font-medium w-28"
+                                />
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -302,11 +456,11 @@ const ProductionCosts = () => {
                         <div className="p-4 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm">
                             <h4 className="text-sm font-semibold text-amber-300 mb-1">Día Más Productivo</h4>
                             {(() => {
-                                const maxDay = monthlyData.reduce((prev, current) => (prev.production > current.production) ? prev : current, {production: 0, day: '-'});
+                                const maxDay = filteredData.reduce((prev, current) => (prev.production > current.production) ? prev : current, {production: 0, day: '-', month: 0});
                                 return (
                                     <>
                                         <div className="flex justify-between items-end">
-                                            <span className="text-2xl font-bold">{maxDay.day !== '-' ? `${maxDay.day} de ${months[selectedMonth]}` : 'N/A'}</span>
+                                            <span className="text-2xl font-bold">{maxDay.day !== '-' ? `${maxDay.day} de ${months[maxDay.month]}` : 'N/A'}</span>
                                             <span className="text-amber-400 font-mono">{maxDay.production.toFixed(0)} Kg</span>
                                         </div>
                                         <p className="text-xs text-gray-400 mt-2">Correlaciona este pico con tus actividades de riego para replicar resultados.</p>
@@ -336,19 +490,19 @@ const ProductionCosts = () => {
                         Exportar Reporte
                     </button>
                 </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                        <thead className="bg-gray-50 text-gray-500 uppercase tracking-wider font-semibold text-xs">
+                <div className="overflow-x-auto max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                    <table className="w-full text-sm text-left relative">
+                        <thead className="bg-gray-50 text-gray-500 uppercase tracking-wider font-semibold text-xs sticky top-0 z-10 shadow-sm">
                             <tr>
-                                <th className="px-6 py-3">Fecha</th>
-                                <th className="px-6 py-3">Producción (Kg)</th>
-                                <th className="px-6 py-3">Inversión (€)</th>
-                                <th className="px-6 py-3 text-right">Costo Unitario (€/kg)</th>
-                                <th className="px-6 py-3 text-center">Estado</th>
+                                <th className="px-6 py-3 bg-gray-50">Fecha</th>
+                                <th className="px-6 py-3 bg-gray-50">Producción (Kg)</th>
+                                <th className="px-6 py-3 bg-gray-50">Inversión (€)</th>
+                                <th className="px-6 py-3 text-right bg-gray-50">Costo Unitario (€/kg)</th>
+                                <th className="px-6 py-3 text-center bg-gray-50">Estado</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                            {monthlyData.length > 0 ? monthlyData.map((row, idx) => (
+                            {filteredData.length > 0 ? filteredData.slice(0, visibleRows).map((row, idx) => (
                                 <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                                     <td className="px-6 py-4 font-medium text-gray-800">{row.formattedDate}</td>
                                     <td className="px-6 py-4">{row.production.toFixed(2)}</td>
@@ -365,13 +519,26 @@ const ProductionCosts = () => {
                             )) : (
                                 <tr>
                                     <td colSpan="5" className="px-6 py-8 text-center text-gray-400">
-                                        No hay datos de producción para este mes
+                                        No hay datos de producción para este periodo
                                     </td>
                                 </tr>
                             )}
                         </tbody>
                     </table>
                 </div>
+                
+                {/* Pagination / Load More */}
+                {filteredData.length > visibleRows && (
+                    <div className="p-4 border-t border-gray-100 flex justify-center bg-gray-50/30">
+                        <button 
+                            onClick={() => setVisibleRows(prev => prev + 10)}
+                            className="text-xs font-bold text-gray-600 hover:text-emerald-600 flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full shadow-sm hover:shadow transition-all"
+                        >
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Cargar más resultados ({filteredData.length - visibleRows} restantes)
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

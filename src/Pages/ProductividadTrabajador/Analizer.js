@@ -232,7 +232,7 @@ const WorkerManagement = ({ workers, setWorkers, nextWorkerId, setNextWorkerId, 
                             </div>
                         ) : (
                             <div className="flex items-center justify-between flex-grow w-full">
-                                <span className="font-semibold text-gray-700 text-sm sm:text-base truncate mr-4">**ID:** {worker.id} - **{worker.name}**</span>
+                                <span className="font-semibold text-gray-700 text-sm sm:text-base truncate mr-4">ID: {worker.id} - {worker.name}</span>
                                 <div className="flex gap-2 flex-shrink-0">
                                     <button onClick={() => { setEditingWorkerId(worker.id); setEditingWorkerName(worker.name); }} className="px-3 py-1 text-xs text-white bg-yellow-500 rounded-lg hover:bg-yellow-600"><FaEdit/></button>
                                     <button onClick={() => handleDeleteWorker(worker)} className="px-3 py-1 text-xs text-white bg-red-500 rounded-lg hover:bg-red-600"><FaTrashAlt/></button>

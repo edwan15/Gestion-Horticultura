@@ -253,11 +253,11 @@ function App() {
                         element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><Profile /></ProtectedLayout></RoleRoute>}
                     />
                     <Route
-                        path="/costes"
+                        path="/seguimiento-costes"
                         element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><CostesManager /></ProtectedLayout></RoleRoute>}
                     />
                     <Route
-                        path="/seguimiento-costes"
+                        path="/costes"
                         element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><CostesDashboard /></ProtectedLayout></RoleRoute>}
                     />
                     <Route

@@ -101,7 +101,7 @@ const UnauthorizedPage = () => {
                         className="inline-flex"
                     >
                         <Link 
-                            to="/panel" 
+                            to="/homeCard" 
                             className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-500 text-white rounded-full font-bold text-base shadow-lg hover:shadow-green-500/30 transition-all duration-300 w-full sm:w-auto"
                         >
                             <Home className="w-5 h-5"/>

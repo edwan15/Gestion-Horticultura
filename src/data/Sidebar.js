@@ -3,7 +3,7 @@ import { AiFillFileAdd, AiFillFileText } from "react-icons/ai";
 import { MdManageAccounts, MdOutlineSupportAgent, MdPeopleOutline, MdLocalShipping, MdOutlineGrass } from "react-icons/md";
 import { SiAdafruit } from "react-icons/si";
 import { WiDaySunny, WiHumidity } from "react-icons/wi";
-import { GiFarmTractor } from "react-icons/gi"; 
+import { GiFarmTractor, GiTakeMyMoney } from "react-icons/gi"; 
 import { IoIosListBox } from "react-icons/io"; 
 import { FaUsersCog, FaChessKing, FaExchangeAlt, FaFileContract, FaCommentDollar, FaTractor, FaChartLine } from "react-icons/fa";
 import { BsDropletFill } from "react-icons/bs"; 
@@ -17,6 +17,13 @@ const Menu = [
     icon: <RxDashboard />, 
     path: "/homeCard",
   },
+
+    {
+  title: "Clima y Fitosanidad",
+  icon: <WiDaySunny />, 
+  path: "/clima",
+},
+    
 
   // ----------------------------------------------------
   // 2. PRODUCCIÓN Y CULTIVOS
@@ -83,21 +90,35 @@ const Menu = [
   // ----------------------------------------------------
   // COSTES
   // ----------------------------------------------------
+
+
   {
+    title: "Costes",
+    icon: <GiTakeMyMoney/>, 
+    childrens: [
+      {
     title: "Costes",
     icon: <FaCommentDollar />,
     path: "/costes",
   },
-  {
+   {
     title: "Seguimiento Costes",
     icon: <FaChartLine />, // You might need to import FaChartLine or use another icon
     path: "/seguimiento-costes",
-  },
+  }, 
   {
     title: "Costos Producción",
     icon: <FaChartLine />, 
     path: "/production-costs",
   },
+     
+     
+    ],
+  },
+
+  
+ 
+ 
   
   // ----------------------------------------------------
   // 4. ADMINISTRACIÓN (Recursos Humanos)
@@ -135,12 +156,7 @@ const Menu = [
     ],
   },
 
-  {
-  title: "Clima y Fitosanidad",
-  icon: <WiDaySunny />, 
-  path: "/clima",
-},
-    
+
   // ----------------------------------------------------
   // 5. 👑 SUPERADMINISTRADOR (NUEVA SECCIÓN)
   // ----------------------------------------------------

@@ -12,9 +12,11 @@ import {
     FaTruck,
     FaSave,
     FaHome,
-    FaTrash
+    FaTrash,
+    FaEllipsisV // 💡 Importado para el menú de 3 puntos
 } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion'; // 💡 Añadida AnimatePresence
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from 'recharts'; // Recharts Imports
 import { onAuthStateChanged } from 'firebase/auth';
 import {
     collection,
@@ -67,7 +69,7 @@ const DEFAULT_CITY = "Balsicas,ES"; // Reemplaza con la ciudad deseada
 // === 0. CONSTANTES DE CONFIGURACIÓN DE FIREBASE
 // =======================================================================
 const getAppId = () => {
-    if (typeof window.__app_id !== "undefined") {
+    if (typeof window !== 'undefined' && window.__app_id) {
         return window.__app_id;
     }
     return "default-calendar-app-id";
@@ -726,7 +728,8 @@ const DashboardCard = ({
     className = '', 
     children,
     badge = null,
-    noPadding = false 
+    noPadding = false,
+    headerAction = null // 💡 Prop nueva para botones extra en el header
 }) => (
     <div className={`
         bg-white 
@@ -767,6 +770,11 @@ const DashboardCard = ({
                 <span className="px-2 py-0.5 text-[10px] font-medium bg-gray-100 text-gray-600 rounded-full">
                     {badge}
                 </span>
+            )}
+            {headerAction && (
+                <div className="ml-2">
+                    {headerAction}
+                </div>
             )}
         </div>
         
@@ -1145,6 +1153,143 @@ export const HomeView = ({
 
     const handleMapSelect = (id) => { setSelectedGreenhouseId(id); };
 
+    // --- REAL DATA FETCHING LOGIC ---
+    const [greenhouseDailyData, setGreenhouseDailyData] = useState({});
+    const [greenhouseGoal, setGreenhouseGoal] = useState(0);
+    // New State for Crop Name
+    const [fetchedCropName, setFetchedCropName] = useState("Cargando...");
+    const [loadingGreenhouseData, setLoadingGreenhouseData] = useState(false);
+
+    // List of Greenhouses for Dropdown (Merged from two sources)
+    const [metaGreenhouses, setMetaGreenhouses] = useState([]);
+    const [calendarGreenhouses, setCalendarGreenhouses] = useState([]);
+    const [greenhousesList, setGreenhousesList] = useState([]); // Combined list
+    const [openDropdownId, setOpenDropdownId] = useState(null);
+
+    // Fetch Greenhouse List Logic (Source 1: ProduccionC - greenhouse_list/meta)
+    useEffect(() => {
+        if (!userId) return;
+        const appId = getAppId ? getAppId() : "default-app-id";
+        
+        const listRef = doc(db, `artifacts/${appId}/users/${userId}/greenhouse_list/meta`);
+        const unsubscribeList = onSnapshot(listRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                setMetaGreenhouses(data.list || []);
+            } else {
+                setMetaGreenhouses([]);
+            }
+        });
+
+        // Source 2: Tarea.js - calendars collection
+        const calendarsRef = collection(db, `artifacts/${appId}/users/${userId}/calendars`);
+        const unsubscribeCalendars = onSnapshot(calendarsRef, (snapshot) => {
+            const calendarsData = snapshot.docs.map(doc => ({
+                id: doc.id,
+                name: doc.data().name || "Sin Nombre",
+                ...doc.data()
+            }));
+            setCalendarGreenhouses(calendarsData);
+        });
+
+        return () => {
+            unsubscribeList();
+            unsubscribeCalendars();
+        };
+    }, [userId, db]);
+
+    // Combine Lists
+    useEffect(() => {
+        // Merge and remove duplicates based on ID
+        const combined = [...metaGreenhouses, ...calendarGreenhouses];
+        const unique = Array.from(new Map(combined.map(item => [item.id, item])).values());
+        setGreenhousesList(unique);
+
+        // Optional: Select first if none selected
+        if (!selectedGreenhouseId && unique.length > 0) {
+             setSelectedGreenhouseId(unique[0].id);
+        }
+    }, [metaGreenhouses, calendarGreenhouses, selectedGreenhouseId, setSelectedGreenhouseId]);
+
+    useEffect(() => {
+        if (!userId || !selectedGreenhouseId) {
+            setGreenhouseDailyData({});
+            setGreenhouseGoal(0);
+            setFetchedCropName("Selecciona un invernadero");
+            return;
+        }
+
+        setLoadingGreenhouseData(true);
+        const appId = getAppId ? getAppId() : "default-app-id"; 
+        
+        // 1. Fetch Daily Data
+        const dailyRef = doc(db, `artifacts/${appId}/users/${userId}/greenhouses/${selectedGreenhouseId}/daily_data/data`);
+        const unsubscribeDaily = onSnapshot(dailyRef, (docSnap) => {
+            if (docSnap.exists()) {
+                setGreenhouseDailyData(docSnap.data());
+            } else {
+                setGreenhouseDailyData({});
+            }
+        });
+
+        // 2. Fetch Config (Goal & Crop Name)
+        const configRef = doc(db, `artifacts/${appId}/users/${userId}/greenhouses/${selectedGreenhouseId}/config/config_doc`);
+        const unsubscribeConfig = onSnapshot(configRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                setGreenhouseGoal(parseFloat(data.goal) || 0);
+                // Set crop name from config, fallback to default if missing
+                setFetchedCropName(data.cropName || "Cultivo no asignado");
+            } else {
+                setGreenhouseGoal(0);
+                setFetchedCropName("Cultivo no asignado");
+            }
+            setLoadingGreenhouseData(false);
+        });
+
+        return () => {
+            unsubscribeDaily();
+            unsubscribeConfig();
+        };
+    }, [userId, selectedGreenhouseId, db]);
+
+    // --- METRIC CALCULATIONS ---
+    const { totalProductionVal, chartData, percentage, goalValue } = useMemo(() => {
+        // Transform dailyData object to sorted array
+        const rawArray = Object.keys(greenhouseDailyData).map(dateKey => {
+            const dayData = greenhouseDailyData[dateKey];
+            const totalKg = dayData.items ? 
+                dayData.items.reduce((sum, item) => sum + (parseFloat(item.result) || 0), 0) 
+                : 0;
+            
+            return {
+                date: dateKey,
+                formattedDate: `${dateKey.split('-')[2]}/${dateKey.split('-')[1]}`, // DD/MM
+                production: totalKg,
+                timestamp: new Date(dateKey).getTime()
+            };
+        }).sort((a, b) => a.timestamp - b.timestamp);
+
+        // Get last 30 days or all data for chart
+        const chartDataInternal = rawArray.slice(-30); 
+
+        const totalProd = rawArray.reduce((acc, curr) => acc + curr.production, 0);
+        
+        // Goal Calculation (Local or Global logic could go here, for now using fetched goal)
+        // If yearly goal, we might want to scale it? Or just show total vs total.
+        // Let's assume goal is "Total Goal for Campaign"
+        const goal = greenhouseGoal > 0 ? greenhouseGoal : 10000; // Default placeholder if 0 to avoid division by zero visual issues or 100%
+        
+        const pct = goal > 0 ? ((totalProd / goal) * 100).toFixed(1) : 0;
+
+        return {
+            totalProductionVal: totalProd,
+            chartData: chartDataInternal,
+            percentage: pct,
+            goalValue: goal
+        };
+    }, [greenhouseDailyData, greenhouseGoal]);
+    
     // --- ESTADO PARA MODO EDICIÓN ---
     // REMOVED LOCAL STATE: const [isEditMode, setIsEditMode] = useState(false);
 
@@ -1252,7 +1397,7 @@ export const HomeView = ({
                 </div>
 
                 {/* 4. ASESORAMIENTO CRÍTICO */}
-                <div key="advisory" className={`bg-white rounded-none transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
+                {/* <div key="advisory" className={`bg-white rounded-none transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
                      <DashboardCard 
                         title="Asesoramiento Crítico" 
                         icon={<FaBell />} 
@@ -1263,7 +1408,7 @@ export const HomeView = ({
                             <SprayAdvisory apiKey={OPENWEATHER_API_KEY} city={DEFAULT_CITY} />
                         </div>
                     </DashboardCard>
-                </div>
+                </div> */}
 
                 {/* 5. GRÁFICO PRODUCCIÓN */}
                 <div key="chart" className={`bg-white rounded-none transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
@@ -1272,18 +1417,86 @@ export const HomeView = ({
                         icon={<FaChartLine />} 
                         titleColor="text-purple-600"
                         className="h-full"
+                        // 💡 Aañadimos el Dropdown Action
+                        headerAction={
+                            <GreenhouseHeaderAction 
+                                greenhouses={greenhousesList}
+                                selectedId={selectedGreenhouseId}
+                                onSelect={setSelectedGreenhouseId}
+                                isOpen={openDropdownId === 'chart'}
+                                onToggle={(id) => setOpenDropdownId(id ? 'chart' : null)}
+                                dropdownId="chart"
+                            />
+                        }
                     >
-                        <div className="h-full flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border border-purple-100 p-4">
-                            <FaChartLine className="text-6xl text-purple-300 mb-4" />
-                            <p className="text-sm font-medium text-gray-600">Gráfica en desarrollo</p>
-                            <div className="mt-4 grid grid-cols-2 gap-4 w-full px-2">
-                                <div className="text-center p-2 bg-white rounded-lg shadow-sm">
-                                    <p className="text-xs text-gray-500 mb-1">Producción</p>
-                                    <p className="text-lg font-bold text-green-600">{totalProduction.toFixed(0)} kg</p>
+                        <div className="h-full flex gap-4 p-4">
+                            {/* Left Side: Detailed Metrics with Enterprise Styling */}
+                            <div className="flex-1 flex flex-col justify-center space-y-4">
+                                {/* Current Production Metric */}
+                                <div className="p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/10 rounded-full blur-2xl -mr-8 -mt-8 group-hover:bg-blue-500/20 transition-all"></div>
+                                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Producción Actual</p>
+                                    <div className="flex items-baseline gap-1">
+                                         <p className="text-2xl font-black text-gray-800 tracking-tight">{totalProductionVal.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
+                                         <span className="text-xs font-semibold text-gray-400">kg</span>
+                                    </div>
                                 </div>
-                                <div className="text-center p-2 bg-white rounded-lg shadow-sm">
-                                    <p className="text-xs text-gray-500 mb-1">Cultivo</p>
-                                    <p className="text-sm font-semibold text-gray-700 truncate">{currentCropName}</p>
+
+                                {/* Goal Metric */}
+                                <div className="p-3 bg-gradient-to-br from-amber-50 to-orange-50/50 rounded-xl border border-amber-100 shadow-sm relative overflow-hidden">
+                                     <div className="absolute top-0 right-0 w-16 h-16 bg-amber-500/10 rounded-full blur-2xl -mr-8 -mt-8"></div>
+                                    <p className="text-xs font-bold text-amber-600/80 uppercase tracking-widest mb-1">Meta Campaña</p>
+                                    <div className="flex items-baseline gap-1">
+                                        <p className="text-xl font-black text-amber-700 tracking-tight">{goalValue.toLocaleString('es-ES')} <span className="text-xs font-semibold text-amber-600/70">kg</span></p>
+                                    </div>
+                                </div>
+
+                                {/* Efficiency Status Pill */}
+                                <div className={`inline-flex items-center px-3 py-1.5 rounded-full border w-fit ${
+                                    parseFloat(percentage) >= 100 
+                                    ? 'bg-emerald-50 border-emerald-200 text-emerald-700' 
+                                    : 'bg-blue-50 border-blue-200 text-blue-700'
+                                }`}>
+                                    <span className="w-2 h-2 rounded-full bg-current mr-2 animate-pulse"></span>
+                                    <span className="text-xs font-bold uppercase tracking-wide">
+                                        {parseFloat(percentage) >= 100 ? 'Meta Superada' : 'En Progreso'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Right Side: Visual Gauge (Pie Chart) */}
+                            <div className="flex-1 relative flex items-center justify-center">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={[
+                                                { name: 'Completed', value: Math.min(parseFloat(percentage), 100) },
+                                                { name: 'Remaining', value: Math.max(100 - parseFloat(percentage), 0) }
+                                            ]}
+                                            cx="50%"
+                                            cy="70%"
+                                            startAngle={180}
+                                            endAngle={0}
+                                            innerRadius="60%"
+                                            outerRadius="85%"
+                                            paddingAngle={0}
+                                            dataKey="value"
+                                            stroke="none"
+                                        >
+                                            <Cell key="cell-completed" fill={parseFloat(percentage) >= 100 ? '#10b981' : '#3b82f6'} /> {/* Emerald-500 or Blue-500 */}
+                                            <Cell key="cell-remaining" fill="#f3f4f6" /> {/* Gray-100 for background track */}
+                                        </Pie>
+                                    </PieChart>
+                                </ResponsiveContainer>
+                                
+                                {/* Gauge Center Text */}
+                                <div className="absolute bottom-4 left-0 right-0 text-center transform translate-y-2">
+                                     <p className={`text-3xl font-black tracking-tighter leading-none ${
+                                         parseFloat(percentage) >= 100 ? 'text-emerald-600' : 'text-blue-600'
+                                     }`}>
+                                        {percentage}%
+                                    </p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Completado</p>
                                 </div>
                             </div>
                         </div>
@@ -1291,7 +1504,7 @@ export const HomeView = ({
                 </div>
 
                 {/* 6. PRONÓSTICO 5 DÍAS */}
-                <div key="forecast_5" className={`bg-white rounded-none transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
+                {/* <div key="forecast_5" className={`bg-white rounded-none transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
                      <DashboardCard 
                         title="Pronóstico 5 Días" 
                         icon={<FaCloudSun />} 
@@ -1307,7 +1520,7 @@ export const HomeView = ({
                                 />
                         </div>
                     </DashboardCard>
-                </div>
+                </div> */}
 
                 {/* 7. INFORMACIÓN RÁPIDA */}
                 <div key="quick_info" className={`bg-white rounded-none transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
@@ -1316,27 +1529,50 @@ export const HomeView = ({
                         icon={<FaSeedling />} 
                         titleColor="text-green-600"
                         className="h-full"
+                        // 💡 Aañadimos el Dropdown Action
+                        headerAction={
+                            <GreenhouseHeaderAction 
+                                greenhouses={greenhousesList}
+                                selectedId={selectedGreenhouseId}
+                                onSelect={setSelectedGreenhouseId}
+                                isOpen={openDropdownId === 'quick_info'}
+                                onToggle={(id) => setOpenDropdownId(id ? 'quick_info' : null)}
+                                dropdownId="quick_info"
+                            />
+                        }
                     >
                         <div className="h-full flex flex-col justify-center space-y-4 p-2">
-                            <div className="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100">
+                            <div className="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100 shadow-sm">
                                 <div className="flex items-center space-x-3">
-                                    <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                                    <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center shadow-md">
                                         <FaSeedling className="text-white" />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-gray-500 font-medium">Cultivo</p>
-                                        <p className="text-sm font-bold text-gray-800">{currentCropName}</p>
+                                        <p className="text-xs text-gray-500 font-medium uppercase">Cultivo Actual</p>
+                                        <p className="text-sm font-bold text-gray-800">{fetchedCropName}</p>
                                     </div>
                                 </div>
                             </div>
-                             <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-100">
+                             <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-100 shadow-sm">
                                 <div className="flex items-center space-x-3">
-                                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center shadow-md">
                                         <FaChartLine className="text-white" />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-gray-500 font-medium">Total</p>
-                                        <p className="text-base font-bold text-green-600">{totalProduction.toFixed(2)} kg</p>
+                                        <p className="text-xs text-gray-500 font-medium uppercase">Producción Total</p>
+                                        <p className="text-base font-bold text-green-600">{totalProductionVal.toFixed(2)} kg</p>
+                                    </div>
+                                </div>
+                            </div>
+                             {/* Added Efficiency Metric if available, or just Cost Estimate */}
+                             <div className="flex items-center justify-between p-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-100 shadow-sm">
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center shadow-md">
+                                        <FaMoneyBillWave className="text-white" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500 font-medium uppercase">Meta de Campaña</p>
+                                        <p className="text-base font-bold text-amber-600">{goalValue.toLocaleString()} kg</p>
                                     </div>
                                 </div>
                             </div>
@@ -1352,7 +1588,7 @@ export const HomeView = ({
                 </div>
 
                  {/* 9. HISTORIAL MANO DE OBRA */}
-                 <div key="labor_history" className={`bg-white rounded-none transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
+                 {/* <div key="labor_history" className={`bg-white rounded-none transition-all h-full ${isEditMode ? "border-2 border-dashed border-green-500 shadow-lg cursor-move" : ""}`}>
                     <DashboardCard
                         title="Historial de Registros"
                         icon={<FaListAlt />}
@@ -1367,12 +1603,61 @@ export const HomeView = ({
                                 onDeleteRecord={handleDelete}
                             />
                         </div>
-                    </DashboardCard>
-                </div>
 
+                    </DashboardCard>
+                </div> */}
+
+                {/* --- COMPONENTE AUXILIAR PARA EL DROPDOWN DE SELECCIÓN --- */}
+                {/* Lo definimos aquí dentro o fuera, pero necesitamos acceso a setOpenDropdownId y setSelectedGreenhouseId */}
             </ResponsiveGridLayout>
 
             {/* Estilos cargados desde HomeGrid.css */}
+        </div>
+    );
+};
+
+// 💡 Helper para el Dropdown de Selección
+const GreenhouseHeaderAction = ({ greenhouses, selectedId, onSelect, isOpen, onToggle, dropdownId }) => {
+    return (
+        <div className="relative">
+            <button 
+                onClick={(e) => { e.stopPropagation(); onToggle(dropdownId); }}
+                className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+                <FaEllipsisV />
+            </button>
+            
+            {isOpen && (
+                <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-50 overflow-hidden py-1">
+                    <div className="px-3 py-2 border-b border-gray-50 text-xs font-semibold text-gray-400 uppercase tracking-wider bg-gray-50/50">
+                        Seleccionar Invernadero
+                    </div>
+                    {greenhouses.map(g => (
+                        <button
+                            key={g.id}
+                            onClick={() => { onSelect(g.id); onToggle(null); }} // Select and close
+                            className={`w-full text-left px-4 py-2 text-sm hover:bg-green-50 hover:text-green-700 transition-colors flex items-center justify-between
+                                ${selectedId === g.id ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-600'}
+                            `}
+                        >
+                            {g.name}
+                            {selectedId === g.id && <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>}
+                        </button>
+                    ))}
+                    {greenhouses.length === 0 && (
+                        <div className="px-4 py-3 text-sm text-gray-400 italic text-center">
+                            No hay invernaderos
+                        </div>
+                    )}
+                </div>
+            )}
+            {/* Backdrop invisible para cerrar al hacer click fuera */}
+            {isOpen && (
+                <div 
+                    className="fixed inset-0 z-40 cursor-default" 
+                    onClick={() => onToggle(null)}
+                />
+            )}
         </div>
     );
 };
@@ -1396,7 +1681,32 @@ const HomeContent = (props) => {
     const [activeView, setActiveView] = useState('home'); 
     const [notification, setNotification] = useState(null); 
     
-            
+    // 2. Greenhouse State Logic (Replicated & Synced)
+    const appId = getAppId ? getAppId() : "default-app-id";
+    const GREENHOUSE_STORAGE_KEY = `${appId}_selected_greenhouse_id`;
+
+    // Initialize with stored ID or null
+    const [selectedGreenhouseId, setSelectedGreenhouseId] = useState(() => {
+        return localStorage.getItem(GREENHOUSE_STORAGE_KEY) || null;
+    });
+
+    // Update localStorage when selection changes
+    useEffect(() => {
+        if (selectedGreenhouseId) {
+            localStorage.setItem(GREENHOUSE_STORAGE_KEY, selectedGreenhouseId);
+        }
+    }, [selectedGreenhouseId, GREENHOUSE_STORAGE_KEY]);
+    
+    // Note: We need 'greenhouses' list here too if we want to default to the first one if storage is empty
+    // But HomeView receives 'greenhouses' as prop (Wait, HomeView doesn't seem to fetch them, it receives them)
+    // Let's check where 'greenhouses' come from in HomeView props. 
+    // Actually, HomeContent calls useGreenhouseData (custom hook?) or should fetch them.
+    // Based on previous code, HomeView receives 'greenhouses' props.
+    // We need to fetch the list here in HomeContent to pass it down or handle logic.
+    
+    // Let's assume for now we just fix the persistence. If the list is fetched inside HomeView or passed from higher up,
+    // we just need to ensure the ID is passed correctly.
+
     // 🚨 NUEVOS ESTADOS PARA EDICIÓN
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState(null);
@@ -1644,7 +1954,7 @@ const HomeContent = (props) => {
 
 
             {/* Renderizado de la Vista Activa */}
-            {activeView === 'home' && (<HomeView {...restOfProps} timesheets={timesheets} isEditMode={isEditMode} userId={userId} db={db} />)}
+            {activeView === 'home' && (<HomeView {...restOfProps} timesheets={timesheets} isEditMode={isEditMode} userId={userId} db={db} selectedGreenhouseId={selectedGreenhouseId} setSelectedGreenhouseId={setSelectedGreenhouseId} />)}
 
             {activeView === 'costs' && (
                 <div className="p-4 sm:p-6 pt-0">
