@@ -93,6 +93,11 @@ const Menu = [
     icon: <FaChartLine />, // You might need to import FaChartLine or use another icon
     path: "/seguimiento-costes",
   },
+  {
+    title: "Costos Producción",
+    icon: <FaChartLine />, 
+    path: "/production-costs",
+  },
   
   // ----------------------------------------------------
   // 4. ADMINISTRACIÓN (Recursos Humanos)

@@ -61,6 +61,7 @@ import CostesDashboard from "./components/COSTOS/CostesDashboard";
 import FarmSettings from "./Pages/FarmSettings/FarmSettings";
 import FieldActivities from "./components/FieldActivities";
 import InventoryCostes from "./components/COSTOS/InventoryCostes";
+import ProductionCosts from "./components/COSTOS/ProductionCosts";
 
 
 axios.defaults.withCredentials = true;
@@ -258,6 +259,10 @@ function App() {
                     <Route
                         path="/seguimiento-costes"
                         element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><CostesDashboard /></ProtectedLayout></RoleRoute>}
+                    />
+                    <Route
+                        path="/production-costs"
+                        element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><ProductionCosts /></ProtectedLayout></RoleRoute>}
                     />
 
                     {/* Perfil */}
