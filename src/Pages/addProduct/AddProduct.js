@@ -9,6 +9,7 @@ import {
 import { 
     selectRole,
     selectUserId, 
+    selectName,
 } from "../../features/auth/authSlice/authSlice"; 
 import Loader from "../../Util/Loader";
 import { toast } from 'react-toastify'; 
@@ -18,6 +19,7 @@ import { MdOutlineCreateNewFolder } from "react-icons/md";
 const initialState = {
     name: "",
     category: "",
+    price: 0, // NEW: Coste/Precio
     // Usamos 0 para asegurar el tipo numérico al inicio
     entradas: 0, 
     salidas: 0, 
@@ -30,6 +32,7 @@ const AddProduct = () => {
     // ** VALORES CLAVE DE REDUX **
     const userRole = useSelector(selectRole); 
     const currentUserId = useSelector(selectUserId); // Debe ser string o null
+    const userName = useSelector(selectName); 
     
     const [product, setProduct] = useState(initialState);
     const [description, setDescription] = useState("");
@@ -40,8 +43,9 @@ const AddProduct = () => {
     // ESTADOS para manejar el stock temporal en el formulario
     const [ingresoCantidad, setIngresoCantidad] = useState(0);
     const [egresoCantidad, setEgresoCantidad] = useState(0);
+    const [totalPrice, setTotalPrice] = useState(""); // Nuevo estado: Valor Total Compra
 
-    const { name, category } = product;
+    const { name, category, price } = product;
     
     // Función auxiliar para obtener el valor numérico o 0
     const getNumericValue = (value) => {
@@ -52,20 +56,58 @@ const AddProduct = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setProduct({ ...product, [name]: value });
+        
+        const newProduct = { ...product, [name]: value };
+        setProduct(newProduct);
+
+        // Lógica de cálculo si se cambia 'entradas' y no hay 'ingreso_cantidad' definido
+        if (name === "entradas") {
+            const normalize = (val) => parseFloat(String(val).replace(',', '.') || 0);
+            const qty = normalize(value);
+            const total = normalize(totalPrice);
+            const ingreso = normalize(ingresoCantidad);
+
+            // Si no estamos usando la caja de transacción (ingreso=0) y hay un total definido
+            if (ingreso === 0 && qty > 0 && total > 0) {
+                 const newUnitPrice = total / qty;
+                 // Usamos el callback de setProduct para asegurar consistencia
+                 setProduct(prev => ({ ...prev, price: newUnitPrice.toFixed(2) }));
+            }
+        }
     };
 
     // FUNCIÓN para manejar los campos de Ingreso/Egreso Temporal
     const handleStockChange = (e) => {
         const { name, value } = e.target;
         
-        // Asegurar que el valor es un número positivo o 0
-        const numericValue = getNumericValue(value);
+        // Función auxiliar para normalizar decimales solo para el cálculo interno (no para el input crudo)
+        const normalize = (val) => parseFloat(String(val).replace(',', '.') || 0);
 
         if (name === "ingreso_cantidad") {
-            setIngresoCantidad(numericValue);
+            setIngresoCantidad(value); // Guardamos el valor crudo en el input
+            
+            // Lógica de cálculo inverso: Si tengo un Total Price, RE-CALCULO el Unit Price
+            const qty = normalize(value);
+            const total = normalize(totalPrice);
+            if (qty > 0 && total > 0) {
+                const newUnitPrice = total / qty;
+                setProduct(prev => ({ ...prev, price: newUnitPrice.toFixed(2) }));
+            }
+
         } else if (name === "egreso_cantidad") {
-            setEgresoCantidad(numericValue);
+            setEgresoCantidad(value);
+        } else if (name === "total_price") {
+            setTotalPrice(value);
+            
+            // Lógica de cálculo: Si escribo el Total y tengo cantidad -> Calculo Unitario
+            const total = normalize(value);
+            // Prioridad: Cantidad Ingresada > Entradas Totales (Base)
+            const qty = normalize(ingresoCantidad) > 0 ? normalize(ingresoCantidad) : normalize(product.entradas);
+            
+            if (qty > 0 && total > 0) {
+                const newUnitPrice = total / qty;
+                setProduct(prev => ({ ...prev, price: newUnitPrice.toFixed(2) }));
+            }
         }
     };
 
@@ -109,9 +151,11 @@ const AddProduct = () => {
         formData.append("name", name);
         formData.append("sku", generateKSKU(category));
         formData.append("category", category);
+        formData.append("price", price);
         
         // Enviamos el ID del usuario. Como ya validamos, currentUserId es un string.
         formData.append("userId", currentUserId); 
+        formData.append("userName", userName);
 
         // ENVIAMOS los valores BASE + AJUSTE
         formData.append("entradas", finalEntradas); 
@@ -156,6 +200,7 @@ const AddProduct = () => {
                 // Propiedades nuevas para la funcionalidad de stock
                 ingreso_cantidad={ingresoCantidad}
                 egreso_cantidad={egresoCantidad}
+                total_price={totalPrice} // pasamos el nuevo estado 
                 handleStockChange={handleStockChange} 
                 
                 handleImageChange={handleImageChange}

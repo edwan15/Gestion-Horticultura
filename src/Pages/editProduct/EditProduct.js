@@ -211,6 +211,7 @@ const EditProduct = () => {
     // ESTADOS PARA LOS NUEVOS CAMPOS FUNCIONALES/TRANSACCIONALES
     const [ingresoCantidad, setIngresoCantidad] = useState("");
     const [egresoCantidad, setEgresoCantidad] = useState("");
+    const [totalPrice, setTotalPrice] = useState("");
 
 
     useEffect(() => {
@@ -225,6 +226,7 @@ const EditProduct = () => {
                 // Convertimos a número o a 0 para cálculos seguros
                 entradas: Number(productEdit.entradas) || 0,
                 salidas: Number(productEdit.salidas) || 0,
+                price: Number(productEdit.price) || 0,
             });
             
             setImagePreview(productEdit.image ? `${productEdit.image.filePath}` : null);
@@ -235,7 +237,24 @@ const EditProduct = () => {
     // Maneja los campos base (name, category, entradas, salidas)
     const handleInputChange = (e) => {
         const {value , name } = e.target;
-        setProduct({ ...product, [name]: value });
+        // setProduct({ ...product, [name]: value }); <-- ANTIGUO
+        
+        const newProduct = { ...product, [name]: value };
+        setProduct(newProduct);
+
+        // Lógica de cálculo si se cambia 'entradas' manual en Editar
+        // Aunque usualmente se usa Ingreso, si editan el histórico base, recalculamos si hay Total Price puesto.
+        if (name === "entradas") {
+            const normalize = (val) => parseFloat(String(val).replace(',', '.') || 0);
+            const qty = normalize(value);
+            const total = normalize(totalPrice);
+            const ingreso = normalize(ingresoCantidad);
+
+            if (ingreso === 0 && qty > 0 && total > 0) {
+                 const newUnitPrice = total / qty;
+                 setProduct(prev => ({ ...prev, price: newUnitPrice.toFixed(2) }));
+            }
+        }
     };
     
     // 👇 MODIFICACIÓN CLAVE AQUÍ: Permite números flotantes (con . o ,)
@@ -245,8 +264,10 @@ const EditProduct = () => {
         // Expresión regular que permite: string vacío, dígitos, y un punto o coma (opcional)
         // La coma la reemplazamos internamente por punto para la validación.
         const cleanedValue = value.replace(',', '.');
-        // El regex verifica que el valor sea un número decimal válido (ej: "123", "12.3", "0.5")
-        const isNumberOrDecimal = /^\d*\.?\d*$/.test(cleanedValue);
+        // El regex verifica que el valor sea un número decimal válido (ej: "123", "12.3", "0.5") or empty
+        const isNumberOrDecimal = /^\d*\.?\d*$/.test(cleanedValue) || value === "";
+
+        const normalize = (val) => parseFloat(String(val).replace(',', '.') || 0);
         
         // Solo actualizamos si es un número válido y positivo (o vacío)
         if (isNumberOrDecimal) {
@@ -256,14 +277,35 @@ const EditProduct = () => {
                 setIngresoCantidad(value); 
                 // Reseteamos el egreso para asegurar que solo se haga una operación a la vez
                 if (value !== "") setEgresoCantidad(""); 
+                
+                // --- CALCULO AUTOMATICO DEL PRECIO UNITARIO ---
+                const qty = normalize(value);
+                const total = normalize(totalPrice);
+                if (qty > 0 && total > 0) {
+                     const newUnitPrice = total / qty;
+                     setProduct(prev => ({ ...prev, price: newUnitPrice.toFixed(2) }));
+                }
+
             } else if (name === 'egreso_cantidad') {
                 // Guardamos el string original (puede contener coma o punto)
                 setEgresoCantidad(value);
                 // Reseteamos el ingreso
                 if (value !== "") setIngresoCantidad(""); 
+
+            } else if (name === 'total_price') {
+                setTotalPrice(value);
+                
+                // --- CALCULO AUTOMATICO DEL PRECIO UNITARIO ---
+                const total = normalize(value);
+                // Prioridad: Cantidad Ingresada > Entradas Totales Base
+                const qty = normalize(ingresoCantidad) > 0 ? normalize(ingresoCantidad) : normalize(product.entradas);
+
+                if (qty > 0 && total > 0) {
+                     const newUnitPrice = total / qty;
+                     setProduct(prev => ({ ...prev, price: newUnitPrice.toFixed(2) }));
+                }
             }
         }
-        // Si no es un número válido, la entrada es ignorada.
     };
 
 
@@ -314,7 +356,8 @@ const EditProduct = () => {
         
         formData.append("name", product?.name);
         formData.append("category", product?.category || ""); 
-        
+        formData.append("price", product?.price || 0);
+
         // *** ENVIAMOS LOS NUEVOS VALORES ACUMULADOS ***
         formData.append("entradas", newEntradas);
         formData.append("salidas", newSalidas);
@@ -339,6 +382,7 @@ const EditProduct = () => {
             // Limpiamos los campos funcionales
             setIngresoCantidad(""); 
             setEgresoCantidad(""); 
+            setTotalPrice(""); 
             
             await dispatch(getProducts());
             navigate("/panel");
@@ -378,6 +422,7 @@ const EditProduct = () => {
                 // PROPS DE LOS NUEVOS CAMPOS FUNCIONALES
                 ingreso_cantidad={ingresoCantidad}
                 egreso_cantidad={egresoCantidad}
+                total_price={totalPrice}
                 handleStockChange={handleStockChange} // 🎉 Con la lógica decimal
                 stockFinal={stockFinal} // Pasamos el stock calculado para mostrarlo
             />

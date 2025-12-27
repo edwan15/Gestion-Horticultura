@@ -62,6 +62,10 @@ import FarmSettings from "./Pages/FarmSettings/FarmSettings";
 import FieldActivities from "./components/FieldActivities";
 import InventoryCostes from "./components/COSTOS/InventoryCostes";
 import ProductionCosts from "./components/COSTOS/ProductionCosts";
+import Catalog from "./components/Catalog/Catalog";
+import CatalogList from "./components/Catalog/CatalogList";
+import Stock from "./components/DashBoard/Stock";
+import TimeRegistrationPage from "./Pages/TimeRegistration/TimeRegistrationPage";
 
 
 axios.defaults.withCredentials = true;
@@ -207,6 +211,16 @@ function App() {
                         path="/panel"
                         element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><DashBoard /></ProtectedLayout></RoleRoute>}
                     />
+                    <Route
+                        path="/stock"
+                        element={
+                            <RoleRoute allowedRoles={ALL_ROLES}>
+                                <ProtectedLayout>
+                                    <Stock />
+                                </ProtectedLayout>
+                            </RoleRoute>
+                        }
+                    />
                     
                     {/* Productos */}
                     <Route
@@ -251,6 +265,14 @@ function App() {
                     <Route
                         path="/profile"
                         element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><Profile /></ProtectedLayout></RoleRoute>}
+                    />
+                    <Route
+                        path="/catalog"
+                        element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><Catalog /></ProtectedLayout></RoleRoute>}
+                    />
+                    <Route
+                        path="/catalogList"
+                        element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><CatalogList /></ProtectedLayout></RoleRoute>}
                     />
                     <Route
                         path="/seguimiento-costes"
@@ -319,6 +341,12 @@ function App() {
                         path="/field-activities"
                         element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><FieldActivities /></ProtectedLayout></RoleRoute>}
                     />
+                    
+                     {/* Registro de Horas (Nueva Página Completa) - Sin Layout para pantalla completa */}
+                     <Route
+                        path="/registro-horas"
+                        element={<RoleRoute allowedRoles={ALL_ROLES}><TimeRegistrationPage /></RoleRoute>}
+                    />
 
                     {/* Administración de Usuarios (Admin) */}
                     <Route
@@ -327,7 +355,7 @@ function App() {
                     />
                     <Route
                         path="/user-master"
-                        element={<RoleRoute allowedRoles={["admin"]}><ProtectedLayout><UserProfe /></ProtectedLayout></RoleRoute>}
+                        element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><UserProfe /></ProtectedLayout></RoleRoute>}
                     />
 
                     {/* Contacto */}

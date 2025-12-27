@@ -1,5 +1,5 @@
 import { RxDashboard } from "react-icons/rx";
-import { AiFillFileAdd, AiFillFileText } from "react-icons/ai";
+import { AiFillFileAdd, AiFillFileText, AiOutlineStock } from "react-icons/ai";
 import { MdManageAccounts, MdOutlineSupportAgent, MdPeopleOutline, MdLocalShipping, MdOutlineGrass } from "react-icons/md";
 import { SiAdafruit } from "react-icons/si";
 import { WiDaySunny, WiHumidity } from "react-icons/wi";
@@ -62,6 +62,11 @@ const Menu = [
     title: "Inventario y Logística",
     icon: <MdLocalShipping />, 
     childrens: [
+      {
+        title: "Inventario Stock",
+        icon: <AiOutlineStock />,
+        path: "/stock", 
+      },
       {
         title: "Inventario General",
         icon: <IoIosListBox />,

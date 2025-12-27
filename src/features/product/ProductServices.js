@@ -269,15 +269,48 @@ const updateProduct = async (id, productData) => {
 
         // 4. Comparar y encontrar cambios reales
         const changedFields = [];
+
+        // --- LÓGICA ESPECIAL PARA STOCK (Base -> Transacción -> Final) ---
+        const oldEntradas = Number(currentData.entradas) || 0;
+        const oldSalidas = Number(currentData.salidas) || 0;
+        const oldStock = oldEntradas - oldSalidas;
+
+        const newEntradas = updateObject.entradas !== undefined ? Number(updateObject.entradas) : oldEntradas;
+        const newSalidas = updateObject.salidas !== undefined ? Number(updateObject.salidas) : oldSalidas;
+        const newStock = newEntradas - newSalidas;
+
+        if (newStock !== oldStock) {
+            const diff = newStock - oldStock;
+            const sign = diff > 0 ? '+' : '';
+            
+            // Determinar tipo de movimiento para el log
+            let logMsg = "";
+            if (newEntradas !== oldEntradas && newSalidas === oldSalidas) {
+                 const entryDiff = newEntradas - oldEntradas;
+                 logMsg = `Ingreso: +${entryDiff}`;
+            } else if (newSalidas !== oldSalidas && newEntradas === oldEntradas) {
+                 const exitDiff = newSalidas - oldSalidas;
+                 logMsg = `Egreso: -${exitDiff}`;
+            } else {
+                 logMsg = `Ajuste Stock: ${sign}${diff}`;
+            }
+            
+            // Formato solicitado: "Transacción | Base -> Final"
+            changedFields.push(`${logMsg} | Stock: ${oldStock} -> ${newStock}`);
+        }
+        // ----------------------------------------------------------------
+
         Object.keys(updateObject).forEach(key => {
             if (key === 'updatedAt' || key === 'createdAt') return;
+            // Saltamos entradas y salidas porque ya se manejaron arriba
+            if (key === 'entradas' || key === 'salidas') return;
             
             const oldValue = currentData[key];
             const newValue = updateObject[key];
 
             // Comparación laxa
             if (newValue != oldValue) {
-                // Formato: "Campo: NuevoValor" (o puedes poner "Campo: Anterior -> Nuevo")
+                // Formato por defecto para otros campos
                 changedFields.push(`${key}: ${newValue}`);
             }
         });

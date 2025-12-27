@@ -23,15 +23,16 @@ import { confirmAlert } from "react-confirm-alert";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import { applyPlugin } from "jspdf-autotable";
+import logoImg from "../../../asset/EuroLevante.webp";
 
 applyPlugin(jsPDF);
 
 // =======================================================
 // 📌 CONSTANTES DE EXPORTACIÓN (Para fácil migración)
 // =======================================================
-const COMPANY_NAME = "FINCA HORTICULTURA-BALSICAS";
+const COMPANY_NAME = "FINCA EUROFRUITS AGRO - BALSICAS";
 const INVENTORY_DETAIL = "REPORTE DE INVENTARIO GENERAL";
-const LOGO_URL = "";
+const LOGO_URL = "https://eurofruitslevante.com/wp-content/uploads/2025/07/euro-e1753695395199.webp";
 
 // Selector para obtener el objeto de usuario y manejar el rol inicial
 const selectAuthUser = (state) => state.auth.user;
@@ -305,13 +306,44 @@ const ProductList = ({ products, isLoading }) => {
 
     const ExportToPDF = async () => {
         if (isLoading || currentItems.length === 0) return;
+        
+        // Ordenar items por stock (Mayor a menor)
+        const sortedItems = [...currentItems].sort((a, b) => {
+            const stockA = (a.entradas || 0) - (a.salidas || 0);
+            const stockB = (b.entradas || 0) - (b.salidas || 0);
+            return stockB - stockA;
+        });
+
         const doc = new jsPDF();
-        doc.text(COMPANY_NAME, 105, 15, { align: "center" });
+
+        // 1. Agregar Logo
+        try {
+            const logoBase64 = await getBase64ImageFromURL(logoImg);
+            // x, y, width, height (Ajustado a 40x25 para dar más anchura)
+            doc.addImage(logoBase64, "PNG", 15, 10, 40, 25); 
+        } catch (error) {
+            console.warn("Error cargando logo:", error);
+        }
+
+        // 2. Encabezados de Texto
+        doc.setFontSize(14);
+        doc.setTextColor(40);
+        doc.text(COMPANY_NAME, 105, 20, { align: "center" });
+        
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(INVENTORY_DETAIL, 105, 28, { align: "center" });
+
+        // 3. Tabla
         doc.autoTable({
             head: [["ID", "Nombre", "Categoría", "Stock"]],
-            body: currentItems.map((p, i) => [i + 1, p.name, p.category, p.entradas - p.salidas]),
-            startY: 25,
+            body: sortedItems.map((p, i) => [i + 1, p.name, p.category, (p.entradas || 0) - (p.salidas || 0)]),
+            startY: 40, // Dejar espacio para logo y títulos
+            theme: 'striped',
+            headStyles: { fillColor: [22, 163, 74] }, // Verde estilo Excel/Agrario
+            styles: { fontSize: 8 }
         });
+        
         doc.save("Inventario.pdf");
     };
 

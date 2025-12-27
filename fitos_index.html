@@ -1,0 +1,2163 @@
+<input id="getFormuladosByFiltroAjax" type="hidden" value="/regfiweb/Formulados/FormuladosGrid"/>
+<input id="getFormuladoByIdAjax" type="hidden" value="/regfiweb/Formulados/GetFormuladoById"/>
+<input id="getSustanciasByFormuladoAjax" type="hidden" value="/regfiweb/Formulados/SustanciasGrid"/>
+<input id="getTranslocacionesByFormuladoAjax" type="hidden" value="/regfiweb/Formulados/TranslocacionesGrid"/>
+<input id="getFuncionesByFormuladoAjax" type="hidden" value="/regfiweb/Formulados/FuncionesGrid"/>
+<input id="getProductosByFormuladoAjax" type="hidden" value="/regfiweb/Formulados/ProductosGrid"/>
+<input id="getAccionesByFormuladoAjax" type="hidden" value="/regfiweb/Formulados/AccionesGrid"/>
+<input id="paginaNumRegistro" type="hidden" value="/regfiweb/NumRegistro/Index"/>
+<input id="paginaSustancias" type="hidden" value="/regfiweb/Sustancias/Index"/>
+<input id="exportFormulados" type="hidden" value="/regfiweb/Exportaciones/ExportExcelFormulados"/>
+<input id="exportGenericoSustanciaByFormulado" type="hidden" value="/regfiweb/Exportaciones/ExportExcelSustanciaByFormulados"/>
+<input id="exportGenericoFuncionesByFormulado" type="hidden" value="/regfiweb/Exportaciones/ExportExcelFuncionesByFormulados"/>
+<input id="exportGenericoProductosByFormulado" type="hidden" value="/regfiweb/Exportaciones/ExportExcelProductosByFormulados"/>
+<input id="exportGenericoAccionesByFormulado" type="hidden" value="/regfiweb/Exportaciones/ExportExcelAccionesByFormulados"/>
+<input id="exportGenericoTranslocacionesByFormulado" type="hidden" value="/regfiweb/Exportaciones/ExportExcelTranslocacionesByFormulados"/>
+<input id="exportGenericoJson" type="hidden" value="/regfiweb/Exportaciones/ExportJsonFormulados"/>
+<input id="idFormulado" type="hidden" value="0"/>
+<input id="nombreFormulado" type="hidden"/>
+<input id="rutaProductos" type="hidden" value="productos"/>
+<br/>
+<h2 role="heading">
+ <span class="float-left">
+  Formulados
+ </span>
+</h2>
+<button class="float-right btn btn-info" id="btnVolver">
+ <i class="fa fa-home">
+ </i>
+ Volver
+</button>
+<br/>
+<fieldset class="scheduler-border float-left w-100">
+ <legend class="scheduler-border">
+  Filtros
+ </legend>
+ <div class="form-group row">
+  <label class="col-sm-2 col-form-label pr-0" for="txtNombreFormuladoSearch">
+   Nombre
+  </label>
+  <div class="col-sm-4">
+   <input class="form-control form-control-sm" id="txtNombreFormuladoSearch" placeholder="Nombre" type="text"/>
+  </div>
+  <label class="col-sm-2 col-form-label" for="cmbPreparadoSearch">
+   Preparado
+  </label>
+  <div class="col-sm-4">
+   <select class="form-control form-control-sm" id="cmbPreparadoSearch">
+    <option>
+     Elija un preparado
+    </option>
+    <option value="SO">
+     ACEITE FORMADOR DE PELICULA
+    </option>
+    <option value="AE">
+     AEROSOL
+    </option>
+    <option value="FR">
+     BARRITA FUMIGENA
+    </option>
+    <option value="FD">
+     BOTE FUMIGENO
+    </option>
+    <option value="FK">
+     CANDELA FUMIGENA
+    </option>
+    <option value="FP">
+     CARTUCHO FUMIGENO
+    </option>
+    <option value="CB">
+     CEBO CONCENTRADO
+    </option>
+    <option value="BB">
+     CEBO EN BLOQUES
+    </option>
+    <option value="AB">
+     CEBO EN GRANOS
+    </option>
+    <option value="GB">
+     CEBO EN GRANULOS
+    </option>
+    <option value="PB">
+     CEBO EN PLAQUITAS
+    </option>
+    <option value="RB">
+     CEBO LISTO PARA SU USO
+    </option>
+    <option value="SB">
+     CEBO TROCEADO
+    </option>
+    <option value="DC">
+     CONCENTRADO DISPERSABLE
+    </option>
+    <option value="EC">
+     CONCENTRADO EMULSIONABLE
+    </option>
+    <option value="HN">
+     CONCENTRADO PARA NEBULIZACION EN CALIENTE
+    </option>
+    <option value="KN">
+     CONCENTRADO PARA NEBULIZACION EN FRIO
+    </option>
+    <option value="SL">
+     CONCENTRADO SOLUBLE
+    </option>
+    <option value="VP">
+     DIFUSOR DE VAPORES
+    </option>
+    <option value="OD">
+     DISPERSION OLEOSA
+    </option>
+    <option value="EW">
+     EMULSION DE ACEITE EN AGUA
+    </option>
+    <option value="EO">
+     EMULSION DE AGUA EN ACEITE
+    </option>
+    <option value="ES">
+     EMULSION PARA TRATAMIENTO DE SEMILLAS
+    </option>
+    <option value="GE">
+     FUMIGANTE (GENERADOR DE GAS)
+    </option>
+    <option value="GA">
+     GAS
+    </option>
+    <option value="GL">
+     GEL EMULSIONABLE
+    </option>
+    <option value="PC">
+     GEL O PASTA CONCENTRADA
+    </option>
+    <option value="GD">
+     GEL PARA APLICACIÓN DIRECTA
+    </option>
+    <option value="GF">
+     GEL PARA TRATAMIENTO DE SEMILLAS
+    </option>
+    <option value="GW">
+     GEL SOLUBLE EN AGUA
+    </option>
+    <option value="GR">
+     GRANULADO
+    </option>
+    <option value="WG">
+     GRANULADO DISPERSABLE EN AGUA
+    </option>
+    <option value="FG">
+     GRANULADO FINO
+    </option>
+    <option value="FW">
+     GRANULADO FUMIGENO
+    </option>
+    <option value="CG">
+     GRANULO ENCAPSULADO
+    </option>
+    <option value="EG">
+     GRANULOS EMULSIONABLES
+    </option>
+    <option value="SG">
+     GRANULOS SOLUBLES EN AGUA
+    </option>
+    <option value="GS">
+     GRASA
+    </option>
+    <option value="LA">
+     LACA
+    </option>
+    <option value="ED">
+     LIQUIDO CARGABLE ELECTRICAMENTE
+    </option>
+    <option value="CL">
+     LIQUIDO O GEL DE CONTACTO
+    </option>
+    <option value="OL">
+     LIQUIDO OLEOMISCIBLE
+    </option>
+    <option value="UL">
+     LIQUIDO PARA APLICACION POR ULV
+    </option>
+    <option value="H/">
+     LÍQUIDO VOLÁTIL PARA NEBULIZACIÓN EN CALIENTE O EN FRÍO
+    </option>
+    <option value="GG">
+     MACROGRANULADO
+    </option>
+    <option value="TC">
+     MATERIAL TECNICO
+    </option>
+    <option value="ZC">
+     MEZCLA DE CS Y SC
+    </option>
+    <option value="ME">
+     MICROEMULSION
+    </option>
+    <option value="MG">
+     MICROGRANULADO
+    </option>
+    <option value="HK">
+     NEBULIZACION EN CALIENTE O FRIO
+    </option>
+    <option value="AL">
+     OTROS LIQUIDOS PARA APLICAR SIN DILUIR
+    </option>
+    <option value="AP">
+     OTROS POLVOS PARA APLICAR SIN DILUIR
+    </option>
+    <option value="KL">
+     PAQUETE COMBINADO (LIQUIDO/LIQUIDO)
+    </option>
+    <option value="KK">
+     PAQUETE COMBINADO (SOLIDO/LIQUIDO)
+    </option>
+    <option value="KP">
+     PAQUETE COMBINADO (SOLIDO/SOLIDO)
+    </option>
+    <option value="PA">
+     PASTA
+    </option>
+    <option value="01">
+     PASTA OLEOSA
+    </option>
+    <option value="BR">
+     PASTILLA DE LIBERACION CONTROLADA
+    </option>
+    <option value="CP">
+     POLVO DE CONTACTO
+    </option>
+    <option value="OP">
+     POLVO DISPERSABLE EN ACEITE
+    </option>
+    <option value="GP">
+     POLVO LIGERO
+    </option>
+    <option value="WP">
+     POLVO MOJABLE
+    </option>
+    <option value="WS">
+     POLVO MOJABLE PARA TRATAMIENTO DE SEMILLAS
+    </option>
+    <option value="DP">
+     POLVO PARA ESPOLVOREO
+    </option>
+    <option value="DS">
+     POLVO PARA TRATAMIENTO DE SEMILLAS (EN SECO)
+    </option>
+    <option value="SP">
+     POLVO SOLUBLE EN AGUA
+    </option>
+    <option value="SS">
+     POLVO SOLUBLE EN AGUA PARA TRATAMIENTO DE SEMILLAS
+    </option>
+    <option value="FU">
+     PREPARADO FUMIGENO
+    </option>
+    <option value="PS">
+     SEMILLA RECUBIERTA CON UN PESTICIDA (O SUSTANCIA ACTIVA)
+    </option>
+    <option value="LS">
+     SOLUCION PARA TRATAMIENTO DE SEMILLAS
+    </option>
+    <option value="SC">
+     SUSPENSION CONCENTRADA
+    </option>
+    <option value="SD">
+     SUSPENSIÓN CONCENTRADA DE APLICACIÓN DIRECTA
+    </option>
+    <option value="FS">
+     SUSPENSION CONCENTRADA PARA TRATAMIENTO DE SEMILLAS
+    </option>
+    <option value="CS">
+     SUSPENSION DE CAPSULAS
+    </option>
+    <option value="CF">
+     SUSPENSION DE CAPSULAS PARA TRATAMIENTO DE SEMILLAS
+    </option>
+    <option value="OF">
+     SUSPENSION OLEOMISCIBLE (SUSTANCIA ACTIVA OLEOSA EN SUSPENSION MISCIBLE)
+    </option>
+    <option value="SU">
+     SUSPENSION PARA APLICACION POR ULV
+    </option>
+    <option value="SE">
+     SUSPO-EMULSION
+    </option>
+    <option value="FT">
+     TABLETA FUMIGENA
+    </option>
+    <option value="TB">
+     TABLETAS
+    </option>
+    <option value="DT">
+     TABLETAS DE APLICACION DIRECTA
+    </option>
+    <option value="WT">
+     TABLETAS DISPERSABLES EN AGUA
+    </option>
+    <option value="ST">
+     TABLETAS SOLUBLES EN AGUA
+    </option>
+    <option value="PR">
+     TABLILLA IMPREGNADA CON UN PRODUCTO FITOSANITARIO
+    </option>
+    <option value="XX">
+     VARIOS
+    </option>
+   </select>
+  </div>
+ </div>
+ <div class="form-group row">
+  <label class="col-sm-2 col-form-label" for="cmbFuncionSearch">
+   Función
+  </label>
+  <div class="col-sm-4">
+   <select class="form-control form-control-sm" id="cmbFuncionSearch">
+    <option>
+     Elija una función
+    </option>
+    <option value="1">
+     ACARICIDA
+    </option>
+    <option value="3">
+     ANTIESPUMANTE
+    </option>
+    <option value="4">
+     ANTIEVAPORANTE
+    </option>
+    <option value="29">
+     ATRAYENTE
+    </option>
+    <option value="20">
+     BACTERICIDA
+    </option>
+    <option value="36">
+     CICATRIZANTE
+    </option>
+    <option value="5">
+     COADYUVANTE
+    </option>
+    <option value="6">
+     DEFOLIANTE
+    </option>
+    <option value="34">
+     DESINFECTANTE DE SUELOS
+    </option>
+    <option value="39">
+     DETERGENTE
+    </option>
+    <option value="26">
+     ENCERADO
+    </option>
+    <option value="31">
+     ESTERILIZANTE
+    </option>
+    <option value="8">
+     FEROMONA
+    </option>
+    <option value="9">
+     FITORREGULADOR
+    </option>
+    <option value="10">
+     FUMIGANTE
+    </option>
+    <option value="11">
+     FUNGICIDA
+    </option>
+    <option value="12">
+     HERBICIDA
+    </option>
+    <option value="40">
+     INDUCTOR DE MECANISMOS DE AUTODEFENSA DE LOS CULTIVOS
+    </option>
+    <option value="41">
+     INOCULACIÓN DE VIRUS
+    </option>
+    <option value="13">
+     INSECTICIDA
+    </option>
+    <option value="14">
+     MOJANTE
+    </option>
+    <option value="15">
+     MOLUSQUICIDA
+    </option>
+    <option value="16">
+     NEMATICIDA
+    </option>
+    <option value="25">
+     OTRAS
+    </option>
+    <option value="21">
+     REPELENTE
+    </option>
+    <option value="19">
+     RODENTICIDA
+    </option>
+    <option value="22">
+     SEMIOQUÍMICO
+    </option>
+    <option value="24">
+     VIRICIDA
+    </option>
+   </select>
+  </div>
+  <label class="col-sm-2 col-form-label pr-0" for="cmbAccionSearch">
+   Acción
+  </label>
+  <div class="col-sm-4">
+   <select class="form-control form-control-sm" id="cmbAccionSearch">
+    <option>
+     Elija un acción
+    </option>
+    <option value="11">
+     ACTIVADOR DEFENSAS DE LA PLANTA
+    </option>
+    <option value="1">
+     CONTACTO
+    </option>
+    <option value="10">
+     CURATIVA
+    </option>
+    <option value="2">
+     INGESTIÓN
+    </option>
+    <option value="3">
+     INHALACIÓN
+    </option>
+    <option value="7">
+     INHIBIDOR DE LA REPRODUCCIÓN
+    </option>
+    <option value="9">
+     PREVENTIVA
+    </option>
+   </select>
+  </div>
+ </div>
+ <div class="form-group row">
+  <label class="col-sm-2 col-form-label" for="cmbSustanciaSearch">
+   Sustancia
+  </label>
+  <div class="col-sm-4">
+   <select class="form-control form-control-sm" id="cmbSustanciaSearch">
+    <option>
+     Elija una sustancia
+    </option>
+    <option value="1494">
+     (E)-5-DECEN-1-OL
+    </option>
+    <option value="1632">
+     (E,E)-8,10-DODECADIEN-1-OL
+    </option>
+    <option value="1550">
+     (E,Z)-2,4-DECADIENOATO DE ETILO
+    </option>
+    <option value="1587">
+     (E,Z)-3,13-OCTADECADIENIL ACETATO
+    </option>
+    <option value="1626">
+     (E,Z,Z)-3,8,11-TETRADECATRIEN-1-YL ACETATE + (E,Z)-3,8-TETRADECADIEN-1-YL ACETATE
+    </option>
+    <option value="1409">
+     (Z)-11-HEXADECEN-1-OL
+    </option>
+    <option value="1411">
+     (Z)-13-OCTADECENAL
+    </option>
+    <option value="1015">
+     (Z)-8-DODECEN-1-OL
+    </option>
+    <option value="1556">
+     1,3-DICLOROPROPENO
+    </option>
+    <option value="1628">
+     1,4 DIMETILNAFTALENO
+    </option>
+    <option value="1488">
+     1,4-DIAMINOBUTANO
+    </option>
+    <option value="946">
+     1-METILCICLOPROPENO
+    </option>
+    <option value="1020">
+     1-NAFTILACETAMIDA (ANA-AMIDA)
+    </option>
+    <option value="1021">
+     1-NAFTILACÉTICO
+    </option>
+    <option value="1399">
+     2- FENILFENOL
+    </option>
+    <option value="1022">
+     2,4-D
+    </option>
+    <option value="5">
+     2,4-D ACIDO
+    </option>
+    <option value="1023">
+     2,4-DB
+    </option>
+    <option value="1002">
+     2-FENILFENOL
+    </option>
+    <option value="1404">
+     5-DECEN-1-IL-ACETATO
+    </option>
+    <option value="1405">
+     5-DECEN-1-OL
+    </option>
+    <option value="1430">
+     5-NITROGUAYACOLATO SODICO
+    </option>
+    <option value="1416">
+     6-BENZILADENINA
+    </option>
+    <option value="1510">
+     8-HIDROXIQUINOLEÍNA
+    </option>
+    <option value="986">
+     ABAMECTINA
+    </option>
+    <option value="1644">
+     ABE IT 56
+    </option>
+    <option value="685">
+     ACEITE BLANCO DE PETROLEO
+    </option>
+    <option value="1371">
+     ACEITE DE CLAVO
+    </option>
+    <option value="1486">
+     ACEITE DE COLZA
+    </option>
+    <option value="1568">
+     ACEITE DE MENTA
+    </option>
+    <option value="1572">
+     ACEITE DE NARANJA
+    </option>
+    <option value="1596">
+     ACEITE DE ORUJO DE OLIVA CRUDO
+    </option>
+    <option value="1027">
+     ACEITE DE PARAFINA
+    </option>
+    <option value="1017">
+     ACEITE DE PARAFINA (CAS 8042-47-5)
+    </option>
+    <option value="22">
+     ACEITE DE PARAFINA (CAS 97862-82-3)
+    </option>
+    <option value="951">
+     ACEITE DE PARAFINA (CAS: 64742-46-7)
+    </option>
+    <option value="1033">
+     ACEITES VEGETALES/ACEITE DE COLZA
+    </option>
+    <option value="1590">
+     ACEQUINOCIL
+    </option>
+    <option value="1467">
+     ACETAMIPRID
+    </option>
+    <option value="1035">
+     ACETATO AMÓNICO
+    </option>
+    <option value="988">
+     ACETATO DE (E)-11-TETRADECEN-1-ILO
+    </option>
+    <option value="966">
+     ACETATO DE (E)-5-DECEN-1-ILO
+    </option>
+    <option value="1014">
+     ACETATO DE (E)-8-DODECEN-1-ILO
+    </option>
+    <option value="1586">
+     ACETATO DE (E,Z)-2,13-OCTADECADIEN-1-ILO
+    </option>
+    <option value="999">
+     ACETATO DE (E,Z)-7,9-DODECADIEN-1-ILO
+    </option>
+    <option value="1485">
+     ACETATO DE (E/Z)-8-DODECEN-1-ILO
+    </option>
+    <option value="987">
+     ACETATO DE (Z)-11 TETRADECEN-1-ILO
+    </option>
+    <option value="1013">
+     ACETATO DE (Z)-8-DODECEN-1-ILO
+    </option>
+    <option value="1641">
+     ACETATO DE (Z)-9- TETRADECEN-1-ILO
+    </option>
+    <option value="1408">
+     ACETATO DE (Z,E)-7,11-HEXADECADIEN-1-ILO
+    </option>
+    <option value="957">
+     ACIBENZOLAR-S-METIL
+    </option>
+    <option value="1038">
+     ÁCIDO ACÉTICO
+    </option>
+    <option value="1039">
+     ÁCIDO BENZOICO*
+    </option>
+    <option value="1504">
+     ACIDO CAPRILICO/CAPRICO
+    </option>
+    <option value="1594">
+     ACIDO CITRICO
+    </option>
+    <option value="1362">
+     ACIDO GIBERELICO
+    </option>
+    <option value="1040">
+     ÁCIDO GIBERÉLICO
+    </option>
+    <option value="1041">
+     ACIDO INDOLILBUTÍRICO
+    </option>
+    <option value="1463">
+     ACIDO PELARGÓNICO
+    </option>
+    <option value="1364">
+     ACIDO S-ABSCISICO
+    </option>
+    <option value="1042">
+     ÁCIDOS GRASOS (C7-C20)
+    </option>
+    <option value="1043">
+     ACLONIFEN
+    </option>
+    <option value="1044">
+     ACRINATRIN
+    </option>
+    <option value="1443">
+     ALCOHOL GRASO (1-DECANOL)
+    </option>
+    <option value="1593">
+     ALCOHOL GRASO ETOXILADO/PROPOXILADO
+    </option>
+    <option value="1533">
+     ALCOHOL POLIVINILICO
+    </option>
+    <option value="1536">
+     ALCOHOLES TERPENICOS
+    </option>
+    <option value="1521">
+     ALFA CIPERMETRIN
+    </option>
+    <option value="1544">
+     ALQUIL AMINAS GRASAS ETOXILADAS
+    </option>
+    <option value="1570">
+     ALQUIL AMINAS GRASAS ETOXILADAS/PROPOXIL
+    </option>
+    <option value="1528">
+     ALQUIL POLIGLICOL
+    </option>
+    <option value="1592">
+     ALQUIL POLIGLUCOSIDO
+    </option>
+    <option value="1566">
+     ALQUILETERSULFATO-SODICO
+    </option>
+    <option value="1545">
+     ALQUILFENOL ETOXILADO/PROPOXILADO
+    </option>
+    <option value="1531">
+     ALQUITRAN DE HULLA
+    </option>
+    <option value="1369">
+     AMETOCTRADIN
+    </option>
+    <option value="1441">
+     AMIDOSULFURON
+    </option>
+    <option value="1543">
+     AMINA POLIOXIETILADA
+    </option>
+    <option value="1384">
+     AMINOPIRALID
+    </option>
+    <option value="1538">
+     AMISULBROM
+    </option>
+    <option value="1547">
+     AMPELOMICES QUISQUALIS
+    </option>
+    <option value="1401">
+     AUREOBASIDIUM PULLULANS DSM 14940
+    </option>
+    <option value="1402">
+     AUREOBASIDIUM PULLULANS DSM 14941
+    </option>
+    <option value="1051">
+     AZADIRACTIN
+    </option>
+    <option value="1622">
+     AZADIRACTIN A
+    </option>
+    <option value="1422">
+     AZIMSULFURON
+    </option>
+    <option value="989">
+     AZOXISTROBIN
+    </option>
+    <option value="75">
+     AZUFRE
+    </option>
+    <option value="1415">
+     AZUFRE MICRONIZADO
+    </option>
+    <option value="1646">
+     BACILLUS AMYLOLIQUEFACIENS CEPA AH2
+    </option>
+    <option value="1604">
+     BACILLUS AMYLOLIQUEFACIENS CEPA FZB24
+    </option>
+    <option value="1444">
+     BACILLUS AMYLOLIQUEFACIENS CEPA MBI600
+    </option>
+    <option value="1385">
+     BACILLUS AMYLOLIQUEFACIENS SUBESP. PLANTARUM CEPA D747
+    </option>
+    <option value="1397">
+     BACILLUS FIRMUS I-1582
+    </option>
+    <option value="1621">
+     BACILLUS PUMILUS CEPA QST 2808
+    </option>
+    <option value="1635">
+     BACILLUS SUBTILIS (CEPA IAB/BS03)
+    </option>
+    <option value="1473">
+     BACILLUS SUBTILIS CEPA QST 713)
+    </option>
+    <option value="1472">
+     BACILLUS SUBTILIS1
+    </option>
+    <option value="82">
+     BACILLUS THURINGIENSIS AIZAWAI
+    </option>
+    <option value="1615">
+     BACILLUS THURINGIENSIS AIZAWAI (CEPA ABTS-1857, 540 G/KG)
+    </option>
+    <option value="1435">
+     BACILLUS THURINGIENSIS ISRAELENSIS CEPA AM65-52
+    </option>
+    <option value="1413">
+     BACILLUS THURINGIENSIS KURSTAKI
+    </option>
+    <option value="1603">
+     BACILLUS THURINGIENSIS KURSTAKI (CEPA ABTS-351)
+    </option>
+    <option value="1490">
+     BACILLUS THURINGIENSIS KURSTAKI (CEPA ABTS-351) (32 MILL. DE CLU/G)
+    </option>
+    <option value="1602">
+     BACILLUS THURINGIENSIS KURSTAKI (CEPA PB 54)
+    </option>
+    <option value="1524">
+     BACILLUS THURINGIENSIS KURSTAKI (CEPA SA-12)
+    </option>
+    <option value="943">
+     BACILLUS THURINGIENSIS KURSTAKI (EG 2348)
+    </option>
+    <option value="1436">
+     BACILLUS THURINGIENSIS TENEBRIONIS
+    </option>
+    <option value="1620">
+     BACILLUS THURINGIENSIS TENEBRIONIS (CEPA NB-176 (TM 14-1))
+    </option>
+    <option value="1612">
+     BEAUVARIA BASSIANA CEPA PPRI 5339
+    </option>
+    <option value="1559">
+     BEAUVERIA BASSIANA (CEPA ATCC 74040)
+    </option>
+    <option value="1589">
+     BEAUVERIA BASSIANA (CEPA GHA)
+    </option>
+    <option value="1551">
+     BEAUVERIA BASSIANA CEPA 147
+    </option>
+    <option value="1552">
+     BEAUVERIA BASSIANA CEPA NPP111B005
+    </option>
+    <option value="1475">
+     BEFLUBUTAMIDA
+    </option>
+    <option value="1061">
+     BENALAXIL
+    </option>
+    <option value="1573">
+     BENALAXIL-M
+    </option>
+    <option value="91">
+     BENFLURALINA
+    </option>
+    <option value="1412">
+     BENSULFURON-METIL
+    </option>
+    <option value="1063">
+     BENTAZONA
+    </option>
+    <option value="1464">
+     BENTIAVALICARB ISOPROPIL
+    </option>
+    <option value="931">
+     BENZO METADONA
+    </option>
+    <option value="1387">
+     BENZOVINDIFLUPYR
+    </option>
+    <option value="1448">
+     BETACIFLUTRIN
+    </option>
+    <option value="1532">
+     BETUN DE ASFALTO
+    </option>
+    <option value="1523">
+     BIFENAZATO
+    </option>
+    <option value="962">
+     BIFENOX
+    </option>
+    <option value="1505">
+     BISPIRIBAC-SODIO
+    </option>
+    <option value="964">
+     BIXAFEN
+    </option>
+    <option value="1470">
+     BOSCALIDA
+    </option>
+    <option value="1007">
+     BROMOXINIL
+    </option>
+    <option value="1503">
+     BROMUCONAZOL
+    </option>
+    <option value="1075">
+     BUPIRIMATO
+    </option>
+    <option value="123">
+     BUPROFEZIN
+    </option>
+    <option value="1627">
+     CALDO BORDELÉS
+    </option>
+    <option value="1588">
+     CANDIDA OLEOPHILA (CEPA O)
+    </option>
+    <option value="1420">
+     CAOLIN
+    </option>
+    <option value="1078">
+     CAPTAN
+    </option>
+    <option value="1079">
+     CARBENDAZIMA
+    </option>
+    <option value="1080">
+     CARBETAMIDA
+    </option>
+    <option value="1083">
+     CARBOXINA
+    </option>
+    <option value="1449">
+     CARFENTRAZONA-ETIL
+    </option>
+    <option value="1534">
+     CERA MONTANA
+    </option>
+    <option value="1398">
+     CERAS
+    </option>
+    <option value="1427">
+     CEREVISANE
+    </option>
+    <option value="956">
+     CIANTRANILIPROL
+    </option>
+    <option value="1478">
+     CIAZOFAMIDA
+    </option>
+    <option value="1088">
+     CICLOXIDIM
+    </option>
+    <option value="903">
+     CIFLUFENAMID
+    </option>
+    <option value="1372">
+     CIFLUMETOFEN
+    </option>
+    <option value="983">
+     CIHALOFOP-BUTIL
+    </option>
+    <option value="1091">
+     CIHALOFOP-BUTIL*
+    </option>
+    <option value="155">
+     CIMOXANILO
+    </option>
+    <option value="1093">
+     CIPERMETRIN
+    </option>
+    <option value="158">
+     CIPROCONAZOL
+    </option>
+    <option value="1094">
+     CIPRODINIL
+    </option>
+    <option value="1608">
+     CIPROSULFAMIDA
+    </option>
+    <option value="1095">
+     CIROMAZINA
+    </option>
+    <option value="1514">
+     CITRAL
+    </option>
+    <option value="1096">
+     CLETODIM
+    </option>
+    <option value="162">
+     CLODINAFOP-PROPARGIL
+    </option>
+    <option value="1560">
+     CLOFENTEZIN
+    </option>
+    <option value="974">
+     CLOMAZONA
+    </option>
+    <option value="1004">
+     CLOPIRALIDA
+    </option>
+    <option value="882">
+     CLORANTRANILIPROL
+    </option>
+    <option value="1099">
+     CLORIDAZONA
+    </option>
+    <option value="1506">
+     CLORMEQUAT
+    </option>
+    <option value="1555">
+     CLOROPICRINA
+    </option>
+    <option value="178">
+     CLORPIRIFOS
+    </option>
+    <option value="998">
+     CLORPROFAM
+    </option>
+    <option value="180">
+     CLORSULFURON
+    </option>
+    <option value="1103">
+     CLORTALONIL
+    </option>
+    <option value="963">
+     CLORTOLURON
+    </option>
+    <option value="1522">
+     CLOTIANIDINA
+    </option>
+    <option value="1562">
+     CONIOTHYRIUM MINITANS
+    </option>
+    <option value="1567">
+     COPOLIMERO ETILENOVINILICO
+    </option>
+    <option value="1367">
+     COS-OGA
+    </option>
+    <option value="1110">
+     DAMINOZIDA
+    </option>
+    <option value="1111">
+     DAZOMET
+    </option>
+    <option value="200">
+     DELTAMETRIN
+    </option>
+    <option value="1112">
+     DESMEDIFAM
+    </option>
+    <option value="1525">
+     DETERGENTE BIODEGRADABLE
+    </option>
+    <option value="985">
+     DICAMBA
+    </option>
+    <option value="1113">
+     DICLOFOP
+    </option>
+    <option value="1465">
+     DICLOROPICOLINA SAL AMINA (CLOPIRALIDA)
+    </option>
+    <option value="1114">
+     DICLORPROP-P
+    </option>
+    <option value="1117">
+     DIETOFENCARB
+    </option>
+    <option value="232">
+     DIFENOCONAZOL
+    </option>
+    <option value="1460">
+     DIFLUBENZURON
+    </option>
+    <option value="1120">
+     DIFLUFENICAN
+    </option>
+    <option value="1529">
+     DIMENTENO
+    </option>
+    <option value="1451">
+     DIMETENAMIDA-P
+    </option>
+    <option value="1123">
+     DIMETOATO
+    </option>
+    <option value="936">
+     DIMETOMORF
+    </option>
+    <option value="1126">
+     DIOXIDO DE CARBONO
+    </option>
+    <option value="1462">
+     DIQUAT
+    </option>
+    <option value="938">
+     DITIANONA
+    </option>
+    <option value="1127">
+     DIURON
+    </option>
+    <option value="1584">
+     DODECAN-1-OL
+    </option>
+    <option value="1492">
+     DODECAN-1-YL-ACETATO
+    </option>
+    <option value="1527">
+     DODECILBENCENO SULFONATO AMONICO (DDSA)
+    </option>
+    <option value="1128">
+     DODEMORF
+    </option>
+    <option value="1129">
+     DODINA
+    </option>
+    <option value="954">
+     E,E-8,10 DODECADIENOL Y N-TETRADECILACETATO
+    </option>
+    <option value="1578">
+     E,Z,Z-3,8,11-TETRADECATRIEN-1-IL ACETATO
+    </option>
+    <option value="1579">
+     E,Z-3,8-TETRADECADIEN-1-YL ACETATO
+    </option>
+    <option value="1423">
+     E/Z-7,9-DODECADIENIL ACETATO
+    </option>
+    <option value="1495">
+     E-8-DODECENILACETATO
+    </option>
+    <option value="1381">
+     EMAMECTINA
+    </option>
+    <option value="1130">
+     EPOXICONAZOL
+    </option>
+    <option value="1131">
+     ESFENVALERATO
+    </option>
+    <option value="1005">
+     ESPIROXAMINA
+    </option>
+    <option value="1134">
+     ETEFON
+    </option>
+    <option value="1000">
+     ETILENO
+    </option>
+    <option value="1135">
+     ETOFENPROX
+    </option>
+    <option value="1136">
+     ETOFUMESATO
+    </option>
+    <option value="1137">
+     ETOPROFOS
+    </option>
+    <option value="1564">
+     ETOXAZOL
+    </option>
+    <option value="1140">
+     ETRIDIAZOL
+    </option>
+    <option value="969">
+     EUGENOL
+    </option>
+    <option value="1643">
+     EXTRACTO ACUOSO DE SEMILLAS GERMINADAS DE LUPINUS ALBUS DULCE
+    </option>
+    <option value="1142">
+     EXTRACTO DE AJO
+    </option>
+    <option value="1558">
+     EXTRACTO DEL ARBOL DE TÉ (MELALEUCA ALTERNIFOLIA)
+    </option>
+    <option value="1476">
+     FAMOXADONA
+    </option>
+    <option value="953">
+     FENAMIDONA
+    </option>
+    <option value="1147">
+     FENAMIFOS
+    </option>
+    <option value="1149">
+     FENAZAQUIN
+    </option>
+    <option value="984">
+     FENBUCONAZOL
+    </option>
+    <option value="1150">
+     FENBUTAESTAN
+    </option>
+    <option value="1382">
+     FENHEXAMIDA
+    </option>
+    <option value="1152">
+     FENMEDIFAM
+    </option>
+    <option value="1442">
+     FENOXAPROP-P-ETIL
+    </option>
+    <option value="1154">
+     FENOXICARB
+    </option>
+    <option value="1610">
+     FENPICOXAMID
+    </option>
+    <option value="910">
+     FENPIRAZAMINA
+    </option>
+    <option value="1457">
+     FENPIROXIMATO
+    </option>
+    <option value="1157">
+     FENPROPIDIN
+    </option>
+    <option value="1158">
+     FENPROPIMORF
+    </option>
+    <option value="687">
+     FLAZASULFURON
+    </option>
+    <option value="1563">
+     FLONICAMID
+    </option>
+    <option value="731">
+     FLORASULAM
+    </option>
+    <option value="1617">
+     FLORPYRAUXIFEN BENZYL
+    </option>
+    <option value="1414">
+     FLUAZIFOP-P-BUTIL
+    </option>
+    <option value="1008">
+     FLUAZINAM
+    </option>
+    <option value="314">
+     FLUDIOXONIL
+    </option>
+    <option value="1363">
+     FLUFENACET
+    </option>
+    <option value="1477">
+     FLUMIOXAZINA
+    </option>
+    <option value="1167">
+     FLUOMETURON
+    </option>
+    <option value="932">
+     FLUOPICOLIDA
+    </option>
+    <option value="899">
+     FLUOPYRAM
+    </option>
+    <option value="1169">
+     FLUOROCLORIDONA
+    </option>
+    <option value="1507">
+     FLUORURO DE SULFURILO
+    </option>
+    <option value="977">
+     FLUOXASTROBIN
+    </option>
+    <option value="1425">
+     FLUPIRADIFURONA
+    </option>
+    <option value="997">
+     FLUROXIPIR
+    </option>
+    <option value="1458">
+     FLURTAMONE
+    </option>
+    <option value="1633">
+     FLUTIANIL
+    </option>
+    <option value="1176">
+     FLUTOLANIL
+    </option>
+    <option value="1177">
+     FLUTRIAFOL
+    </option>
+    <option value="942">
+     FLUXAPYROXAD
+    </option>
+    <option value="330">
+     FOLPET
+    </option>
+    <option value="835">
+     FORAMSULFURON
+    </option>
+    <option value="1455">
+     FORCLORFENURON
+    </option>
+    <option value="1181">
+     FORMETANATO
+    </option>
+    <option value="1468">
+     FOSETIL
+    </option>
+    <option value="960">
+     FOSETIL-AL
+    </option>
+    <option value="994">
+     FOSETYL-AL
+    </option>
+    <option value="959">
+     FOSFATO FERRICO
+    </option>
+    <option value="1581">
+     FOSFONATO DISÓDICO
+    </option>
+    <option value="1640">
+     FOSFONATOS DE POTASIO
+    </option>
+    <option value="1184">
+     FOSFURO DE ALUMINIO
+    </option>
+    <option value="1186">
+     FOSFURO DE MAGNESIO
+    </option>
+    <option value="1187">
+     FOSFURO DE ZINC
+    </option>
+    <option value="1188">
+     FOSMET
+    </option>
+    <option value="1454">
+     FOSTIAZATO
+    </option>
+    <option value="970">
+     GERANIOL
+    </option>
+    <option value="1191">
+     GIBERELINAS (GA4 GA7)
+    </option>
+    <option value="1406">
+     GIBERELINAS A4/A7
+    </option>
+    <option value="348">
+     GLIFOSATO
+    </option>
+    <option value="1193">
+     GLIOCADIUM CATENULATUM* CEPA J1446
+    </option>
+    <option value="1480">
+     GLIOCLADIUM CATENULATUM (CEPA J1446)
+    </option>
+    <option value="1541">
+     GOMA LACA
+    </option>
+    <option value="1535">
+     GOMA SINTETICA
+    </option>
+    <option value="1591">
+     GRANULOVIRUS DE CYDIA POMONELLA (AISLADO MEXICANO)
+    </option>
+    <option value="1497">
+     GRANULOVIRUS DE CYDIA POMONELLA (AISLADO R5)
+    </option>
+    <option value="1638">
+     GRANULOVIRUS DE CYDIA POMONELLA (CPGV V15)
+    </option>
+    <option value="1639">
+     GRANULOVIRUS DE CYDIA POMONELLA (CPGV V22)
+    </option>
+    <option value="1376">
+     HALAUXIFEN-METIL
+    </option>
+    <option value="1515">
+     HALOSULFURON-METIL
+    </option>
+    <option value="978">
+     HEXITIAZOX
+    </option>
+    <option value="1453">
+     HIDRAZIDA MALEICA
+    </option>
+    <option value="1200">
+     HIDROGENOCARBONATO DE POTASIO
+    </option>
+    <option value="948">
+     HIDROXIDO CUPRICO
+    </option>
+    <option value="1201">
+     HIMEXAZOL
+    </option>
+    <option value="950">
+     IMAZALIL
+    </option>
+    <option value="1446">
+     IMAZAMOX
+    </option>
+    <option value="376">
+     IMIDACLOPRID
+    </option>
+    <option value="1456">
+     INDOXACARB
+    </option>
+    <option value="944">
+     IODOSULFURON-METIL-SODIO
+    </option>
+    <option value="1208">
+     IOXINIL
+    </option>
+    <option value="1393">
+     IPCONAZOL
+    </option>
+    <option value="993">
+     IPRODIONA
+    </option>
+    <option value="1391">
+     IPROVALICARB
+    </option>
+    <option value="1619">
+     ISARIA FUMOSOROSEA CEPA APOPKA 97
+    </option>
+    <option value="1421">
+     ISOFETAMIDA
+    </option>
+    <option value="990">
+     ISOPIRAZAM
+    </option>
+    <option value="1212">
+     ISOXABEN
+    </option>
+    <option value="388">
+     ISOXAFLUTOL
+    </option>
+    <option value="1214">
+     KRESOXIM-METIL
+    </option>
+    <option value="394">
+     LAMBDA CIHALOTRIN
+    </option>
+    <option value="1481">
+     LAMINARIN
+    </option>
+    <option value="1540">
+     LATEX SINTETICO
+    </option>
+    <option value="1217">
+     LECANICILLIUM MUSCARIUM (CEPA VE6)
+    </option>
+    <option value="1549">
+     LECITINA DE SOJA
+    </option>
+    <option value="979">
+     LENACILO
+    </option>
+    <option value="1508">
+     LUFENURON
+    </option>
+    <option value="1012">
+     MALATION
+    </option>
+    <option value="1011">
+     MALTODEXTRINA
+    </option>
+    <option value="400">
+     MANCOZEB
+    </option>
+    <option value="1394">
+     MANDESTROBIN
+    </option>
+    <option value="1479">
+     MANDIPROPAMID
+    </option>
+    <option value="1222">
+     MCPA
+    </option>
+    <option value="1223">
+     MCPB
+    </option>
+    <option value="1225">
+     MECOPROP-P
+    </option>
+    <option value="1609">
+     MEFENPIR-DIETIL
+    </option>
+    <option value="1611">
+     MEFENTRIFLUCONAZOL
+    </option>
+    <option value="1466">
+     MEPANIPIRIM
+    </option>
+    <option value="1498">
+     MEPICUAT
+    </option>
+    <option value="1537">
+     MEPTILDINOCAP
+    </option>
+    <option value="945">
+     MESOSULFURON-METIL
+    </option>
+    <option value="762">
+     MESOTRIONA
+    </option>
+    <option value="1576">
+     METAFLUMIZONA
+    </option>
+    <option value="947">
+     METALAXIL
+    </option>
+    <option value="955">
+     METALAXIL-M
+    </option>
+    <option value="421">
+     METALDEHIDO
+    </option>
+    <option value="1438">
+     METAM POTASIO
+    </option>
+    <option value="1431">
+     METAM SODIO
+    </option>
+    <option value="424">
+     METAMITRONA
+    </option>
+    <option value="980">
+     METARHIZIUM BRUNNEUM CEPA MA 43
+    </option>
+    <option value="1235">
+     METAZACLORO
+    </option>
+    <option value="941">
+     METCONAZOL
+    </option>
+    <option value="430">
+     METIL CLORPIRIFOS
+    </option>
+    <option value="1601">
+     METIL OLEATO/METIL PALMITATO
+    </option>
+    <option value="1482">
+     METIL PIRIMIFOS
+    </option>
+    <option value="1403">
+     METIL TIOFANATO
+    </option>
+    <option value="1474">
+     METIL TOLCLOFOS
+    </option>
+    <option value="1509">
+     METIL TRIFLUSULFURON
+    </option>
+    <option value="1237">
+     METIOCARB
+    </option>
+    <option value="1238">
+     METIRAM
+    </option>
+    <option value="1396">
+     METOBROMURON
+    </option>
+    <option value="1239">
+     METOMILO
+    </option>
+    <option value="1565">
+     METOXIFENOCIDA
+    </option>
+    <option value="1582">
+     METRAFENONA
+    </option>
+    <option value="1243">
+     METRIBUZINA
+    </option>
+    <option value="1645">
+     METSCHNIKOWIA FRUTICOLA CEPA NRRL Y-27328
+    </option>
+    <option value="1389">
+     METSULFURON METIL
+    </option>
+    <option value="1625">
+     MEZCLA DE (E)-8-DODECEN-1-YL ACETATO + (Z)-8-DODECEN-1-YL ACETATO + (Z)-8-DODECEN-1-OL
+    </option>
+    <option value="1569">
+     MEZCLA DE TERPENOIDES QRD 460
+    </option>
+    <option value="453">
+     MICLOBUTANIL
+    </option>
+    <option value="1483">
+     MILBEMECTINA
+    </option>
+    <option value="1526">
+     MOJANTE NO IONICO
+    </option>
+    <option value="1571">
+     MONOLAURATO DE POLIOXIETILENO (POLISORBATO 20)
+    </option>
+    <option value="1598">
+     MONOOLEATO DE POLIOXIETILEN(20)SORBITANO
+    </option>
+    <option value="1247">
+     NAPROPAMIDA
+    </option>
+    <option value="470">
+     NICOSULFURON
+    </option>
+    <option value="1542">
+     OCTIL/DECIL GLUCONIDO
+    </option>
+    <option value="1548">
+     OLEATO POTASICO
+    </option>
+    <option value="1429">
+     O-NITROFENOLATO SODICO
+    </option>
+    <option value="1251">
+     ORIZALINA
+    </option>
+    <option value="1254">
+     OXADIAZON
+    </option>
+    <option value="981">
+     OXAMILO
+    </option>
+    <option value="1452">
+     OXATIAPIPROLINA
+    </option>
+    <option value="1366">
+     OXICLORURO DE COBRE
+    </option>
+    <option value="1418">
+     OXIDO CUPROSO
+    </option>
+    <option value="1553">
+     ÓXIDO DE COBRE (I)
+    </option>
+    <option value="1256">
+     OXIFLUORFEN
+    </option>
+    <option value="1257">
+     PACLOBUTRAZOL
+    </option>
+    <option value="1450">
+     PAECILOMYCES FUMOSOROSEUS (CEPA FE 9901)
+    </option>
+    <option value="1575">
+     PARAFINA
+    </option>
+    <option value="1502">
+     PELITRE
+    </option>
+    <option value="1260">
+     PENCICURON
+    </option>
+    <option value="1261">
+     PENCONAZOL
+    </option>
+    <option value="500">
+     PENDIMETALINA
+    </option>
+    <option value="968">
+     PENOXSULAM
+    </option>
+    <option value="1392">
+     PENTIOPIRAD
+    </option>
+    <option value="859">
+     PETOXAMIDA
+    </option>
+    <option value="1265">
+     PICLORAM
+    </option>
+    <option value="1445">
+     PICOLINAFEN
+    </option>
+    <option value="843">
+     PICOXISTROBIN
+    </option>
+    <option value="1546">
+     PIMETROZINA
+    </option>
+    <option value="862">
+     PINOXADEN
+    </option>
+    <option value="934">
+     PIRACLOSTROBIN
+    </option>
+    <option value="1388">
+     PIRAFLUFEN-ETIL
+    </option>
+    <option value="1599">
+     PIRETRINA NATURAL
+    </option>
+    <option value="1273">
+     PIRETRINAS
+    </option>
+    <option value="975">
+     PIRIDABEN
+    </option>
+    <option value="1274">
+     PIRIDATO
+    </option>
+    <option value="514">
+     PIRIMETANIL
+    </option>
+    <option value="1275">
+     PIRIMICARB
+    </option>
+    <option value="1518">
+     PIRIOFENONA
+    </option>
+    <option value="1277">
+     PIRIPROXIFEN
+    </option>
+    <option value="995">
+     PIROXSULAM
+    </option>
+    <option value="1428">
+     P-NITROFENOLATO SODICO
+    </option>
+    <option value="1530">
+     POLIMENTENO
+    </option>
+    <option value="1432">
+     POLISULFURO DE CALCIO
+    </option>
+    <option value="1539">
+     POLIXILOSANO DIMETILICO
+    </option>
+    <option value="1597">
+     POLYGLYCERIL 3 DIOLEATO
+    </option>
+    <option value="1280">
+     PROCIMIDONA
+    </option>
+    <option value="976">
+     PROCLORAZ
+    </option>
+    <option value="1516">
+     PROFOXIDIM
+    </option>
+    <option value="812">
+     PROHEXADIONA-CALCICA
+    </option>
+    <option value="1283">
+     PROPAMOCARB
+    </option>
+    <option value="1284">
+     PROPAQUIZAFOP
+    </option>
+    <option value="536">
+     PROPICONAZOL
+    </option>
+    <option value="933">
+     PROPINEB
+    </option>
+    <option value="1285">
+     PROPIZAMIDA
+    </option>
+    <option value="1424">
+     PROPOXICARBAZONA-SODIO
+    </option>
+    <option value="861">
+     PROQUINAZID
+    </option>
+    <option value="1287">
+     PROSULFOCARB
+    </option>
+    <option value="1520">
+     PROSULFURON
+    </option>
+    <option value="1289">
+     PROTEINAS HIDROLIZADAS
+    </option>
+    <option value="965">
+     PROTIOCONAZOL
+    </option>
+    <option value="1471">
+     PSEUDOMONAS CHLORORAPHIS
+    </option>
+    <option value="1395">
+     PSEUDOMONAS SP. CEPA DSMZ 13134
+    </option>
+    <option value="1484">
+     PURPUREOCILLIUM LILACINUM (CEPA 251)
+    </option>
+    <option value="1629">
+     PYDIFLUMETOFEN
+    </option>
+    <option value="1294">
+     PYTHIUM OLIGANDRUM
+    </option>
+    <option value="1295">
+     QUINMERAC
+    </option>
+    <option value="1519">
+     QUINOXIFEN
+    </option>
+    <option value="1417">
+     QUIZALOFOP-P-ETIL
+    </option>
+    <option value="1407">
+     QUIZALOFOP-P-TEFURIL
+    </option>
+    <option value="1299">
+     REPELENTE  DE  ORGIEN  ANIMAL  O VEGETAL/GRASA DE OVINO
+    </option>
+    <option value="1001">
+     RESCALURE
+    </option>
+    <option value="555">
+     RIMSULFURON
+    </option>
+    <option value="1600">
+     ROTENONA
+    </option>
+    <option value="1623">
+     SACCHAROMYCES CEREVISIAE CEPA LAS02
+    </option>
+    <option value="1637">
+     SALES DE POTASIO DE ÁCIDOS GRASOS INSATURADOS C7-C18 &amp; C18
+    </option>
+    <option value="1433">
+     SALES POTASICAS DE ACIDOS GRASOS VEGETALES
+    </option>
+    <option value="1386">
+     SEDAXANE
+    </option>
+    <option value="1642">
+     SENECIOATO DE LAVANDULILO
+    </option>
+    <option value="940">
+     SILTIOFAM
+    </option>
+    <option value="724">
+     S-METOLACLORO
+    </option>
+    <option value="1373">
+     SPINETORAM
+    </option>
+    <option value="1469">
+     SPINOSAD
+    </option>
+    <option value="1577">
+     SPIRODICLOFEN
+    </option>
+    <option value="1517">
+     SPIROMESIFEN
+    </option>
+    <option value="881">
+     SPIROTETRAMAT
+    </option>
+    <option value="1499">
+     STREPTOMYCES GRISEOVIRIDIS
+    </option>
+    <option value="1314">
+     STREPTOMYCES K61
+    </option>
+    <option value="973">
+     SULCOTRIONA
+    </option>
+    <option value="566">
+     SULFATO CUPROCALCICO
+    </option>
+    <option value="1624">
+     SULFATO DE HIERRO II MONOHIDRATADO
+    </option>
+    <option value="961">
+     SULFATO TRIBASICO DE COBRE
+    </option>
+    <option value="1383">
+     SULFOSULFURON
+    </option>
+    <option value="1400">
+     SULFOXAFLOR
+    </option>
+    <option value="1320">
+     TAU-FLUVALINATO
+    </option>
+    <option value="576">
+     TEBUCONAZOL
+    </option>
+    <option value="1321">
+     TEBUFENOCIDA
+    </option>
+    <option value="1322">
+     TEBUFENPIRAD
+    </option>
+    <option value="1324">
+     TEFLUTRIN
+    </option>
+    <option value="1370">
+     TEMBOTRIONA
+    </option>
+    <option value="586">
+     TERBUTILAZINA
+    </option>
+    <option value="591">
+     TETRACONAZOL
+    </option>
+    <option value="1585">
+     TETRADECAN-1-OL
+    </option>
+    <option value="1327">
+     TIABENDAZOL
+    </option>
+    <option value="1447">
+     TIACLOPRID
+    </option>
+    <option value="1390">
+     TIAMETOXAM
+    </option>
+    <option value="920">
+     TIENCARBAZONA-METIL
+    </option>
+    <option value="1574">
+     TIERRA DE DIATOMEAS
+    </option>
+    <option value="599">
+     TIFENSULFURON-METIL
+    </option>
+    <option value="971">
+     TIMOL
+    </option>
+    <option value="1333">
+     TIRAM
+    </option>
+    <option value="1500">
+     TRALKOXIDIM
+    </option>
+    <option value="937">
+     TRIADIMENOL
+    </option>
+    <option value="1616">
+     TRI-ALLATE
+    </option>
+    <option value="618">
+     TRIBENURON-METIL
+    </option>
+    <option value="1340">
+     TRICHODERMA ASPERELLUM
+    </option>
+    <option value="1439">
+     TRICHODERMA ASPERELLUM (CEPA ICC012)
+    </option>
+    <option value="1607">
+     TRICHODERMA ASPERELLUM (CEPA T25)
+    </option>
+    <option value="1618">
+     TRICHODERMA ASPERELLUM (CEPA T34)
+    </option>
+    <option value="1580">
+     TRICHODERMA ASPERELLUM (CEPA TV-1)
+    </option>
+    <option value="1606">
+     TRICHODERMA ATROVIRIDE (CEPA T11)
+    </option>
+    <option value="1341">
+     TRICHODERMA ATROVIRIDE CEPA SC1
+    </option>
+    <option value="1583">
+     TRICHODERMA ATROVIRIDE(CEPA I-1237)
+    </option>
+    <option value="1440">
+     TRICHODERMA GAMSII (CEPA ICC080)
+    </option>
+    <option value="1501">
+     TRICHODERMA HARZIANUM RIFAI (CEPA T-22)
+    </option>
+    <option value="1345">
+     TRICLOPIR
+    </option>
+    <option value="766">
+     TRIFLOXISTROBIN
+    </option>
+    <option value="1348">
+     TRIFLUMURON
+    </option>
+    <option value="1487">
+     TRIMETILAMINA CLORHIDRATO
+    </option>
+    <option value="1003">
+     TRINEXAPAC-ETIL
+    </option>
+    <option value="1006">
+     TRITICONAZOL
+    </option>
+    <option value="958">
+     TRITOSULFURON
+    </option>
+    <option value="1352">
+     UREA
+    </option>
+    <option value="1365">
+     VALIFENALATO
+    </option>
+    <option value="1437">
+     VERTICILLIUM LECANII
+    </option>
+    <option value="1613">
+     VIRUS ATENUADO DEL MOSAICO DEL PEPINO, AISLADO VC1
+    </option>
+    <option value="1614">
+     VIRUS ATENUADO DEL MOSAICO DEL PEPINO, AISLADO VX1
+    </option>
+    <option value="1009">
+     VIRUS DE LA POLIEDROSIS NUCLEAR DE HELICOVERPA ARMIGERA
+    </option>
+    <option value="1461">
+     VIRUS DE LA POLIEDROSIS NUCLEAR DE SPODOPTERA EXIGUA
+    </option>
+    <option value="1377">
+     VIRUS DE LA POLIEDROSIS NUCLEAR DE SPODOPTERA LITTORALIS (SPLINPV-BV0005)
+    </option>
+    <option value="1380">
+     VIRUS DEL MOSAICO DEL PEPINO (CEPA CH2, AISLADO 1906)
+    </option>
+    <option value="1631">
+     VIRUS DEL MOSAICO DEL PEPINO CEPA EUROPEA, AISLADO ATENUADO ABP1
+    </option>
+    <option value="1630">
+     VIRUS DEL MOSAICO DEL PEPINO CHILENA (CH2), AISLADO ATENUADO ABP2
+    </option>
+    <option value="1557">
+     VIRUS GRANULOSIS CARPOCAPSA
+    </option>
+    <option value="949">
+     VIRUS GRANULOSIS CARPOCAPSA-V15
+    </option>
+    <option value="1010">
+     VIRUS GRANULOSIS DE LA CARPOCAPSA - V22
+    </option>
+    <option value="1379">
+     Z-8-DODECEN-1-OL
+    </option>
+    <option value="1496">
+     Z-8-DODECENILACETATO
+    </option>
+    <option value="1410">
+     Z-9-HEXADECENAL
+    </option>
+    <option value="1605">
+     ZETA-CIPERMETRIN
+    </option>
+    <option value="644">
+     ZINEB
+    </option>
+    <option value="1358">
+     ZIRAM
+    </option>
+    <option value="804">
+     ZOXAMIDA
+    </option>
+   </select>
+  </div>
+ </div>
+ <div class="row mt-2">
+  <div class="col">
+   <button class="btn btn-primary" id="btnBuscarFormulados" type="button">
+    <i class="fa fa-search">
+    </i>
+    Buscar
+   </button>
+   <button class="btn btn-primary" id="btnLimpiarFiltrosFormulados" type="button">
+    <i class="fa fa-eraser">
+    </i>
+    Limpiar
+   </button>
+  </div>
+ </div>
+</fieldset>
+<fieldset class="scheduler-border float-left ocultar w-100" id="fdResultados">
+ <legend class="scheduler-border">
+  Resultados
+ </legend>
+ <div class="row col-12">
+  <button class="float-right btn btn-info mb-2" id="btnExportFormulados">
+   <i class="fa fa-file-excel-o">
+   </i>
+   Exportar
+  </button>
+  <button class="float-right btn btn-info mb-2 ml-2" id="btnExportFuncionesJsonByFormulado">
+   <i class="fa fa-file-code-o">
+   </i>
+   Exportar Json
+  </button>
+  <img alt="loading" id="spinner" src="/regfiweb/img/Spinner-1s-200px.gif" style="height: 30px;display: none"/>
+ </div>
+ <div class="w-100">
+  <div class="mvc-grid" data-url="/regfiweb/Formulados/FormuladosGrid">
+  </div>
+ </div>
+</fieldset>
+<fieldset class="scheduler-border float-left w-100 ocultar" id="fdDetalle">
+ <legend class="scheduler-border">
+  Datos del formulado
+ </legend>
+ <div class="row">
+  <div class="col-12">
+   <div class="form-group row">
+    <label class="col-sm-3 col-form-label pr-0" for="txtNombreFormulado">
+     Nombre
+    </label>
+    <div class="col-sm-9">
+     <textarea class="form-control form-control-sm no-resize" id="txtNombreFormulado" readonly="" rows="3"></textarea>
+    </div>
+   </div>
+   <div class="form-group row">
+    <label class="col-sm-3 col-form-label pr-0" for="txtTipoFormulado">
+     Tipo de preparado
+    </label>
+    <div class="col-sm-9">
+     <input class="form-control form-control-sm" id="txtTipoFormulado" readonly="" type="text"/>
+    </div>
+   </div>
+   <div class="form-group row">
+    <label class="col-sm-3 col-form-label pr-0" for="txtFechaUltAct">
+     Fecha Ult. Actualización
+    </label>
+    <div class="col-sm-3">
+     <input class="form-control form-control-sm" id="txtFechaUltAct" readonly="" type="text"/>
+    </div>
+   </div>
+   <div class="form-group row">
+    <label class="col-sm-3 col-form-label pr-0" for="txtEstadoFormulado">
+     Estado del preparado
+    </label>
+    <div class="col-sm-3">
+     <input class="form-control form-control-sm" id="txtEstadoFormulado" readonly="" type="text"/>
+    </div>
+   </div>
+  </div>
+ </div>
+ <div class="row">
+  <div class="col-12">
+   <fieldset class="scheduler-border float-left w-100">
+    <legend class="scheduler-border">
+     Composición química
+    </legend>
+    <div class="row col-12">
+     <button class="float-right btn btn-info mb-2" id="btnExportSustanciaByFormulado">
+      <i class="fa fa-file-excel-o">
+      </i>
+      Exportar
+     </button>
+    </div>
+    <div class="w-100">
+     <div class="mvc-grid" data-url="/regfiweb/Formulados/SustanciasGrid">
+     </div>
+    </div>
+   </fieldset>
+  </div>
+ </div>
+ <div class="row">
+  <div class="col-md-6 col-sm-12">
+   <fieldset class="scheduler-border float-left w-100">
+    <legend class="scheduler-border">
+     Translocaciones
+    </legend>
+    <div class="row col-12">
+     <button class="float-right btn btn-info mb-2" id="btnExportTranslocacionesByFormulado">
+      <i class="fa fa-file-excel-o">
+      </i>
+      Exportar
+     </button>
+    </div>
+    <div class="w-100">
+     <div class="mvc-grid" data-url="/regfiweb/Formulados/TranslocacionesGrid">
+     </div>
+    </div>
+   </fieldset>
+  </div>
+  <div class="col-md-6 col-sm-12">
+   <fieldset class="scheduler-border float-left w-100">
+    <legend class="scheduler-border">
+     Funciones
+    </legend>
+    <div class="row col-12">
+     <button class="float-right btn btn-info mb-2" id="btnExportFuncionesByFormulado">
+      <i class="fa fa-file-excel-o">
+      </i>
+      Exportar
+     </button>
+    </div>
+    <div class="w-100">
+     <div class="mvc-grid" data-url="/regfiweb/Formulados/FuncionesGrid">
+     </div>
+    </div>
+   </fieldset>
+  </div>
+ </div>
+ <div class="row">
+  <div class="col-md-6 col-sm-12">
+   <fieldset class="scheduler-border float-left w-100">
+    <legend class="scheduler-border">
+     Productos autorizados para el formulado
+    </legend>
+    <div class="row col-12">
+     <button class="float-right btn btn-info mb-2" id="btnExportProductosByFormulado">
+      <i class="fa fa-file-excel-o">
+      </i>
+      Exportar
+     </button>
+    </div>
+    <div class="w-100">
+     <div class="mvc-grid" data-url="/regfiweb/Formulados/ProductosGrid">
+     </div>
+    </div>
+   </fieldset>
+  </div>
+  <div class="col-md-6 col-sm-12">
+   <fieldset class="scheduler-border float-left w-100">
+    <legend class="scheduler-border">
+     Acciones
+    </legend>
+    <div class="row col-12">
+     <button class="float-right btn btn-info mb-2" id="btnExportAccionesByFormulado">
+      <i class="fa fa-file-excel-o">
+      </i>
+      Exportar
+     </button>
+    </div>
+    <div class="w-100">
+     <div class="mvc-grid" data-url="/regfiweb/Formulados/AccionesGrid">
+     </div>
+    </div>
+   </fieldset>
+  </div>
+ </div>
+</fieldset>

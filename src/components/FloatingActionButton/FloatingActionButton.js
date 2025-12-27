@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FaPlus, FaClock, FaFileInvoiceDollar } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getFirestore, collection, query, onSnapshot, where, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -38,6 +39,7 @@ const FloatingActionButton = () => {
     const [lastScrollY, setLastScrollY] = useState(0);
     const [errorMessage, setErrorMessage] = useState("");
     const [lastInteraction, setLastInteraction] = useState(Date.now());
+    const navigate = useNavigate();
     
     // Estados para datos
     const [workers, setWorkers] = useState([]);
@@ -156,6 +158,19 @@ const FloatingActionButton = () => {
         return () => unsubscribe();
     }, [userId]);
 
+    // Cargar productos (inventory)
+    const [products, setProducts] = useState([]);
+    useEffect(() => {
+        if (!userId) return;
+        const PRODUCTS_COLLECTION_PATH = `artifacts/${appId}/public/data/products`; // Asumiendo path estándar
+        const q = query(collection(db, PRODUCTS_COLLECTION_PATH), where("userId", "==", userId));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setProducts(data);
+        });
+        return () => unsubscribe();
+    }, [userId]);
+
     // Combinar proyectos y cultivos en availableLocals
     useEffect(() => {
         const combined = [
@@ -239,7 +254,8 @@ const FloatingActionButton = () => {
     };
 
     const handleOpenTimeSheetModal = () => {
-        setIsTimeSheetModalOpen(true);
+        // Navegar a la página completa en lugar de abrir modal
+        navigate('/registro-horas');
         setIsMenuOpen(false);
         setLastInteraction(Date.now());
     };
@@ -367,6 +383,9 @@ const FloatingActionButton = () => {
                     projects={projectsForSelect}
                     entities={entitiesForSelect}
                     workers={workersForSelect}
+                    products={products}
+                    warehouses={availableLocals} // Usando locales/proyectos como almacenes por ahora
+                    crops={crops} // Pasamos los cultivos para la pestaña de Servicios
                     setErrorMessage={setErrorMessage}
                 />
             )}

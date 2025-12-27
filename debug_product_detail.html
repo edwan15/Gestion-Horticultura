@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es-ES">
+<head>
+    <!-- Google Tag Manager -->
+    <script>
+        (function (w, d, s, l, i) {
+            w[l] = w[l] || []; w[l].push({
+                'gtm.start':
+                    new Date().getTime(), event: 'gtm.js'
+            }); var f = d.getElementsByTagName(s)[0],
+                j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+                    'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', 'GTM-KQ5QH6Q');</script>
+    <!-- End Google Tag Manager -->
+    <meta charset="utf-8" />
+    <meta name="google" content="notranslate" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title> - Consultas Fitosanitarios</title>
+    
+    
+        <link rel="stylesheet" href="/regfiweb/lib/bootstrap/dist/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="/regfiweb/lib/font-awesome/css/font-awesome.min.css" />
+        <link href="/regfiweb/lib/bootstrap-datepicker/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+        <link href="/regfiweb/css/mvc-grid/mvc-grid.css" rel="stylesheet" />
+        <link href="/regfiweb/css/bootstrap-custom.css" rel="stylesheet" />
+        <link href="/regfiweb/css/style-magrama-rwd.css" rel="stylesheet" />
+        <link href="/regfiweb/css/site.min.css" rel="stylesheet" />
+        <link href="/regfiweb/lib/select2/css/select2.min.css" rel="stylesheet" />
+    
+    
+    
+        <script src="/regfiweb/lib/jquery/dist/jquery.min.js"></script>
+        <script src="/regfiweb/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="/regfiweb/lib/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
+        <script src="/regfiweb/lib/bootstrap-datepicker/locales/bootstrap-datepicker.es.min.js"></script>
+        <script src="/regfiweb/js/mvc-grid.min.js"></script>
+        <script src="/regfiweb/lib/sweetalert/sweetalert.min.js"></script>
+        <script src="/regfiweb/lib/select2/js/select2.full.min.js"></script>
+        <script src="/regfiweb/js/site.min.js"></script>
+    
+</head>
+<body style="min-width: 100%">
+    <!-- Google Tag Manager (noscript) -->
+    <noscript>
+        <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KQ5QH6Q"
+                height="0" width="0" style="display:none;visibility:hidden"></iframe>
+    </noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    <input id="pathInicio" type="hidden" value="/regfiweb/Home/Inicio" />
+    <input id="pathBuscadores" type="hidden" value="/regfiweb/Buscadores/Index" />
+    <input id="pathInformes" type="hidden" value="/regfiweb/Informes/Index" />
+    <input id="pathResumenes" type="hidden" value="/regfiweb/Resumenes/Index" />
+    <input id="pathDocumentos" type="hidden" value="/regfiweb/Documentos/Index" />
+    <input id="pathCodificaciones" type="hidden" value="/regfiweb/Codificaciones/Index" />
+    <input id="pathProductos" type="hidden" value="/regfiweb/Productos/Index" />
+    <input id="pathNumRegistro" type="hidden" value="/regfiweb/NumRegistro/Index" />
+    <input id="pathFormulados" type="hidden" value="/regfiweb/Formulados/Index" />
+    <input id="pathSustancias" type="hidden" value="/regfiweb/Sustancias/Index" />
+    <input id="pathCultivos" type="hidden" value="/regfiweb/Cultivos/Index" />
+    <input id="pathTitulares" type="hidden" value="/regfiweb/Titulares/Index" />
+
+    <a name="arriba"></a>
+    <div class="container">
+        <main role="main" class="pb-3">
+            <input id="exportFichaProductoPdf" type="hidden" value="/regfiweb/Productos/ExportFichaProductoPdf" />
+<input id="exportFichaProductoPdfGet" type="hidden" value="/regfiweb/Productos/ExportFichaProductoPdfGet" />
+<input id="exportGenerico" type="hidden" value="/regfiweb/Exportaciones/ExportExcel" />
+<input id="idProducto" type="hidden" value="96161" />
+<input id="nombreProducto" type="hidden" value="1,4SIGHT" />
+<h2 role="heading"><span class="float-left">Detalle Producto</span></h2>
+<br />
+<fieldset id="fdDetalle" class="scheduler-border float-left">
+    <legend class="scheduler-border">Datos del producto</legend>
+    <div class="row">
+        <div class="col-md-6 col-sm-12">
+            <div class="form-group row">
+                <label class="col-sm-4 col-form-label pr-0" for="txtResNomComercial">Nombre Comercial</label>
+                <div class="col-sm-8">
+                    <input id="txtResNomComercial" readonly type="text" class="form-control form-control-sm" value="1,4SIGHT">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-4 col-form-label pr-0" for="txtResNumRegistro">Nº de registro</label>
+                <div class="col-sm-8">
+                    <input id="txtResNumRegistro" readonly type="text" class="form-control form-control-sm" value="ES-01178">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-4 col-form-label pr-0" for="txtTitular">Titular</label>
+                <div class="col-sm-8">
+                    <input id="txtTitular" readonly type="text" class="form-control form-control-sm" value="DormFresh Limited">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-4 col-form-label pr-0" for="txtEstado">Estado</label>
+                <div class="col-sm-8">
+                    <input id="txtEstado" readonly type="text" class="form-control form-control-sm" value="Vigente">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-4 col-form-label pr-0" for="txtFabricante">Fabricante</label>
+                <div class="col-sm-8">
+                    <input id="txtFabricante" readonly type="text" class="form-control form-control-sm" value="DormFresh Ltd.">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <label for="txtObservaciones">Observaciones</label>
+                    <textarea id="txtObservaciones" readonly rows="12" cols="40" class="form-control form-control-sm no-resize">Regulador del crecimiento (inhibidor germinaci&#xF3;n) para uso profesional, en patatas almacenadas. &#xD;&#xD;- Uso no autorizado para patatas de propagaci&#xF3;n.&#xD;&#xD;Modo de aplicaci&#xF3;n:&#xD;Producto listo para su uso en almacenes con equipo adecuado de nebulizaci&#xF3;n en caliente o en fr&#xED;o, ubicado fuera del almac&#xE9;n y usando el sistema de ventilaci&#xF3;n interno.&#xD;&#xD;En la etiqueta se dar&#xE1;n las instrucciones oportunas para la correcta aplicaci&#xF3;n del producto.&#xD;&#xD;</textarea>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-sm-12">
+            <fieldset class="scheduler-border float-left w-100">
+                <legend class="scheduler-border">Fechas</legend>
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label pr-0" for="txtFechaInscripcion" id="lbFechaInscripcion">Inscripción</label>
+                        <div class="col-sm-8">
+                            <input id="txtFechaInscripcion" readonly class="form-control form-control-sm"  value="07-10-2021">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label pr-0" for="txtFechaRenovacion" id="lbFechaRenovacion">Renovación</label>
+                        <div class="col-sm-8">
+                            <input id="txtFechaRenovacion" readonly class="form-control form-control-sm"  value="">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label pr-0" for="txtFechaCaducidad" id="lbFechaCaducidad">Caducidad</label>
+                        <div class="col-sm-8">
+                            <input id="txtFechaCaducidad" readonly class="form-control form-control-sm"  value="30-06-2026">
+                        </div>
+                    </div>
+            </fieldset>
+            <fieldset class="scheduler-border float-left w-100">
+                <legend class="scheduler-border">Funciones</legend>
+                <div class="row col-12">
+                    <button id="btnExportFuncionesByProducto" class="float-right btn btn-info mb-2"><i class="fa fa-file-excel-o"></i> Exportar</button>
+                </div>
+                <div class="w-100">
+                    <div class="mvc-grid" data-url="/regfiweb/Productos/FuncionesGrid?IdProducto=96161"></div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12">
+            <fieldset class="scheduler-border float-left w-100">
+                <legend class="scheduler-border">Composición química / sustancias activas</legend>
+                <div class="row col-12">
+                    <button id="btnExportSustanciasByProducto" class="float-right btn btn-info mb-2"><i class="fa fa-file-excel-o"></i> Exportar</button>
+                </div>
+                <div class="w-100">
+                    <div class="mvc-grid" data-url="/regfiweb/Productos/SustanciasGrid?IdProducto=96161"></div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+</fieldset>
+
+        </main>
+    </div>
+    <div id="loadingDiv" class="loader"></div>
+    <br />
+    <br />
+    <script>
+        $("#loadingDiv").hide();
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+        document.querySelectorAll(".mvc-grid").forEach(element => new MvcGrid(element));
+                //var $loading = $('#loading').hide();
+                //$(document)
+                //    .ajaxStart(function() {
+                //        $loading.show();
+                //    })
+                //    .ajaxStop(function() {
+                //        $loading.hide();
+                //    });
+    </script>
+    
+</body>
+</html>

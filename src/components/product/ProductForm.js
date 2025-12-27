@@ -471,6 +471,7 @@ handleImageChange,
 saveProduct,
 ingreso_cantidad,
 egreso_cantidad,
+total_price, // Nueva prop
 handleStockChange,
 }) => {
     // ... (otras lógicas como getNumericValue, baseEntradas, etc. se mantienen igual)
@@ -536,6 +537,36 @@ handleStockChange,
                                     value={product?.category || ''}
                                     onChange={handleInputChange}
                                 />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label className="flex items-center mb-1 text-gray-700 font-medium text-sm">
+                                        Valor Total (Compra)
+                                    </label>
+                                    <input
+                                        className="outline-none rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 p-2 border border-green-200 w-full bg-green-50"
+                                        type="text"
+                                        placeholder="Total €"
+                                        name="total_price"
+                                        value={total_price}
+                                        onChange={handleStockChange} // Usamos el handler de stock que tiene la lógica
+                                    />
+                                    <span className="text-[10px] text-gray-400">Calcula el unitario autom.</span>
+                                </div>
+                                <div>
+                                    <label className="flex items-center mb-1 text-gray-700 font-medium text-sm">
+                                        <span className="text-xl text-green-500 mr-2 font-bold">€</span> Coste Unitario:
+                                    </label>
+                                    <input
+                                        className="outline-none rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 p-2 border border-gray-300 w-full transition-all duration-200"
+                                        type="number"
+                                        step="0.01"
+                                        placeholder="0.00"
+                                        name="price"
+                                        value={product?.price || ''}
+                                        onChange={handleInputChange}
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className="flex flex-col items-center justify-start p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-indigo-400 transition-colors duration-300">

@@ -8,7 +8,7 @@ import {
     serverTimestamp,
 } from 'firebase/firestore';
 import { auth } from '../../firebaseConfig'; 
-import { FaUsers, FaTools, FaClock, FaSeedling, FaTruck, FaFileAlt, FaCheckCircle, FaLeaf, FaArrowRight, FaArrowLeft, FaFileUpload } from 'react-icons/fa';
+import { FaUsers, FaTools, FaClock, FaSeedling, FaTruck, FaFileAlt, FaCheckCircle, FaLeaf, FaArrowRight, FaArrowLeft, FaFileUpload, FaPlus } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
 
 // ------------------------------------
@@ -288,7 +288,11 @@ const processExcelFile = async (file, dbWorkers, dbLocals) => {
 // --- COMPONENTES DE LOS PASOS ---
 // ------------------------------------
 
-// A. ProgressBar - MODERN ANIMATED VERSION
+// ------------------------------------
+// --- COMPONENTES DE LOS PASOS ---
+// ------------------------------------
+
+// A. ProgressBar - COMPACT VERSION
 const ProgressBar = ({ currentStep }) => {
     const steps = [
         { name: 'Trabajadores', icon: FaUsers, step: 1 },
@@ -303,13 +307,13 @@ const ProgressBar = ({ currentStep }) => {
     const progressPercentage = ((currentIndex + 1) / steps.length) * 100;
     
     return (
-        <div className="relative mb-12">
+        <div className="relative mb-6">
             {/* Background line */}
-            <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 rounded-full"></div>
+            <div className="absolute top-4 left-0 right-0 h-1 bg-gray-200 rounded-full"></div>
             
             {/* Animated progress line */}
             <div 
-                className="absolute top-5 left-0 h-1 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full transition-all duration-500 ease-out"
+                className="absolute top-4 left-0 h-1 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${progressPercentage}%` }}
             ></div>
             
@@ -320,17 +324,17 @@ const ProgressBar = ({ currentStep }) => {
                     const isCurrent = currentStep === stepInfo.step;
                     
                     return (
-                        <div key={stepInfo.step} className="flex flex-col items-center">
-                            <div className={`w-10 h-10 flex items-center justify-center rounded-full font-bold transition-all duration-300 transform ${
+                        <div key={stepInfo.step} className="flex flex-col items-center group cursor-default">
+                            <div className={`w-8 h-8 flex items-center justify-center rounded-full font-bold transition-all duration-300 transform ${
                                 isCurrent 
-                                    ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white scale-110 ring-4 ring-green-200 shadow-lg' 
+                                    ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white scale-110 ring-2 ring-green-200 shadow-lg' 
                                     : isActive 
                                         ? 'bg-green-500 text-white shadow-md' 
-                                        : 'bg-white text-gray-400 border-2 border-gray-300'
+                                        : 'bg-white text-gray-400 border border-gray-300'
                             }`}>
-                                <stepInfo.icon className="text-lg"/>
+                                <stepInfo.icon className="text-xs"/>
                             </div>
-                            <span className={`mt-2 text-xs font-medium ${isActive ? 'text-green-600' : 'text-gray-400'}`}>
+                            <span className={`mt-1 text-[10px] font-medium hidden sm:block ${isActive ? 'text-green-600' : 'text-gray-400'}`}>
                                 {stepInfo.name}
                             </span>
                         </div>
@@ -341,17 +345,17 @@ const ProgressBar = ({ currentStep }) => {
     );
 };
 
-// B. Step 1: Selección de Trabajador - MODERN CARD DESIGN
+// B. Step 1: Selección de Trabajador - COMPACT CARD DESIGN
 const Step1_WorkerSelection = ({ workers, onSelect, formData, onNext, onExcelUpload }) => {
     const selectedCount = formData.workerIds.length;
     const fileInputRef = useRef(null);
     
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                        <FaUsers className="text-white text-xl"/>
+        <div className="flex flex-col h-full">
+            <div className="flex items-center justify-between gap-4 mb-4 shrink-0">
+                <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                        <FaUsers className="text-white text-sm"/>
                     </div>
                     Selecciona Trabajadores
                 </h2>
@@ -366,57 +370,58 @@ const Step1_WorkerSelection = ({ workers, onSelect, formData, onNext, onExcelUpl
                     />
                     <button
                         onClick={() => fileInputRef.current?.click()}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 flex items-center gap-2 transition-all text-sm font-semibold"
+                        className="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-lg border border-blue-200 shadow-sm flex items-center gap-2 transition-all text-xs font-semibold"
                     >
-                        <FaFileUpload /> Importar Excel
+                        <FaFileUpload /> Importar
                     </button>
                     
                     {selectedCount > 0 && (
-                        <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-lg shadow-lg">
-                            <span className="font-bold">{selectedCount}</span> seleccionado{selectedCount !== 1 ? 's' : ''}
+                        <div className="bg-green-50 text-green-700 border border-green-200 px-3 py-1.5 rounded-lg text-xs font-bold">
+                            {selectedCount} sel.
                         </div>
                     )}
                 </div>
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[400px] overflow-y-auto p-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 overflow-y-auto custom-scrollbar p-1 py-2 flex-1 min-h-0 content-start">
                 {workers.map(worker => {
                     const isSelected = formData.workerIds.includes(worker.id);
                     return (
                         <button
                             key={worker.id}
                             onClick={() => onSelect(worker)}
-                            className={`p-4 rounded-xl shadow-md transition-all duration-300 text-left transform hover:scale-105 ${
+                            className={`p-3 rounded-xl shadow-sm transition-all duration-200 text-left border flex flex-col justify-between ${
                                 isSelected 
-                                    ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white ring-4 ring-green-300 shadow-xl' 
-                                    : 'bg-white hover:shadow-xl text-gray-800 border border-gray-200'
+                                    ? 'bg-green-50 border-green-500 ring-1 ring-green-500 shadow-md' 
+                                    : 'bg-white hover:bg-gray-50 border-gray-200 hover:border-gray-300'
                             }`}
                         >
-                            <div className="flex items-center gap-2 mb-2">
-                                <FaUsers className={`text-lg ${isSelected ? 'text-white' : 'text-green-600'}`}/>
-                                <span className="font-bold">{worker.name}</span>
+                            <div className="flex items-center gap-2 mb-1">
+                                <FaUsers className={`text-sm ${isSelected ? 'text-green-600' : 'text-gray-400'}`}/>
+                                <span className={`font-bold text-sm truncate ${isSelected ? 'text-green-800' : 'text-gray-700'}`}>{worker.name}</span>
                             </div>
-                            <span className={`text-xs ${isSelected ? 'text-green-100' : 'text-gray-500'}`}>
+                            <span className={`text-[10px] ${isSelected ? 'text-green-600' : 'text-gray-400'}`}>
                                 {worker.ratePerHour} €/h
                             </span>
                         </button>
                     );
                 })}
                 {workers.length === 0 && (
-                    <p className="col-span-4 text-center text-gray-500 py-8">
-                        No hay trabajadores disponibles 🚧
-                    </p>
+                    <div className="col-span-full flex flex-col items-center justify-center text-gray-400 py-10 h-full">
+                        <FaUsers className="text-4xl mb-2 opacity-20" />
+                        <p className="text-sm">No hay trabajadores disponibles</p>
+                    </div>
                 )}
             </div>
 
-            <div className="flex justify-end pt-4">
+            <div className="flex justify-end pt-4 mt-auto shrink-0 border-t border-gray-100">
                 <button 
                     onClick={onNext} 
                     disabled={selectedCount === 0}
-                    className={`px-8 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 ${
+                    className={`px-6 py-2.5 rounded-xl font-semibold flex items-center gap-2 transition-all duration-200 text-sm ${
                         selectedCount > 0 
-                            ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:shadow-xl hover:scale-105' 
-                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5' 
+                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     }`}
                 >
                     Siguiente <FaArrowRight />
@@ -426,51 +431,51 @@ const Step1_WorkerSelection = ({ workers, onSelect, formData, onNext, onExcelUpl
     );
 };
 
-// C. Step 2: Selección de Operación - ICON-BASED CARDS
+// C. Step 2: Selección de Operación - COMPACT ICON CARDS
 const Step2_OperationSelection = ({ operations, onSelect, onBack }) => {
     return (
-        <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                    <FaTools className="text-white text-xl"/>
+        <div className="flex flex-col h-full">
+            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4 shrink-0">
+                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                    <FaTools className="text-white text-sm"/>
                 </div>
                 ¿Qué operación se realizó?
             </h2>
             
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[400px] overflow-y-auto p-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3 overflow-y-auto custom-scrollbar p-1 py-2 flex-1 min-h-0 content-start">
                 {operations.map(op => (
                     <button
                         key={op.id}
                         onClick={() => onSelect(op)}
-                        className="p-4 bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 text-left transform hover:scale-105 hover:bg-gradient-to-br hover:from-green-50 hover:to-emerald-50 border border-gray-200"
+                        className="p-3 bg-white hover:bg-green-50 rounded-xl shadow-sm border border-gray-200 hover:border-green-300 transition-all duration-200 text-left flex flex-col items-center justify-center gap-1 group"
                     >
-                        <div className="text-2xl mb-2">{op.emoji}</div>
-                        <div className="font-semibold text-gray-800 text-sm">{op.id}</div>
-                        <div className="text-xs text-gray-600">{op.name}</div>
+                        <div className="text-2xl group-hover:scale-110 transition-transform">{op.emoji}</div>
+                        <div className="font-bold text-gray-700 text-xs text-center leading-tight">{op.name}</div>
+                        <div className="text-[9px] text-gray-400 font-mono bg-gray-50 px-1 rounded">{op.id}</div>
                     </button>
                 ))}
-                <button 
-                    onClick={() => onSelect({ id: '98', name: 'Fertilizantes', emoji: '🌾' })}
-                    className="p-4 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 text-left transform hover:scale-105 border border-yellow-300"
-                >
-                    <div className="text-2xl mb-2">🌾</div>
-                    <div className="font-semibold text-gray-800 text-sm">98</div>
-                    <div className="text-xs text-gray-700">Fertilizantes</div>
-                </button>
-                <button 
-                    onClick={() => onSelect({ id: '99', name: 'Fitosanitarios', emoji: '🧪' })}
-                    className="p-4 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 text-left transform hover:scale-105 border border-blue-300"
-                >
-                    <div className="text-2xl mb-2">🧪</div>
-                    <div className="font-semibold text-gray-800 text-sm">99</div>
-                    <div className="text-xs text-gray-700">Fitosanitarios</div>
-                </button>
+                
+                {/* Fertilizantes y Fitosanitarios */}
+                {[
+                    { id: '98', name: 'Fertilizantes', emoji: '🌾', color: 'yellow' },
+                    { id: '99', name: 'Fitosanitarios', emoji: '🧪', color: 'blue' }
+                ].map(op => (
+                    <button 
+                        key={op.id}
+                        onClick={() => onSelect(op)}
+                        className={`p-3 bg-${op.color}-50 hover:bg-${op.color}-100 rounded-xl shadow-sm border border-${op.color}-200 transition-all duration-200 text-left flex flex-col items-center justify-center gap-1 group`}
+                    >
+                        <div className="text-2xl group-hover:scale-110 transition-transform">{op.emoji}</div>
+                        <div className={`font-bold text-${op.color}-800 text-xs text-center leading-tight`}>{op.name}</div>
+                        <div className={`text-[9px] text-${op.color}-600 bg-white/50 px-1 rounded font-mono`}>{op.id}</div>
+                    </button>
+                ))}
             </div>
             
-            <div className="flex justify-start pt-4">
+            <div className="flex justify-start pt-4 mt-auto shrink-0 border-t border-gray-100">
                 <button 
                     onClick={onBack} 
-                    className="px-8 py-3 bg-gray-500 text-white rounded-xl hover:bg-gray-600 font-semibold flex items-center gap-2 transition-all duration-300 hover:shadow-lg"
+                    className="px-5 py-2 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-xl font-semibold flex items-center gap-2 transition-all duration-200 text-sm"
                 >
                     <FaArrowLeft /> Volver
                 </button>
@@ -479,7 +484,7 @@ const Step2_OperationSelection = ({ operations, onSelect, onBack }) => {
     );
 };
 
-// D. Step 3: Fecha, Horario y Pausas - 15 MIN INCREMENTS + MODERN DESIGN
+// D. Step 3: Fecha, Horario y Pausas - COMPACT BUT IMPROVED CONTROLS
 const Step3_TimeAndDate = ({ formData, onChange, calculateHours, onBack, onNext }) => {
     
     // Helper para incrementar/decrementar tiempo en pasos de 15 minutos
@@ -497,34 +502,35 @@ const Step3_TimeAndDate = ({ formData, onChange, calculateHours, onBack, onNext 
         return `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;
     };
     
+    // Improved Compact Time Selector (Bigger buttons)
     const TimeSelector = ({ label, name, value, colorClass = "green" }) => {
         return (
-            <div className={`bg-gradient-to-br from-${colorClass}-50 to-${colorClass}-100 p-6 rounded-2xl shadow-lg border-2 border-${colorClass}-200`}>
-                <h3 className={`text-lg font-bold mb-4 text-${colorClass}-700`}>{label}</h3>
-                <div className="flex items-center justify-center gap-4">
+            <div className={`bg-gray-50 p-2 rounded-xl border border-gray-200 flex flex-col items-center justify-center h-full`}>
+                <h3 className={`text-xs font-bold mb-1 uppercase tracking-wide text-gray-500`}>{label}</h3>
+                <div className="flex items-center gap-2 w-full justify-center">
                     <button
                         type="button"
                         onClick={() => onChange(name, adjustTime(value, -15))}
-                        className={`w-12 h-12 bg-${colorClass}-500 hover:bg-${colorClass}-600 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center text-2xl font-bold`}
+                        className={`w-10 h-10 bg-white border border-gray-300 text-gray-700 hover:bg-${colorClass}-50 hover:text-${colorClass}-700 hover:border-${colorClass}-400 rounded-lg shadow-sm flex items-center justify-center text-lg font-bold transition-all active:scale-95`}
                     >
-                        ▲
+                        -
                     </button>
-                    <div className={`text-5xl font-bold text-${colorClass}-700 bg-white px-6 py-3 rounded-xl shadow-inner min-w-[140px] text-center`}>
+                    <div className={`text-xl font-mono font-bold text-gray-800 bg-white px-2 py-1 rounded border border-gray-200 min-w-[70px] text-center shadow-inner`}>
                         {value}
                     </div>
                     <button
                         type="button"
                         onClick={() => onChange(name, adjustTime(value, 15))}
-                        className={`w-12 h-12 bg-${colorClass}-600 hover:bg-${colorClass}-700 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center text-2xl font-bold`}
+                         className={`w-10 h-10 bg-white border border-gray-300 text-gray-700 hover:bg-${colorClass}-50 hover:text-${colorClass}-700 hover:border-${colorClass}-400 rounded-lg shadow-sm flex items-center justify-center text-lg font-bold transition-all active:scale-95`}
                     >
-                        ▼
+                        +
                     </button>
                 </div>
-                <p className="text-center mt-3 text-xs text-gray-600">Incrementos de 15 minutos</p>
             </div>
         );
     };
     
+    // Improved Compact Break Selector
     const BreakSelector = () => {
         const breakTime = `${formData.breakHours}:${formData.breakMinutes}`;
         
@@ -540,82 +546,86 @@ const Step3_TimeAndDate = ({ formData, onChange, calculateHours, onBack, onNext 
         };
         
         return (
-            <div className="bg-gradient-to-br from-orange-50 to-red-100 p-6 rounded-2xl shadow-lg border-2 border-orange-200">
-                <h3 className="text-lg font-bold mb-4 text-orange-700">Pausas / Descansos</h3>
-                <div className="flex items-center justify-center gap-4">
+            <div className="bg-orange-50 p-3 rounded-xl border border-orange-100 flex flex-row items-center justify-between px-4">
+                <h3 className="text-sm font-bold text-orange-800 flex items-center gap-2">
+                    ☕ <span className="hidden sm:inline">Pausas</span>
+                </h3>
+                <div className="flex items-center gap-2">
                     <button
                         type="button"
                         onClick={() => adjustBreak(-15)}
-                        className="w-12 h-12 bg-orange-500 hover:bg-orange-600 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center text-2xl font-bold"
+                        className="w-10 h-10 bg-white text-orange-600 border border-orange-200 hover:bg-orange-100 rounded-lg shadow-sm flex items-center justify-center font-bold text-lg active:scale-95"
                     >
-                        ▲
+                        -
                     </button>
-                    <div className="text-5xl font-bold text-orange-700 bg-white px-6 py-3 rounded-xl shadow-inner min-w-[140px] text-center">
-                        {breakTime}
-                    </div>
+                    <span className="text-xl font-mono font-bold text-orange-900 min-w-[60px] text-center">{breakTime}</span>
                     <button
                         type="button"
                         onClick={() => adjustBreak(15)}
-                        className="w-12 h-12 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center text-2xl font-bold"
+                        className="w-10 h-10 bg-white text-orange-600 border border-orange-200 hover:bg-orange-100 rounded-lg shadow-sm flex items-center justify-center font-bold text-lg active:scale-95"
                     >
-                        ▼
+                        +
                     </button>
                 </div>
-                <p className="text-center mt-3 text-xs text-gray-600">Incrementos de 15 minutos</p>
             </div>
         );
     };
 
     return (
-        <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                    <FaClock className="text-white text-xl"/>
+        <div className="flex flex-col h-full space-y-4">
+            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2 shrink-0">
+                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                    <FaClock className="text-white text-sm"/>
                 </div>
                 Fecha, Horario y Pausas
             </h2>
 
-            {/* Fecha */}
-            <div className="bg-blue-50 p-6 rounded-2xl border-2 border-blue-200 shadow-lg">
-                <label className="block text-lg font-bold text-blue-700 mb-3">📅 Fecha de la Tarea</label>
-                <input
-                    type="date"
-                    name="date"
-                    value={formData.date}
-                    onChange={(e) => onChange('date', e.target.value)}
-                    className="w-full md:w-1/2 p-3 border-2 border-blue-300 rounded-xl text-lg font-semibold focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all"
-                    required
-                />
-            </div>
-            
-            {/* Horarios */}
-            <div className="grid md:grid-cols-2 gap-6">
-                <TimeSelector label="⏰ Hora de Inicio" name="startTime" value={formData.startTime} colorClass="green" />
-                <TimeSelector label="⏰ Hora Final" name="endTime" value={formData.endTime} colorClass="emerald" />
-            </div>
+            <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0 space-y-4 p-1">
+                {/* Fecha - Compacta */}
+                <div className="flex items-center gap-4 bg-blue-50/50 p-3 rounded-xl border border-blue-100">
+                    <label className="text-sm font-bold text-blue-800 whitespace-nowrap">📅 Fecha:</label>
+                    <input
+                        type="date"
+                        name="date"
+                        value={formData.date}
+                        onChange={(e) => onChange('date', e.target.value)}
+                        className="w-full bg-white p-2 border border-blue-200 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-100 outline-none"
+                        required
+                    />
+                </div>
+                
+                {/* Horarios Grid */}
+                <div className="grid grid-cols-2 gap-3">
+                    <TimeSelector label="Inicio" name="startTime" value={formData.startTime} colorClass="green" />
+                    <TimeSelector label="Fin" name="endTime" value={formData.endTime} colorClass="emerald" />
+                </div>
 
-            {/* Pausas */}
-            <BreakSelector />
-            
-            {/* Resumen de horas */}
-            <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 rounded-2xl shadow-xl text-white">
-                <div className="text-center">
-                    <p className="text-lg font-semibold mb-2">Horas Trabajadas Netas</p>
-                    <p className="text-6xl font-extrabold">{calculateHours.workedHours.toFixed(2)} h</p>
-                    <p className="text-sm mt-2 opacity-90">Pausas: {calculateHours.breakDuration.toFixed(2)} h</p>
+                {/* Pausas */}
+                <BreakSelector />
+                
+                {/* Resumen de horas - Compacto */}
+                <div className="bg-gradient-to-r from-green-600 to-emerald-700 p-4 rounded-xl shadow-lg text-white flex items-center justify-between">
+                    <div>
+                        <p className="text-xs font-medium opacity-80 uppercase tracking-wider">Total Horas</p>
+                        <p className="text-3xl font-extrabold font-mono tracking-tight">{calculateHours.workedHours.toFixed(2)}h</p>
+                    </div>
+                    <div className="text-right">
+                         <div className="text-xs opacity-75">Neto Trabajo</div>
+                         <div className="text-[10px] opacity-60">Incl. pausas: {calculateHours.breakDuration.toFixed(2)}h</div>
+                    </div>
                 </div>
             </div>
             
-            <div className="flex justify-between pt-4">
+            <div className="flex justify-between pt-4 mt-auto shrink-0 border-t border-gray-100 pb-2"> {/* Added pb-2 to ensure buttons not cut off */}
                 <button 
                     onClick={onBack} 
-                    className="px-8 py-3 bg-gray-500 text-white rounded-xl hover:bg-gray-600 font-semibold flex items-center gap-2 transition-all duration-300 hover:shadow-lg"
+                    className="px-5 py-2.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 font-semibold flex items-center gap-2 transition-all duration-200 text-sm"
                 >
                     <FaArrowLeft /> Volver
                 </button>
                 <button 
                     onClick={onNext} 
-                    className="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:shadow-xl font-semibold flex items-center gap-2 transition-all duration-300 hover:scale-105" 
+                    className={`px-6 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow hover:shadow-lg font-semibold flex items-center gap-2 transition-all duration-200 text-sm ${calculateHours.workedHours <= 0 ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
                     disabled={calculateHours.workedHours <= 0}
                 >
                     Siguiente <FaArrowRight />
@@ -625,50 +635,50 @@ const Step3_TimeAndDate = ({ formData, onChange, calculateHours, onBack, onNext 
     );
 };
 
-// E. Step 5: Local/Cultivo - CLEAN CARD LAYOUT
+// E. Step 5: Local/Cultivo - CLEAN COMPACT CARD LAYOUT
 const Step5_LocalSelection = ({ locals, onSelect, formData, onBack }) => {
     const selected = formData.localId;
     return (
-        <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                    <FaSeedling className="text-white text-xl"/>
+        <div className="flex flex-col h-full">
+            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4 shrink-0">
+                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                    <FaSeedling className="text-white text-sm"/>
                 </div>
-                ¿Dónde se realizó la tarea?
+                ¿Dónde se realizó?
             </h2>
             
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[400px] overflow-y-auto p-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 overflow-y-auto custom-scrollbar p-1 py-2 flex-1 min-h-0 content-start">
                 {locals.map(local => (
                     <button
                         key={local.id}
                         onClick={() => onSelect(local)}
-                        className={`p-4 rounded-xl shadow-md transition-all duration-300 text-left transform hover:scale-105 ${
+                        className={`p-3 rounded-xl shadow-sm transition-all duration-200 text-left transform border flex flex-col justify-between ${
                             selected === local.id 
-                                ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white ring-4 ring-green-300 shadow-xl' 
-                                : 'bg-white hover:shadow-xl text-gray-800 border border-gray-200'
+                                ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white ring-2 ring-green-300 shadow-md' 
+                                : 'bg-white hover:shadow-md text-gray-800 border-gray-200 hover:border-gray-300'
                         }`}
                     >
-                        <div className="flex items-center gap-2 mb-2">
-                            <FaLeaf className={`text-lg ${selected === local.id ? 'text-white' : 'text-green-600'}`}/>
-                            <span className="font-bold">{local.name}</span>
+                        <div className="flex items-center gap-2 mb-1">
+                            <FaLeaf className={`text-sm ${selected === local.id ? 'text-white' : 'text-green-600'}`}/>
+                            <span className="font-bold text-sm truncate w-full">{local.name}</span>
                         </div>
-                        <span className={`text-xs ${selected === local.id ? 'text-green-100' : 'text-gray-500'}`}>
+                        <span className={`text-[10px] ${selected === local.id ? 'text-green-100' : 'text-gray-500'}`}>
                             {local.type || 'Local'}
                         </span>
                     </button>
                 ))}
             </div>
 
-            <div className="flex justify-between pt-4">
+            <div className="flex justify-between pt-4 mt-auto shrink-0 border-t border-gray-100">
                 <button 
                     onClick={onBack} 
-                    className="px-8 py-3 bg-gray-500 text-white rounded-xl hover:bg-gray-600 font-semibold flex items-center gap-2 transition-all duration-300 hover:shadow-lg"
+                    className="px-5 py-2 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 font-semibold flex items-center gap-2 transition-all duration-200 text-sm"
                 >
                     <FaArrowLeft /> Volver
                 </button>
                 <button 
                     onClick={() => onSelect({id: '', name: 'General'})} 
-                    className="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:shadow-xl font-semibold flex items-center gap-2 transition-all duration-300 hover:scale-105"
+                    className="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow hover:shadow-lg font-semibold flex items-center gap-2 transition-all duration-200 text-sm hover:-translate-y-0.5"
                 >
                     Saltar / Siguiente <FaArrowRight />
                 </button>
@@ -677,70 +687,63 @@ const Step5_LocalSelection = ({ locals, onSelect, formData, onBack }) => {
     );
 };
 
-// F. Step 6: Maquinaria - ORANGE GRADIENT CARDS
+// F. Step 6: Maquinaria - COMPACT CARDS
 const Step6_MachinerySelection = ({ machineryList, onSelect, formData, setCurrentStep }) => {
     const selected = formData.machineryId;
 
     return (
-        <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                    <FaTruck className="text-white text-xl"/>
+        <div className="flex flex-col h-full">
+            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4 shrink-0">
+                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                    <FaTruck className="text-white text-sm"/>
                 </div>
-                ¿Maquinaria utilizada?
+                ¿Maquinaria?
             </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 overflow-y-auto custom-scrollbar p-1 py-2 flex-1 min-h-0 content-start">
                 <button
                     onClick={() => onSelect(null)}
-                    className={`p-6 rounded-xl shadow-md transition-all duration-300 transform hover:scale-105 ${
+                    className={`p-3 rounded-xl shadow-sm transition-all duration-200 transform border-2 flex flex-col justify-center items-center h-24 ${
                         selected === null 
-                            ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white ring-4 ring-blue-300 shadow-xl' 
-                            : 'bg-white hover:shadow-xl text-gray-800 border-2 border-gray-200'
+                            ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white ring-2 ring-blue-300 shadow-md border-transparent' 
+                            : 'bg-white hover:shadow-md text-gray-800 border-gray-200 hover:border-gray-300'
                     }`}
                 >
-                    <FaCheckCircle className={`text-2xl mb-2 ${selected === null ? 'text-white' : 'text-blue-500'}`}/>
-                    <div className="font-bold">Sin Maquinaria</div>
-                    <div className={`text-xs mt-1 ${selected === null ? 'text-blue-100' : 'text-gray-500'}`}>
-                        No se utilizó maquinaria
-                    </div>
+                    <FaCheckCircle className={`text-xl mb-1 ${selected === null ? 'text-white' : 'text-blue-500'}`}/>
+                    <div className="font-bold text-sm">Sin Maquinaria</div>
                 </button>
                 
                 {machineryList.map(machine => (
                     <button
                         key={machine.id}
                         onClick={() => onSelect(machine.id)}
-                        className={`p-6 rounded-xl shadow-md transition-all duration-300 text-left transform hover:scale-105 ${
+                        className={`p-3 rounded-xl shadow-sm transition-all duration-200 text-left transform border-2 flex flex-col justify-between h-24 ${
                             selected === machine.id 
-                                ? 'bg-gradient-to-br from-orange-500 to-orange-600 text-white ring-4 ring-orange-300 shadow-xl' 
-                                : 'bg-gradient-to-br from-orange-50 to-orange-100 hover:shadow-xl text-gray-800 border-2 border-orange-200'
+                                ? 'bg-gradient-to-br from-orange-500 to-orange-600 text-white ring-2 ring-orange-300 shadow-md border-transparent' 
+                                : 'bg-gradient-to-br from-orange-50 to-orange-100 hover:shadow-md text-gray-800 border-orange-200'
                         }`}
                     >
-                        <FaTruck className={`text-2xl mb-2 ${selected === machine.id ? 'text-white' : 'text-orange-600'}`}/>
-                        <div className="font-bold">{machine.name}</div>
-                        <div className={`text-xs mt-1 ${selected === machine.id ? 'text-orange-100' : 'text-gray-600'}`}>
-                            Placa: {machine.plate || 'N/A'}
+                        <div>
+                            <FaTruck className={`text-lg mb-1 ${selected === machine.id ? 'text-white' : 'text-orange-600'}`}/>
+                            <div className="font-bold text-sm truncate">{machine.name}</div>
+                        </div>
+                        <div className={`text-[10px] ${selected === machine.id ? 'text-orange-100' : 'text-gray-600'}`}>
+                            {machine.plate || 'N/A'}
                         </div>
                     </button>
                 ))}
             </div>
 
-            {machineryList.length === 0 && selected === null && (
-                <p className="text-center text-gray-500 py-8">
-                    No hay maquinaria configurada 🚧
-                </p>
-            )}
-
-            <div className="flex justify-between pt-4">
+            <div className="flex justify-between pt-4 mt-auto shrink-0 border-t border-gray-100">
                 <button
                     onClick={() => setCurrentStep(5)}
-                    className="px-8 py-3 bg-gray-500 text-white rounded-xl hover:bg-gray-600 font-semibold flex items-center gap-2 transition-all duration-300 hover:shadow-lg"
+                    className="px-5 py-2 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 font-semibold flex items-center gap-2 transition-all duration-200 text-sm"
                 >
                     <FaArrowLeft /> Volver
                 </button>
                 <button 
                     onClick={() => onSelect(formData.machineryId)} 
-                    className="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:shadow-xl font-semibold flex items-center gap-2 transition-all duration-300 hover:scale-105"
+                    className="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow hover:shadow-lg font-semibold flex items-center gap-2 transition-all duration-200 text-sm hover:-translate-y-0.5"
                 >
                     Siguiente <FaArrowRight />
                 </button>
@@ -749,7 +752,7 @@ const Step6_MachinerySelection = ({ machineryList, onSelect, formData, setCurren
     );
 };
 
-// G. Step 7: Resumen - COLOR-CODED INFORMATION CARDS
+// G. Step 7: Resumen - COMPACT SUMMARY
 const Step7_Summary = ({ formData, calculateHours, onSave, onSaveAndContinue, workers, setCurrentStep }) => {
     
     const selectedWorkers = workers.filter(w => formData.workerIds.includes(w.id));
@@ -757,107 +760,107 @@ const Step7_Summary = ({ formData, calculateHours, onSave, onSaveAndContinue, wo
     const workerRate = selectedWorkers[0]?.ratePerHour || 0; 
     const costPerWorker = (calculateHours.workedHours * parseFloat(workerRate)).toFixed(2);
     const totalCost = (calculateHours.workedHours * parseFloat(workerRate) * selectedWorkers.length).toFixed(2);
-    const machineryName = formData.machineryId ? `ID Máquina: ${formData.machineryId}` : 'Ninguna';
     
-    const InfoCard = ({ label, value, color = "gray", icon }) => (
-        <div className={`bg-white p-4 rounded-xl shadow-md border-l-4 border-${color}-500`}>
-            <div className="flex items-start gap-3">
-                {icon && <div className={`text-2xl text-${color}-500`}>{icon}</div>}
-                <div className="flex-1">
-                    <div className="text-xs text-gray-500 font-medium mb-1">{label}</div>
-                    <div className="text-lg font-bold text-gray-800">{value}</div>
-                </div>
+    const InfoRow = ({ label, value, icon, color = "gray" }) => (
+        <div className={`flex items-center p-3 bg-white rounded-lg border-l-4 border-${color}-500 shadow-sm`}>
+            <div className={`w-8 h-8 rounded-full bg-${color}-50 flex items-center justify-center mr-3 shrink-0`}>
+                <span className="text-lg">{icon}</span>
+            </div>
+            <div className="overflow-hidden">
+                <div className="text-[10px] text-gray-500 uppercase font-bold">{label}</div>
+                <div className="text-sm font-semibold text-gray-800 truncate" title={value}>{value}</div>
             </div>
         </div>
     );
     
     return (
-        <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                    <FaFileAlt className="text-white text-xl"/>
+        <div className="flex flex-col h-full">
+            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4 shrink-0">
+                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                    <FaFileAlt className="text-white text-sm"/>
                 </div>
-                Resumen de Tarea - Confirmación
+                Resumen Final
             </h2>
             
-            <div className="grid md:grid-cols-2 gap-4">
-                <InfoCard 
-                    label="Trabajadores Seleccionados" 
+            <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0 space-y-3 p-1">
+                <InfoRow 
+                    label="Trabajadores" 
                     value={`${selectedWorkers.length} - ${workerNames}`} 
-                    color="green"
+                    color="green" 
                     icon="👥"
                 />
-                <InfoCard 
-                    label="Operación" 
-                    value={`${formData.operationId} - ${formData.operationName}`} 
-                    color="blue"
-                    icon="🛠️"
-                />
-                <InfoCard 
-                    label="Local / Cultivo" 
-                    value={formData.localName || 'General'} 
-                    color="emerald"
-                    icon="🌱"
-                />
-                <InfoCard 
-                    label="Fecha" 
-                    value={formData.date} 
-                    color="yellow"
-                    icon="📅"
-                />
-                <InfoCard 
-                    label="Horario" 
-                    value={`${formData.startTime} - ${formData.endTime}`} 
-                    color="purple"
-                    icon="⏰"
-                />
-                <InfoCard 
-                    label="Maquinaria" 
-                    value={machineryName} 
-                    color="orange"
-                    icon="🚜"
-                />
-            </div>
+                <div className="grid grid-cols-2 gap-3">
+                    <InfoRow 
+                        label="Operación" 
+                        value={formData.operationName} 
+                        color="blue" 
+                        icon="🛠️"
+                    />
+                    <InfoRow 
+                        label="Lugar / Cultivo" 
+                        value={formData.localName || 'General'} 
+                        color="emerald" 
+                        icon="🌱"
+                    />
+                </div>
+                 <div className="grid grid-cols-2 gap-3">
+                    <InfoRow 
+                        label="Fecha" 
+                        value={formData.date} 
+                        color="purple" 
+                        icon="📅"
+                    />
+                     <InfoRow 
+                        label="Horario" 
+                        value={`${formData.startTime} - ${formData.endTime}`} 
+                        color="indigo" 
+                        icon="⏰"
+                    />
+                </div>
+                
+                {formData.machineryId && (
+                    <InfoRow 
+                        label="Maquinaria" 
+                        value={`ID: ${formData.machineryId}`} 
+                        color="orange" 
+                        icon="🚜"
+                    />
+                )}
 
-            {/* Resumen de costos */}
-            <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-8 rounded-2xl shadow-2xl text-white">
-                <div className="grid md:grid-cols-3 gap-6 text-center">
-                    <div>
-                        <p className="text-sm opacity-90 mb-2">Horas Trabajadas</p>
-                        <p className="text-4xl font-extrabold">{calculateHours.workedHours.toFixed(2)} h</p>
-                    </div>
-                    <div>
-                        <p className="text-sm opacity-90 mb-2">Costo por Trabajador</p>
-                        <p className="text-4xl font-extrabold">{costPerWorker} €</p>
-                    </div>
-                    <div className="md:col-span-1">
-                        <p className="text-sm opacity-90 mb-2">COSTO TOTAL</p>
-                        <p className="text-5xl font-extrabold">{totalCost} €</p>
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 mt-2">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="text-center border-r border-gray-200">
+                             <div className="text-xs text-gray-500 uppercase">Horas</div>
+                             <div className="text-2xl font-bold text-gray-800">{calculateHours.workedHours.toFixed(2)}h</div>
+                        </div>
+                        <div className="text-center">
+                             <div className="text-xs text-gray-500 uppercase">Coste Aprox.</div>
+                             <div className="text-2xl font-bold text-green-600">{totalCost}€</div>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <div className="flex flex-col md:flex-row justify-between pt-6 gap-4">
+            
+            <div className="flex flex-col sm:flex-row gap-3 pt-4 mt-auto shrink-0 border-t border-gray-100 pb-2"> {/* Added pb-2 */}
                 <button
-                    onClick={() => setCurrentStep(1)}
-                    className="px-6 py-3 bg-gray-500 text-white rounded-xl hover:bg-gray-600 font-semibold flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-lg"
+                    onClick={() => setCurrentStep(6)}
+                     className="px-5 py-2.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 font-semibold flex items-center justify-center gap-2 transition-all duration-200 text-sm sm:w-auto w-full"
                 >
-                    🔄 Descartar
+                    <FaArrowLeft /> Atrás
                 </button>
                 
-                <div className="flex flex-col md:flex-row gap-4">
-                    <button
+                <div className="flex gap-2 flex-1 flex-col sm:flex-row">
+                    <button 
                         onClick={onSaveAndContinue}
-                        className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:shadow-xl font-bold flex items-center justify-center gap-2 transition-all duration-300 hover:scale-105"
+                        className="flex-1 px-4 py-2.5 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:shadow-md border border-blue-200 rounded-xl font-bold transition-all duration-200 text-sm flex items-center justify-center gap-2"
                     >
-                         💾 Guardar y Añadir Otra Tarea (+1)
+                        <FaPlus /> Guardar y Otro
                     </button>
-                    
-                    <button
+                    <button 
                         onClick={onSave}
-                        className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:shadow-xl font-bold flex items-center justify-center gap-2 transition-all duration-300 hover:scale-105 border-2 border-white/20"
+                        className="flex-1 px-4 py-2.5 bg-gradient-to-r from-green-600 to-emerald-700 text-white rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 font-bold transition-all duration-200 text-sm flex items-center justify-center gap-2"
                     >
-                        <FaCheckCircle /> Guardar y Finalizar
+                        <FaCheckCircle /> Finalizar
                     </button>
                 </div>
             </div>
@@ -879,47 +882,46 @@ const Step8_BatchSummary = ({ records, onConfirm, onCancel, workers }) => {
     }, 0);
 
     return (
-        <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                    <FaFileAlt className="text-white text-xl"/>
+        <div className="flex flex-col h-full space-y-4">
+            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2 shrink-0">
+                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                    <FaFileAlt className="text-white text-sm"/>
                 </div>
-                Verificación Final de Importación
+                Verificación Importación
             </h2>
 
-            {/* Tarjeta de Resumen Financiero */}
-            <div className="bg-gradient-to-r from-green-600 to-emerald-700 p-6 rounded-2xl shadow-xl text-white">
-                <div className="grid md:grid-cols-4 gap-6 text-center">
+            {/* Tarjeta de Resumen Financiero - Compacta */}
+            <div className="bg-gradient-to-r from-green-600 to-emerald-700 p-4 rounded-xl shadow-md text-white shrink-0">
+                <div className="grid grid-cols-4 gap-2 text-center">
                     <div>
-                        <p className="text-sm opacity-80 mb-1">Total Registros</p>
-                        <p className="text-3xl font-bold">{totalRecords}</p>
+                        <p className="text-[10px] opacity-80 uppercase">Registros</p>
+                        <p className="text-xl font-bold">{totalRecords}</p>
                     </div>
                     <div>
-                        <p className="text-sm opacity-80 mb-1">Trabajadores</p>
-                        <p className="text-3xl font-bold">{uniqueWorkers}</p>
+                        <p className="text-[10px] opacity-80 uppercase">Trabajadores</p>
+                        <p className="text-xl font-bold">{uniqueWorkers}</p>
                     </div>
                     <div>
-                        <p className="text-sm opacity-80 mb-1">Total Horas</p>
-                        <p className="text-3xl font-bold">{totalHours.toFixed(2)} h</p>
+                        <p className="text-[10px] opacity-80 uppercase">Horas</p>
+                        <p className="text-xl font-bold">{totalHours.toFixed(1)}h</p>
                     </div>
-                    <div className="bg-white/10 rounded-xl p-2">
-                        <p className="text-sm opacity-90 mb-1">COSTE ESTIMADO</p>
-                        <p className="text-3xl font-extrabold">{totalCost.toFixed(2)} €</p>
+                    <div className="bg-white/10 rounded-lg p-1">
+                        <p className="text-[10px] opacity-90 uppercase">COSTE</p>
+                        <p className="text-xl font-extrabold">{totalCost.toFixed(0)}€</p>
                     </div>
                 </div>
             </div>
 
-            {/* Lista Detallada */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden max-h-[400px] overflow-y-auto">
-                <table className="w-full text-sm text-left">
+            {/* Lista Detallada Scrolleable */}
+            <div className="flex-1 overflow-y-auto min-h-0 bg-white rounded-xl shadow-sm border border-gray-200">
+                <table className="w-full text-xs text-left">
                     <thead className="bg-gray-50 text-gray-600 uppercase font-semibold sticky top-0 bg-white shadow-sm z-10">
                         <tr>
-                            <th className="px-4 py-3">Trabajador</th>
-                            <th className="px-4 py-3">Tarea</th>
-                            <th className="px-4 py-3">Fecha</th>
-                            <th className="px-4 py-3">Horario</th>
-                            <th className="px-4 py-3 text-right">Horas</th>
-                            <th className="px-4 py-3 text-right">Coste</th>
+                            <th className="px-3 py-2">Trabajador</th>
+                            <th className="px-3 py-2">Tarea</th>
+                            <th className="px-3 py-2">Fecha</th>
+                            <th className="px-3 py-2 text-right">Horas</th>
+                            <th className="px-3 py-2 text-right">Coste</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -927,17 +929,19 @@ const Step8_BatchSummary = ({ records, onConfirm, onCancel, workers }) => {
                             const cost = (rec.totalHours * (parseFloat(rec.ratePerHour) || 0)).toFixed(2);
                             return (
                                 <tr key={i} className="hover:bg-green-50 transition-colors">
-                                    <td className="px-4 py-3 font-medium text-gray-800">{rec.workerName}</td>
-                                    <td className="px-4 py-3">
+                                    <td className="px-3 py-2 font-medium text-gray-800">{rec.workerName}</td>
+                                    <td className="px-3 py-2">
                                         <div className="flex flex-col">
                                             <span className="font-semibold text-gray-700">{rec.operationName}</span>
-                                            <span className="text-xs text-gray-500">{rec.localName}</span>
+                                            <span className="text-[10px] text-gray-500">{rec.localName}</span>
                                         </div>
                                     </td>
-                                    <td className="px-4 py-3 text-gray-500">{rec.date}</td>
-                                    <td className="px-4 py-3 text-gray-500 text-xs">{rec.startTime} - {rec.endTime}</td>
-                                    <td className="px-4 py-3 text-right font-bold">{rec.totalHours}</td>
-                                    <td className="px-4 py-3 text-right text-gray-600">{cost} €</td>
+                                    <td className="px-3 py-2 text-gray-500 whitespace-nowrap">
+                                        {rec.date} <br/> 
+                                        <span className="text-[10px]">{rec.startTime}-{rec.endTime}</span>
+                                    </td>
+                                    <td className="px-3 py-2 text-right font-bold">{rec.totalHours}</td>
+                                    <td className="px-3 py-2 text-right text-gray-600">{cost}€</td>
                                 </tr>
                             );
                         })}
@@ -945,18 +949,18 @@ const Step8_BatchSummary = ({ records, onConfirm, onCancel, workers }) => {
                 </table>
             </div>
 
-            <div className="flex justify-between pt-6">
+            <div className="flex justify-between pt-4 mt-auto shrink-0 border-t border-gray-100 pb-2">
                 <button
                     onClick={onCancel}
-                    className="px-8 py-3 bg-gray-500 text-white rounded-xl hover:bg-gray-600 font-semibold flex items-center gap-2 transition-all duration-300 shadow-md"
+                    className="px-5 py-2.5 bg-gray-500 text-white rounded-xl hover:bg-gray-600 font-semibold flex items-center gap-2 transition-all duration-300 shadow-md text-sm"
                 >
-                    🚨 Cancelar Todo
+                    🚨 Cancelar
                 </button>
                 <button
                     onClick={onConfirm}
-                    className="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-700 text-white rounded-xl hover:shadow-xl font-bold flex items-center gap-2 transition-all duration-300 hover:scale-105 text-lg"
+                    className="px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-700 text-white rounded-xl hover:shadow-xl font-bold flex items-center gap-2 transition-all duration-300 hover:scale-105 text-sm"
                 >
-                    <FaCheckCircle /> Confirmar y Guardar ({totalRecords})
+                    <FaCheckCircle /> Confirmar ({totalRecords})
                 </button>
             </div>
         </div>
@@ -975,10 +979,10 @@ const TimeSheetWizard = ({ db, userId, setErrorMessage, availableLocals = [] }) 
         operationId: '',
         operationName: '',
         date: formatDate(new Date()),
-        startTime: '09:00',
-        endTime: '18:00',
+        startTime: '08:00',
+        endTime: '16:00',
         breakHours: '00',
-        breakMinutes: '00',
+        breakMinutes: '30',
         localId: '',
         localName: '',
         machineryId: null,
@@ -995,6 +999,50 @@ const TimeSheetWizard = ({ db, userId, setErrorMessage, availableLocals = [] }) 
     const [excelRecords, setExcelRecords] = useState([]);
     const [showExcelPreview, setShowExcelPreview] = useState(false);
     const [excelErrors, setExcelErrors] = useState([]);
+
+    // --- EFECTOS DE PERSISTENCIA (LOCALSTORAGE) ---
+    const STORAGE_KEY_DATA = `timesheet_data_${userId}`;
+    const STORAGE_KEY_STEP = `timesheet_step_${userId}`;
+    const [isLoaded, setIsLoaded] = useState(false);
+
+    // 1. Cargar estado al montar
+    useEffect(() => {
+        const savedData = localStorage.getItem(STORAGE_KEY_DATA);
+        const savedStep = localStorage.getItem(STORAGE_KEY_STEP);
+
+        if (savedData) {
+            try {
+                const parsed = JSON.parse(savedData);
+                // Restaurar solo si hay datos válidos
+                setFormData(prev => ({ ...prev, ...parsed }));
+            } catch (e) {
+                console.error("Error parsing saved wizard data", e);
+            }
+        }
+        if (savedStep) {
+            setCurrentStep(Number(savedStep));
+        }
+        setIsLoaded(true); // Permitir guardar cambios a partir de ahora
+    }, [userId]);
+
+    // 2. Guardar estado al cambiar (SOLO si ya cargó)
+    useEffect(() => {
+        if (isLoaded && formData) {
+            localStorage.setItem(STORAGE_KEY_DATA, JSON.stringify(formData));
+        }
+    }, [formData, userId, isLoaded]);
+
+    useEffect(() => {
+        if (isLoaded) {
+            localStorage.setItem(STORAGE_KEY_STEP, String(currentStep));
+        }
+    }, [currentStep, userId, isLoaded]);
+
+    // 3. Helper para limpiar almacenamiento
+    const clearPersistence = () => {
+        localStorage.removeItem(STORAGE_KEY_DATA);
+        localStorage.removeItem(STORAGE_KEY_STEP);
+    };
 
     useEffect(() => {
         if (!db || !userId) return;
@@ -1114,6 +1162,7 @@ const TimeSheetWizard = ({ db, userId, setErrorMessage, availableLocals = [] }) 
                 setExcelErrors([]);
                 setFormData(initialData);
                 setCurrentStep(1);
+                clearPersistence(); // Limpiar persistencia tras éxito total
             }
             
             setLoading(false);
@@ -1132,6 +1181,11 @@ const TimeSheetWizard = ({ db, userId, setErrorMessage, availableLocals = [] }) 
             setExcelRecords([]);
             setExcelErrors([]);
             setCurrentStep(1);
+            // No limpiamos persistencia completa aquí por si quieren reintentar otro archivo, 
+            // pero el paso 1 ya setea estado base visualmente.
+            // Si quieres limpiar todo:
+            // clearPersistence(); 
+            // setFormData(initialData);
         }
     };
 
@@ -1269,6 +1323,7 @@ const TimeSheetWizard = ({ db, userId, setErrorMessage, availableLocals = [] }) 
             setErrorMessage({ message: `✅ ¡Se han registrado ${count} tareas y el proceso ha finalizado!`, type: 'success' });
             setFormData(initialData);
             setCurrentStep(1);
+            clearPersistence(); // Limpiar persistencia al finalizar flujo normal
         });
     };
 
@@ -1366,21 +1421,23 @@ const TimeSheetWizard = ({ db, userId, setErrorMessage, availableLocals = [] }) 
     };
 
     return (
-        <div className="w-full relative">
+        <div className="w-full h-full flex flex-col relative overflow-hidden p-2">
             {/* Modern Header with Branding */}
-            <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-4 sm:p-6 md:p-8 rounded-xl md:rounded-2xl shadow-2xl mb-4 sm:mb-6 md:mb-8 text-white">
+            <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-4 sm:p-6 rounded-xl shadow-lg mb-4 text-white shrink-0">
                 <div className="flex items-center gap-3 sm:gap-4">
-                    <FaLeaf className="text-3xl sm:text-4xl md:text-5xl flex-shrink-0" />
+                    <FaLeaf className="text-3xl sm:text-4xl flex-shrink-0" />
                     <div className="min-w-0 flex-1">
-                        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold leading-tight">Horticultura Del Sureste</h1>
-                        <p className="text-green-100 text-xs sm:text-sm md:text-base mt-1">Sistema de Registro de Tareas Agrícolas</p>
+                        <h1 className="text-xl sm:text-2xl font-extrabold leading-tight">Horticultura Del Sureste</h1>
+                        <p className="text-green-100 text-xs sm:text-sm mt-1">Sistema de Registro de Tareas Agrícolas</p>
                     </div>
                 </div>
             </div>
             
-            <ProgressBar currentStep={currentStep} />
+            <div className="shrink-0 mb-2">
+                <ProgressBar currentStep={currentStep} />
+            </div>
             
-            <div className="bg-white p-4 sm:p-6 md:p-8 rounded-xl md:rounded-2xl shadow-xl">
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-xl flex-1 flex flex-col min-h-0 overflow-hidden relative border border-gray-100">
                 {renderStep()}
             </div>
 

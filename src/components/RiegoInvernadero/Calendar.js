@@ -427,40 +427,49 @@ const Calendar = ({ dailyData = {} }) => {
 
         {/* Preview Modal */}
         {isPreviewModalOpen && (
-            <div className="fixed inset-0 z-[60] flex flex-col bg-slate-900/95 backdrop-blur-md">
-                {/* Toolbar */}
-                <div className="flex items-center justify-between p-4 bg-slate-800 border-b border-slate-700 shadow-lg shrink-0">
-                    <button
-                        onClick={() => setIsPreviewModalOpen(false)}
-                        className="flex items-center gap-2 px-4 py-2 text-white hover:bg-slate-700 rounded-lg transition"
-                    >
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                        </svg>
-                        Volver
-                    </button>
-                    <h2 className="text-xl font-bold text-white">Vista Previa - Informe de Riego</h2>
-                    <button
-                        onClick={handlePrint}
-                        className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition shadow-lg"
-                    >
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                        </svg>
-                        Exportar a PDF / Imprimir
-                    </button>
-                </div>
+            <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+                <div className="bg-slate-900/80 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl w-full max-w-[1400px] h-[95vh] flex flex-col overflow-hidden relative">
+                    
+                    {/* Toolbar / Header */}
+                    <div className="flex items-center justify-between p-6 bg-white/5 border-b border-white/10 shadow-lg shrink-0">
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={() => setIsPreviewModalOpen(false)}
+                                className="group flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-300"
+                            >
+                                <svg className="w-6 h-6 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                                </svg>
+                            </button>
+                            <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                                <span className="text-3xl">📄</span> Vista Previa del Informe
+                            </h2>
+                        </div>
+                        
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={handlePrint}
+                                className="flex items-center gap-3 px-8 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg hover:shadow-indigo-500/40 hover:-translate-y-0.5 transition-all duration-300"
+                            >
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                </svg>
+                                Exportar PDF / Imprimir
+                            </button>
+                        </div>
+                    </div>
 
-                {/* Preview Canvas */}
-                <div className="flex-1 overflow-auto bg-slate-900 p-8 flex justify-center">
-                    <div className="shadow-2xl">
-                        <PrintableIrrigationReport 
-                            config={exportConfig} 
-                            data={previewData} 
-                            reportRef={reportRef}
-                            consumptionP1={Object.values(dailyData).flat().filter(r => r.reservoir === 'pantano1' || !r.reservoir).reduce((sum, item) => sum + parseFloat(item.M2 || 0), 0)}
-                            consumptionP2={Object.values(dailyData).flat().filter(r => r.reservoir === 'pantano2').reduce((sum, item) => sum + parseFloat(item.M2 || 0), 0)}
-                        />
+                    {/* Preview Canvas Area */}
+                    <div className="flex-1 overflow-y-auto bg-black/20 p-8 flex justify-center custom-scrollbar">
+                        <div className="shadow-[0_0_50px_rgba(0,0,0,0.5)] transform transition-transform">
+                            <PrintableIrrigationReport 
+                                config={exportConfig} 
+                                data={previewData} 
+                                reportRef={reportRef}
+                                consumptionP1={Object.values(dailyData).flat().filter(r => r.reservoir === 'pantano1' || !r.reservoir).reduce((sum, item) => sum + parseFloat(item.M2 || 0), 0)}
+                                consumptionP2={Object.values(dailyData).flat().filter(r => r.reservoir === 'pantano2').reduce((sum, item) => sum + parseFloat(item.M2 || 0), 0)}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

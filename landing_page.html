@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	</head>
+<body>
+	<div class="col-md-12" id="main">
+	<div class="row row-offcanvas row-offcanvas-left">
+	<div class="global-container">
+	<main>
+		<div class = "contenedor-interior">
+			<body style="font-family: verdana; font-size: 15px">
+				<div class="col-md-9" id="col-izquierda">
+				
+					<p style="margin-top:40px">
+						<a id="redir"       href="/es/agricultura/temas/sanidad-vegetal/productos-fitosanitarios/registro/menu.asp"
+>
+					</p>
+					<script type="text/javascript">
+					    document.addEventListener("DOMContentLoaded", function() {
+					        var redirect = document.getElementById("redir");
+							try {
+								const urlDestino = new URL(redirect, window.location.origin); // base para rutas relativas
+								const urlActual = new URL(window.location.href);
+
+								if (urlDestino.pathname !== urlActual.pathname) {
+									window.location.href = redirect;
+								} else {
+									window.location.href = '/es/';
+								}
+							} catch (e) {
+								// Si hay cualquier fallo al crear las URLs, redirige al else
+								window.location.href = '/es/';
+							}
+					    });
+					</script>
+				</div>
+				</div>
+			</div>
+			</body>
+		</div>
+	</main>
+	</div>
+  </body>
+</html>

@@ -336,28 +336,28 @@ const CropModal = ({ isOpen, onClose, onSave, crop, parcels }) => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 bg-gray-900 bg-opacity-70 flex justify-center items-center z-50 p-4"
+                    className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex justify-center items-center z-[9999] p-4"
                     onClick={onClose}
                 >
                     <motion.div
                         initial={{ scale: 0.95, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0.95, opacity: 0 }}
-                        className="bg-white rounded-xl shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col"
+                        className="bg-white rounded-xl shadow-2xl w-full max-w-6xl flex flex-col max-h-[90vh]"
                         onClick={e => e.stopPropagation()}
                     >
                         {/* Header */}
-                        <div className="flex justify-between items-center p-6 border-b border-gray-200">
-                            <h2 className="text-2xl font-bold text-gray-800">
+                        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
+                            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                                 {crop ? 'Editar Cultivo' : 'Nuevo Cultivo'}
                             </h2>
-                            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-                                <FaTimes className="text-2xl" />
+                            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition">
+                                <FaTimes className="text-xl" />
                             </button>
                         </div>
 
                         {/* Tabs */}
-                        <div className="flex border-b border-gray-200 bg-gray-50 px-6">
+                        <div className="flex justify-center border-b border-gray-100">
                             {TABS.map(tab => {
                                 const Icon = tab.icon;
                                 return (
@@ -365,14 +365,14 @@ const CropModal = ({ isOpen, onClose, onSave, crop, parcels }) => {
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id)}
                                         className={`
-                                            flex items-center gap-2 px-6 py-4 font-medium text-sm transition-colors border-b-2
+                                            px-8 py-4 flex items-center gap-2 text-sm font-semibold border-b-2 transition-colors
                                             ${activeTab === tab.id 
-                                                ? 'border-emerald-600 text-emerald-700 bg-white' 
-                                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                                                ? 'border-emerald-500 text-emerald-600' 
+                                                : 'border-transparent text-gray-500 hover:text-gray-700'
                                             }
                                         `}
                                     >
-                                        <Icon />
+                                        <Icon className="text-lg" />
                                         {tab.label}
                                     </button>
                                 );
@@ -380,7 +380,7 @@ const CropModal = ({ isOpen, onClose, onSave, crop, parcels }) => {
                         </div>
 
                         {/* Content */}
-                        <div className="flex-1 overflow-y-auto p-6">
+                        <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
                             {error && (
                                 <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
                                     {error}
@@ -392,11 +392,11 @@ const CropModal = ({ isOpen, onClose, onSave, crop, parcels }) => {
                         </div>
 
                         {/* Footer */}
-                        <div className="p-6 border-t border-gray-200 bg-gray-50 flex justify-end gap-3 rounded-b-xl">
+                        <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3 rounded-b-xl">
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition shadow-sm"
+                                className="px-4 py-2 text-gray-600 hover:text-gray-800 font-semibold transition text-sm"
                             >
                                 Cancelar
                             </button>
@@ -404,12 +404,11 @@ const CropModal = ({ isOpen, onClose, onSave, crop, parcels }) => {
                                 type="submit"
                                 form="cropForm"
                                 disabled={saving}
-                                className={`px-6 py-2 text-white font-bold rounded-lg transition flex items-center gap-2 shadow-lg ${
-                                    saving ? "bg-emerald-400 cursor-not-allowed" : "bg-gradient-to-r from-emerald-600 to-green-600 hover:shadow-emerald-500/50 hover:scale-105"
+                                className={`px-6 py-2 text-white font-semibold rounded shadow-sm transition text-sm ${
+                                    saving ? "bg-emerald-400 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-700"
                                 }`}
                             >
-                                <FaSave />
-                                {saving ? "Guardando..." : "Guardar Cultivo"}
+                                {saving ? "Guardando..." : "Guardar"}
                             </button>
                         </div>
                     </motion.div>

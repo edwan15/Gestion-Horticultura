@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es-ES">
+ <head>
+  <!-- Google Tag Manager -->
+  <script>
+   (function (w, d, s, l, i) {
+            w[l] = w[l] || []; w[l].push({
+                'gtm.start':
+                    new Date().getTime(), event: 'gtm.js'
+            }); var f = d.getElementsByTagName(s)[0],
+                j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+                    'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', 'GTM-KQ5QH6Q');
+  </script>
+  <!-- End Google Tag Manager -->
+  <meta charset="utf-8"/>
+  <meta content="notranslate" name="google"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   Error 404 - Consultas Fitosanitarios
+  </title>
+  <link href="/regfiweb/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="/regfiweb/lib/font-awesome/css/font-awesome.min.css" rel="stylesheet"/>
+  <link href="/regfiweb/lib/bootstrap-datepicker/css/bootstrap-datepicker.min.css" rel="stylesheet"/>
+  <link href="/regfiweb/css/mvc-grid/mvc-grid.css" rel="stylesheet"/>
+  <link href="/regfiweb/css/bootstrap-custom.css" rel="stylesheet"/>
+  <link href="/regfiweb/css/style-magrama-rwd.css" rel="stylesheet"/>
+  <link href="/regfiweb/css/site.min.css" rel="stylesheet"/>
+  <link href="/regfiweb/lib/select2/css/select2.min.css" rel="stylesheet"/>
+  <script src="/regfiweb/lib/jquery/dist/jquery.min.js">
+  </script>
+  <script src="/regfiweb/lib/bootstrap/dist/js/bootstrap.bundle.min.js">
+  </script>
+  <script src="/regfiweb/lib/bootstrap-datepicker/js/bootstrap-datepicker.min.js">
+  </script>
+  <script src="/regfiweb/lib/bootstrap-datepicker/locales/bootstrap-datepicker.es.min.js">
+  </script>
+  <script src="/regfiweb/js/mvc-grid.min.js">
+  </script>
+  <script src="/regfiweb/lib/sweetalert/sweetalert.min.js">
+  </script>
+  <script src="/regfiweb/lib/select2/js/select2.full.min.js">
+  </script>
+  <script src="/regfiweb/js/site.min.js">
+  </script>
+ </head>
+ <body style="min-width: 100%">
+  <!-- Google Tag Manager (noscript) -->
+  <noscript>
+   <iframe height="0" src="https://www.googletagmanager.com/ns.html?id=GTM-KQ5QH6Q" style="display:none;visibility:hidden" width="0">
+   </iframe>
+  </noscript>
+  <!-- End Google Tag Manager (noscript) -->
+  <input id="pathInicio" type="hidden" value="/regfiweb/Home/Inicio"/>
+  <input id="pathBuscadores" type="hidden" value="/regfiweb/Buscadores/Index"/>
+  <input id="pathInformes" type="hidden" value="/regfiweb/Informes/Index"/>
+  <input id="pathResumenes" type="hidden" value="/regfiweb/Resumenes/Index"/>
+  <input id="pathDocumentos" type="hidden" value="/regfiweb/Documentos/Index"/>
+  <input id="pathCodificaciones" type="hidden" value="/regfiweb/Codificaciones/Index"/>
+  <input id="pathProductos" type="hidden" value="/regfiweb/Productos/Index"/>
+  <input id="pathNumRegistro" type="hidden" value="/regfiweb/NumRegistro/Index"/>
+  <input id="pathFormulados" type="hidden" value="/regfiweb/Formulados/Index"/>
+  <input id="pathSustancias" type="hidden" value="/regfiweb/Sustancias/Index"/>
+  <input id="pathCultivos" type="hidden" value="/regfiweb/Cultivos/Index"/>
+  <input id="pathTitulares" type="hidden" value="/regfiweb/Titulares/Index"/>
+  <a name="arriba">
+  </a>
+  <div class="container">
+   <main class="pb-3" role="main">
+    <html lang="en">
+     <head>
+      <meta charset="utf-8"/>
+      <meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+      <meta content="width=device-width, initial-scale=1" name="viewport"/>
+      <title>
+       Error 404
+      </title>
+     </head>
+     <body>
+      <div id="notfound">
+       <div class="notfound">
+        <div class="notfound-404">
+         <h3>
+          Oops! Pagina no encontrada
+         </h3>
+         <h1>
+          404
+         </h1>
+        </div>
+        <h2>
+         Para volver al inicio pulse
+         <a href="/regfiweb/" style="cursor: pointer">
+          aquí
+         </a>
+        </h2>
+       </div>
+      </div>
+     </body>
+    </html>
+   </main>
+  </div>
+  <div class="loader" id="loadingDiv">
+  </div>
+  <br/>
+  <br/>
+  <script>
+   $("#loadingDiv").hide();
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+        document.querySelectorAll(".mvc-grid").forEach(element => new MvcGrid(element));
+                //var $loading = $('#loading').hide();
+                //$(document)
+                //    .ajaxStart(function() {
+                //        $loading.show();
+                //    })
+                //    .ajaxStop(function() {
+                //        $loading.hide();
+                //    });
+  </script>
+ </body>
+</html>

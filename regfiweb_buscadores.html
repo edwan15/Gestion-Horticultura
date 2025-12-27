@@ -1,0 +1,27 @@
+<br />
+<div id="contMenuSecundario">
+    <h2>Consultas Principales</h2>
+    <button id="btnVolverInicio" class="float-right btn btn-info"><i class="fa fa-home"></i> Volver</button>
+    <br />
+    <ul class="list-group w-50">
+        <li class="list-group-item"><a class="lnkMenu" data-info="productos" href="#">Productos</a></li>
+        <li class="list-group-item"><a class="lnkMenu" data-info="numregistro" href="#">Movimientos del Registro</a></li>
+        <li class="list-group-item"><a class="lnkMenu" data-info="formulados" href="#">Formulados</a></li>
+        <li class="list-group-item"><a class="lnkMenu" data-info="sustancias" href="#">Sustancias</a></li>
+        <li class="list-group-item"><a class="lnkMenu" data-info="cultivos" href="#">Cultivos</a></li>
+        <li class="list-group-item"><a class="lnkMenu" data-info="titulares" href="#">Titulares</a></li>
+    </ul>
+</div>
+<div id="contenedor"></div>
+<script>
+        $(document).ready(function () {
+            $('.lnkMenu').on('click', function () {
+                $("#contMenuSecundario").hide();
+                $("#contenedor").show();
+                var info = $(this).data('info');
+                breadcrumbs(info);
+                cargaPagina(info);
+                localStorage.setItem('pathFrom', 'menuBuscadores');
+            });
+        });
+</script>

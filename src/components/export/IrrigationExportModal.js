@@ -55,76 +55,71 @@ const IrrigationExportModal = ({ isOpen, onClose, onPreview }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+        className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 backdrop-blur-md p-4"
       >
         <motion.div
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.95, opacity: 0 }}
-          className="bg-white rounded-lg shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden font-sans"
+          initial={{ scale: 0.95, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.95, opacity: 0, y: 20 }}
+          className="bg-white/80 backdrop-blur-xl border border-white/40 rounded-3xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden font-sans"
         >
           {/* Header */}
-          <div className="flex justify-between items-center p-4 border-b border-gray-200">
-            <h2 className="text-xl font-medium text-indigo-600 flex items-center gap-2">
-              💧 Exportar Informe de Riego
+          <div className="flex justify-between items-center p-6 border-b border-gray-200/50 bg-white/40">
+            <h2 className="text-2xl font-bold text-indigo-800 flex items-center gap-3">
+               <span className="text-3xl">💧</span> Exportar Informe de Riego
             </h2>
             <button 
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="p-2 rounded-full hover:bg-red-50 text-gray-400 hover:text-red-500 transition-all"
             >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
 
           {/* Content Scrollable Area */}
-          <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50">
+          <div className="flex-1 overflow-y-auto p-8 bg-gradient-to-br from-white/20 to-indigo-50/20">
             
             {/* Top Config Section */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 mb-6">
-                <div className="flex items-center gap-2 mb-4 text-indigo-600 font-medium">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="bg-white/60 backdrop-blur-md p-6 rounded-2xl shadow-lg border border-white/50 mb-8">
+                <div className="flex items-center gap-2 mb-6 text-indigo-700 font-bold text-lg border-b border-indigo-100 pb-2">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    Informe
+                    Configuración del Informe
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Sistema</label>
-                        <div className="border border-gray-200 rounded-md p-2 bg-gray-50 text-gray-700">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                    <div className="bg-white/50 p-4 rounded-xl border border-white/60 shadow-sm">
+                        <label className="block text-xs font-bold text-indigo-400 uppercase tracking-widest mb-2">Sistema Origen</label>
+                        <div className="font-medium text-gray-700 text-lg">
                             {reportConfig.farm}
                         </div>
                     </div>
-                     <div>
-                        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Versión *</label>
+                     <div className="bg-white/50 p-4 rounded-xl border border-white/60 shadow-sm">
+                        <label className="block text-xs font-bold text-indigo-400 uppercase tracking-widest mb-2">Versión del Documento</label>
                          <div className="relative">
-                            <select className="w-full border-b border-indigo-500 bg-transparent py-2 text-gray-800 focus:outline-none">
+                            <select className="w-full bg-transparent font-medium text-gray-800 focus:outline-none appearance-none cursor-not-allowed" disabled>
                                 <option>{reportConfig.version}</option>
                             </select>
-                             <div className="absolute right-0 top-3 text-indigo-400">
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                </svg>
-                             </div>
                          </div>
                     </div>
                 </div>
 
                 {/* Filters Section */}
                 <div className="mb-6">
-                    <div className="flex items-center gap-2 mb-4 text-indigo-600 font-medium cursor-pointer">
-                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="flex items-center gap-2 mb-4 text-indigo-700 font-bold text-lg border-b border-indigo-100 pb-2 mt-8">
+                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                         </svg>
-                        Filtro
+                        Filtros de Datos
                     </div>
                     
                     {/* Date Range Buttons */}
-                    <div className="mt-6">
-                        <label className="text-xs text-gray-400 block mb-2">Fecha *</label>
-                        <div className="flex flex-wrap gap-2">
+                    <div className="mt-6 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100/50">
+                        <label className="text-sm font-bold text-gray-500 block mb-3">Rango de Fechas:</label>
+                        <div className="flex flex-wrap gap-3">
                             {['Hoy', 'Ayer', 'Última Semana', 'Último mes', 'Último año', 'Todo'].map((label) => {
                                 // Map label to internal key
                                 let key = 'last_month';
@@ -140,10 +135,10 @@ const IrrigationExportModal = ({ isOpen, onClose, onPreview }) => {
                                     <button 
                                         key={label}
                                         onClick={() => setReportConfig(prev => ({ ...prev, dateRange: key }))}
-                                        className={`px-3 py-1.5 text-xs rounded border transition-colors ${
+                                        className={`px-4 py-2 text-sm rounded-lg border transition-all shadow-sm ${
                                             isActive 
-                                            ? 'bg-indigo-50 text-indigo-600 border-indigo-200 font-medium' 
-                                            : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                            ? 'bg-indigo-600 text-white border-indigo-600 font-bold shadow-indigo-200 ring-2 ring-indigo-200' 
+                                            : 'bg-white text-gray-600 border-gray-200 hover:bg-white hover:text-indigo-600 hover:border-indigo-300'
                                         }`}
                                     >
                                         {label}
@@ -153,31 +148,31 @@ const IrrigationExportModal = ({ isOpen, onClose, onPreview }) => {
                         </div>
 
                         {/* Sort Options */}
-                        <div className="mt-4">
-                            <label className="text-xs text-gray-400 block mb-2">Ordenar por *</label>
+                        <div className="mt-6">
+                            <label className="text-sm font-bold text-gray-500 block mb-2">Criterio de Ordenación:</label>
                             <select 
                                 value={reportConfig.sortBy}
                                 onChange={(e) => setReportConfig(prev => ({ ...prev, sortBy: e.target.value }))}
-                                className="w-full border border-gray-200 rounded-md p-2 text-sm text-gray-700 bg-white focus:outline-none focus:border-indigo-500"
+                                className="w-full md:w-1/2 border border-gray-300 rounded-lg p-3 text-sm text-gray-700 bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm transition-all"
                             >
-                                <option value="date_asc">Fecha (Más antigua primero)</option>
-                                <option value="date_desc">Fecha (Más reciente primero)</option>
-                                <option value="m2_desc">M² (Mayor a menor)</option>
-                                <option value="m2_asc">M² (Menor a mayor)</option>
-                                <option value="sectors_desc">Sectores (Mayor a menor)</option>
-                                <option value="sectors_asc">Sectores (Menor a mayor)</option>
-                                <option value="greenhouse_asc">Invernadero (A-Z)</option>
-                                <option value="greenhouse_desc">Invernadero (Z-A)</option>
+                                <option value="date_asc">📅 Fecha (Más antigua primero)</option>
+                                <option value="date_desc">📅 Fecha (Más reciente primero)</option>
+                                <option value="m2_desc">💧 Cantidad M² (Mayor a menor)</option>
+                                <option value="m2_asc">💧 Cantidad M² (Menor a mayor)</option>
+                                <option value="sectors_desc">🏗️ Sectores (Mayor a menor)</option>
+                                <option value="sectors_asc">🏗️ Sectores (Menor a mayor)</option>
+                                <option value="greenhouse_asc">abc Invernadero (A-Z)</option>
+                                <option value="greenhouse_desc">abc Invernadero (Z-A)</option>
                             </select>
                         </div>
                     </div>
                 </div>
 
                  {/* Checkboxes Area */}
-                 <div className="mt-8 border-t border-gray-100 pt-6">
+                 <div className="mt-8 pt-6">
                      <div className="flex gap-8 mb-6">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <div className="w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center">
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                            <div className="w-6 h-6 border-2 border-gray-300 rounded-md flex items-center justify-center bg-white group-hover:border-indigo-400 transition-colors">
                                 <input 
                                     type="checkbox" 
                                     className="hidden" 
@@ -185,17 +180,17 @@ const IrrigationExportModal = ({ isOpen, onClose, onPreview }) => {
                                     onChange={() => setReportConfig(prev => ({ ...prev, showEmptyTables: !prev.showEmptyTables }))}
                                 />
                                 {reportConfig.showEmptyTables && (
-                                    <svg className="w-3.5 h-3.5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                     </svg>
                                 )}
                             </div>
-                            <span className="text-sm text-gray-500">Incluir tablas vacías</span>
+                            <span className="text-base text-gray-700 font-medium">Incluir tablas vacías (sin datos)</span>
                         </label>
                      </div>
 
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
-                        <div className="text-xs font-semibold text-gray-400 uppercase col-span-full mb-2">Mostrar:</div>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12 bg-white/40 p-6 rounded-xl border border-white/50">
+                        <div className="text-xs font-bold text-indigo-400 uppercase col-span-full tracking-wider border-b border-indigo-100 pb-2 mb-2">Secciones Visibles:</div>
                         
                         {/* Column 1 */}
                         <div className="space-y-4">
@@ -213,52 +208,59 @@ const IrrigationExportModal = ({ isOpen, onClose, onPreview }) => {
                      </div>
 
                      {/* Logos Section */}
-                     <div className="mt-8">
-                        <div className="text-xs font-semibold text-gray-400 uppercase mb-4">Mostrar - Logos:</div>
+                     <div className="mt-6 bg-white/40 p-6 rounded-xl border border-white/50">
+                        <div className="text-xs font-bold text-indigo-400 uppercase mb-4 tracking-wider">Logotipos en Encabezado:</div>
                         <div className="flex gap-8">
-                             <Checkbox label="PEPAC" checked={reportConfig.sections.logos.pepac} onChange={() => toggleLogo('pepac')} />
+                             <Checkbox label="PEPAC (Financiación)" checked={reportConfig.sections.logos.pepac} onChange={() => toggleLogo('pepac')} />
                         </div>
                      </div>
                  </div>
             </div>
             
             {/* Observations Section */}
-            <div className="px-6 pb-4">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <div className="bg-white/60 backdrop-blur-md p-6 rounded-2xl shadow-lg border border-white/50 mb-4">
+              <label className="block text-lg font-bold text-indigo-800 mb-3 flex items-center gap-2">
                 📝 Observaciones Personalizadas
               </label>
               <textarea
                 value={reportConfig.observations}
                 onChange={(e) => setReportConfig(prev => ({ ...prev, observations: e.target.value }))}
-                placeholder="Escribe aquí cualquier observación o nota que desees incluir en el informe..."
+                placeholder="Escribe aquí notas adicionales para el informe..."
                 rows={4}
-                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition resize-none text-sm"
+                className="w-full p-4 border border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition resize-none text-base bg-white/80"
               />
-              <p className="text-xs text-gray-500 mt-1">
-                Estas observaciones aparecerán en la sección de observaciones del informe final.
+              <p className="text-sm text-gray-500 mt-2 italic">
+                * Estas notas se añadirán al final del documento PDF.
               </p>
             </div>
           </div>
 
           {/* Footer Actions */}
-          <div className="p-4 bg-indigo-500 flex justify-end gap-3 text-sm">
+          <div className="p-6 border-t border-gray-200/50 bg-white/60 backdrop-blur-lg flex justify-end gap-4">
              <button 
                 onClick={onClose}
-                className="px-6 py-2 bg-transparent text-white font-medium hover:bg-indigo-600 rounded transition"
+                className="px-6 py-3 text-gray-600 font-bold hover:bg-gray-100/50 rounded-xl transition-all"
              >
                 Cancelar
              </button>
              <button
                 onClick={() => onPreview(reportConfig)}
-                className="px-6 py-2 bg-indigo-700/50 text-white font-medium hover:bg-indigo-700/70 border border-indigo-400/50 rounded transition"
+                className="px-6 py-3 bg-indigo-100 text-indigo-700 font-bold hover:bg-indigo-200 border border-indigo-200 rounded-xl transition-all flex items-center gap-2"
              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
                 Previsualizar
              </button>
              <button 
                 onClick={() => onPreview(reportConfig)}
-                className="px-6 py-2 bg-white text-indigo-600 font-bold rounded shadow hover:bg-gray-50 transition"
+                className="px-8 py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700 hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all flex items-center gap-2"
              >
-                Exportar
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Generar Informe
              </button>
           </div>
         </motion.div>
