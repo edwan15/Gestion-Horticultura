@@ -140,7 +140,13 @@ const createProduct = async (formData) => {
             "CREATE", 
             `Producto creado: ${productToSave.name}`, 
             productToSave[USER_ID_FIELD], 
-            { productId: docRef.id, name: productToSave.name }
+            { 
+                productId: docRef.id, 
+                name: productToSave.name,
+                category: productToSave.category || 'General',
+                initialStock: Number(productToSave.entradas) || 0,
+                price: Number(productToSave.price) || 0
+            }
         );
 
         toast.success("Producto creado exitosamente.");

@@ -1402,4 +1402,6 @@ export const selectIsLoading = (state) => state.product.isLoading;
 
 export const selectProduct = (state) => state.product.product;
 
+export const selectProducts = (state) => state.product.products;
+
 export default ProductSlice.reducer;

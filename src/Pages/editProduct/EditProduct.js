@@ -257,51 +257,86 @@ const EditProduct = () => {
         }
     };
     
-    // 👇 MODIFICACIÓN CLAVE AQUÍ: Permite números flotantes (con . o ,)
+    // 👇 MODIFICACIÓN CLAVE: Lógica robusta para permitir Copiar y Pegar valores formateados
     const handleStockChange = (e) => {
-        const { name, value } = e.target;
-        
-        // Expresión regular que permite: string vacío, dígitos, y un punto o coma (opcional)
-        // La coma la reemplazamos internamente por punto para la validación.
-        const cleanedValue = value.replace(',', '.');
-        // El regex verifica que el valor sea un número decimal válido (ej: "123", "12.3", "0.5") or empty
-        const isNumberOrDecimal = /^\d*\.?\d*$/.test(cleanedValue) || value === "";
+        let { name, value } = e.target;
 
-        const normalize = (val) => parseFloat(String(val).replace(',', '.') || 0);
+        // 1. Sanitización inicial para Copy/Paste: 
+        // Eliminar símbolos de moneda (€, $), espacios y letras.
+        let cleanInput = value.replace(/[^\d.,-]/g, '');
+
+        // 2. Normalización de separadores (Manejar 1.000,00 o 1,000.00)
+        // Estrategia: Detectar si hay múltiples separadores o mezcla de puntos y comas.
         
-        // Solo actualizamos si es un número válido y positivo (o vacío)
-        if (isNumberOrDecimal) {
+        const dotCount = (cleanInput.match(/\./g) || []).length;
+        const commaCount = (cleanInput.match(/,/g) || []).length;
+
+        let normalizedValueForState = cleanInput;
+        let valueForCalculation = 0;
+
+        if (dotCount > 0 && commaCount > 0) {
+            // Caso complejo (ej: 1.000,50 o 1,000.50)
+            // Asumimos que el último separador es el decimal
+            const lastDotIndex = cleanInput.lastIndexOf('.');
+            const lastCommaIndex = cleanInput.lastIndexOf(',');
             
+            if (lastCommaIndex > lastDotIndex) {
+                 // Formato Europeo: 1.000,50 -> Quitar puntos, reemplazar coma por punto
+                 normalizedValueForState = cleanInput.replace(/\./g, ''); // 1000,50 (visible)
+                 valueForCalculation = parseFloat(normalizedValueForState.replace(',', '.'));
+            } else {
+                 // Formato US: 1,000.50 -> Quitar comas
+                 normalizedValueForState = cleanInput.replace(/,/g, ''); // 1000.50 (visible)
+                 valueForCalculation = parseFloat(normalizedValueForState);
+            }
+        } else if (dotCount > 1) {
+             // Caso 1.200.300 -> Es probable que sean miles sin decimales, o miles con decimal punto al final (raro)
+             // Simplemente quitamos todos los puntos menos el último si parece decimal? No, mejor quitamos todos para evitar errores.
+             // Asumiremos que son separadores de miles si hay más de uno.
+             normalizedValueForState = cleanInput.replace(/\./g, '');
+             valueForCalculation = parseFloat(normalizedValueForState);
+        } else if (commaCount > 1) {
+             // Caso 1,200,300 -> Igual, separadores de miles
+             normalizedValueForState = cleanInput.replace(/,/g, '');
+             valueForCalculation = parseFloat(normalizedValueForState.replace(',', '.')); // Si quedó alguna coma residual (raro)
+        } else {
+            // Caso simple: 123.45 o 123,45 o 123
+            // Mantenemos el formato original del usuario (sea punto o coma) para el estado visual
+            normalizedValueForState = cleanInput;
+            valueForCalculation = parseFloat(cleanInput.replace(',', '.'));
+        }
+
+        if (isNaN(valueForCalculation)) valueForCalculation = 0;
+
+        // 3. Validar que lo que queda sea numérico (o vacío/parcial) para permitir escribir
+        // El regex permite: vacío, números, un punto o coma opcional al final (para permitir escribir "12.")
+        const isValidInput = /^[\d.,-]*$/.test(normalizedValueForState); // Muy permisivo mientras escribe
+
+        if (isValidInput) {
             if (name === 'ingreso_cantidad') {
-                // Guardamos el string original (puede contener coma o punto)
-                setIngresoCantidad(value); 
-                // Reseteamos el egreso para asegurar que solo se haga una operación a la vez
-                if (value !== "") setEgresoCantidad(""); 
-                
-                // --- CALCULO AUTOMATICO DEL PRECIO UNITARIO ---
-                const qty = normalize(value);
-                const total = normalize(totalPrice);
-                if (qty > 0 && total > 0) {
-                     const newUnitPrice = total / qty;
+                setIngresoCantidad(normalizedValueForState);
+                if (normalizedValueForState !== "") setEgresoCantidad("");
+
+                const total = parseFloat(String(totalPrice).replace(',', '.') || 0);
+                if (valueForCalculation > 0 && total > 0) {
+                     const newUnitPrice = total / valueForCalculation;
                      setProduct(prev => ({ ...prev, price: newUnitPrice.toFixed(2) }));
                 }
 
             } else if (name === 'egreso_cantidad') {
-                // Guardamos el string original (puede contener coma o punto)
-                setEgresoCantidad(value);
-                // Reseteamos el ingreso
-                if (value !== "") setIngresoCantidad(""); 
+                setEgresoCantidad(normalizedValueForState);
+                if (normalizedValueForState !== "") setIngresoCantidad("");
 
             } else if (name === 'total_price') {
-                setTotalPrice(value);
+                setTotalPrice(normalizedValueForState);
                 
-                // --- CALCULO AUTOMATICO DEL PRECIO UNITARIO ---
-                const total = normalize(value);
                 // Prioridad: Cantidad Ingresada > Entradas Totales Base
-                const qty = normalize(ingresoCantidad) > 0 ? normalize(ingresoCantidad) : normalize(product.entradas);
+                const qtyIngreso = parseFloat(String(ingresoCantidad).replace(',', '.') || 0);
+                const qtyBase = parseFloat(String(product.entradas).replace(',', '.') || 0);
+                const qty = qtyIngreso > 0 ? qtyIngreso : qtyBase;
 
-                if (qty > 0 && total > 0) {
-                     const newUnitPrice = total / qty;
+                if (qty > 0 && valueForCalculation > 0) {
+                     const newUnitPrice = valueForCalculation / qty;
                      setProduct(prev => ({ ...prev, price: newUnitPrice.toFixed(2) }));
                 }
             }

@@ -160,7 +160,9 @@ const ProductInventoryCard = () => {
             else if (rawCat === 'semillas') key = 'semillas';
             
             const stock = (parseFloat(product.entradas) || 0) - (parseFloat(product.salidas) || 0);
-            const value = stock * (parseFloat(product.price) || 0);
+            // CORRECCIÓN: Usar 'entradas' (total comprado) para el valor en Costes, no el stock actual.
+            const totalInputs = parseFloat(product.entradas) || 0;
+            const value = totalInputs * (parseFloat(product.price) || 0);
 
             // LOGICA DE FILTRO GLOBAL (Pre-clasificación)
             // Si es 'critical' (Agotados), queremos ver stock <= 0
@@ -168,13 +170,13 @@ const ProductInventoryCard = () => {
             
             if (filterView === 'critical') {
                  if (stock <= 0) {
-                    data[key].push({ ...product, stock, value });
+                    data[key].push({ ...product, stock, value, totalInputs });
                  }
             } else {
-                // Default & Strategic muestran items con stock
-                if (stock > 0) {
+                // Default & Strategic: Mostrar si ha habido entradas (gastos), independientemente del stock actual
+                if (totalInputs > 0) {
                     totalVal += value;
-                    data[key].push({ ...product, stock, value });
+                    data[key].push({ ...product, stock, value, totalInputs });
                 }
             }
         });
@@ -187,7 +189,7 @@ const ProductInventoryCard = () => {
         const items = inventoryData.data[activeTab] || [];
         
         if (items.length === 0) {
-             let emptyMessage = `Sin stock en ${activeTab}`;
+             let emptyMessage = `Sin movimientos en ${activeTab}`;
              if (filterView === 'critical') emptyMessage = `No hay productos agotados en ${activeTab}`;
              
              return (
@@ -221,7 +223,7 @@ const ProductInventoryCard = () => {
                     <ListItem 
                         key={item._id || idx}
                         title={item.name} 
-                        subtitle={filterView === 'critical' ? 'Agotado' : `Stock: ${item.stock}`} 
+                        subtitle={filterView === 'critical' ? 'Agotado' : `Total Entradas: ${item.totalInputs}`} 
                         value={item.value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} 
                         percentage={filterView === 'critical' ? "0" : "100"} 
                         type={activeTab} 
