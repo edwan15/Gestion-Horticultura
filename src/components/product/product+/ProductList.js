@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import Search from "../../../search/Search";
 import Loader from "../../../Util/Loader";
-import { AiFillEye, AiTwotoneDelete } from "react-icons/ai";
-import { BiEditAlt } from "react-icons/bi";
+import { AiFillEye, AiTwotoneDelete, AiOutlineFilePdf, AiOutlineSortAscending, AiOutlineWarning } from "react-icons/ai";
+import { BiEditAlt, BiSortDown } from "react-icons/bi";
 import { SiMicrosoftexcel } from "react-icons/si";
+import { IoMdClose } from "react-icons/io";
 import "react-confirm-alert/src/react-confirm-alert.css";
 import InventorySummaryCard from "../../Inventario/InventorySummaryCard"
 import InventoryLog from "../../Inventario/InventoryLog";
@@ -177,6 +178,105 @@ const MobileProductCard = ({ product, index, shortenText, confirmDelate, userRol
             </AnimatePresence>
         </motion.div>
     );
+
+};
+
+// =======================================================
+// 📤 COMPONENTE: Modal de Opciones de Exportación
+// =======================================================
+const ExportOptionsModal = ({ isOpen, onClose, onExport }) => {
+    if (!isOpen) return null;
+
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <>
+                    {/* Backdrop */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={onClose}
+                        className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all"
+                    >
+                        {/* Modal Content */}
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
+                        >
+                            {/* Header */}
+                            <div className="bg-gradient-to-r from-red-50 to-white p-6 border-b border-red-100 flex justify-between items-start">
+                                <div>
+                                    <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                                        <AiOutlineFilePdf className="text-red-500 text-2xl" />
+                                        Exportar a PDF
+                                    </h3>
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        Selecciona cómo deseas ordenar los productos en el reporte.
+                                    </p>
+                                </div>
+                                <button 
+                                    onClick={onClose}
+                                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                                >
+                                    <IoMdClose size={20} />
+                                </button>
+                            </div>
+
+                            {/* Options */}
+                            <div className="p-6 space-y-4">
+                                <button
+                                    onClick={() => onExport('stock')}
+                                    className="w-full group relative flex items-center p-4 border-2 border-transparent hover:border-red-500 bg-gray-50 hover:bg-red-50/30 rounded-xl transition-all duration-200 text-left"
+                                >
+                                    <div className="p-3 bg-white rounded-lg shadow-sm group-hover:shadow-md transition-shadow">
+                                        <BiSortDown className="text-2xl text-red-500" />
+                                    </div>
+                                    <div className="ml-4">
+                                        <h4 className="font-exbold text-gray-800 group-hover:text-red-700 transition-colors">
+                                            Orden por Stock (Mayor a Menor)
+                                        </h4>
+                                        <p className="text-xs text-gray-500 mt-0.5">
+                                            Prioriza los productos con más unidades. Ideal para control de inventario.
+                                        </p>
+                                    </div>
+                                    <div className="absolute right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded">Recomendado</span>
+                                    </div>
+                                </button>
+
+                                <button
+                                    onClick={() => onExport('alphabetical')}
+                                    className="w-full group relative flex items-center p-4 border-2 border-transparent hover:border-blue-500 bg-gray-50 hover:bg-blue-50/30 rounded-xl transition-all duration-200 text-left"
+                                >
+                                    <div className="p-3 bg-white rounded-lg shadow-sm group-hover:shadow-md transition-shadow">
+                                        <AiOutlineSortAscending className="text-2xl text-blue-500" />
+                                    </div>
+                                    <div className="ml-4">
+                                        <h4 className="font-bold text-gray-800 group-hover:text-blue-700 transition-colors">
+                                            Orden Alfabético (A-Z)
+                                        </h4>
+                                        <p className="text-xs text-gray-500 mt-0.5">
+                                            Lista organizada por nombre del producto. Útil para catálogos.
+                                        </p>
+                                    </div>
+                                </button>
+                            </div>
+
+                            {/* Footer */}
+                            <div className="p-4 bg-gray-50 text-xs text-gray-400 text-center flex items-center justify-center gap-2">
+                                <AiOutlineWarning className="text-gray-400" />
+                                <span>Solo se exportarán los productos visibles (filtrados)</span>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                </>
+            )}
+        </AnimatePresence>
+    );
 };
 
 // =======================================================
@@ -203,8 +303,10 @@ const ProductList = ({ products, isLoading }) => {
     // 4. Paginación
     const [currentItems, setCurrentItems] = useState([]);
     const [pageCount, setPageCount] = useState(0);
+
     const [itemOffice, setItemOffice] = useState(0);
     const itemPerPage = 100;
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
     // 5. Efectos
     useEffect(() => {
@@ -304,15 +406,23 @@ const ProductList = ({ products, isLoading }) => {
         XLSX.writeFile(wb, "Inventario.xlsx");
     };
 
-    const ExportToPDF = async () => {
+    const ExportToPDF = async (sortType) => {
+        setIsExportModalOpen(false); // Validar cierre del modal
         if (isLoading || currentItems.length === 0) return;
         
-        // Ordenar items por stock (Mayor a menor)
-        const sortedItems = [...currentItems].sort((a, b) => {
-            const stockA = (a.entradas || 0) - (a.salidas || 0);
-            const stockB = (b.entradas || 0) - (b.salidas || 0);
-            return stockB - stockA;
-        });
+        let sortedItems = [...currentItems];
+
+        if (sortType === 'stock') {
+             // Ordenar items por stock (Mayor a menor)
+             sortedItems.sort((a, b) => {
+                const stockA = (a.entradas || 0) - (a.salidas || 0);
+                const stockB = (b.entradas || 0) - (b.salidas || 0);
+                return stockB - stockA;
+            });
+        } else if (sortType === 'alphabetical') {
+            // Ordenar alfabéticamente
+            sortedItems.sort((a, b) => a.name.localeCompare(b.name));
+        }
 
         const doc = new jsPDF();
 
@@ -333,6 +443,10 @@ const ProductList = ({ products, isLoading }) => {
         doc.setFontSize(10);
         doc.setTextColor(100);
         doc.text(INVENTORY_DETAIL, 105, 28, { align: "center" });
+
+        doc.setFontSize(9);
+        doc.setTextColor(120);
+        doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 105, 33, { align: "center" });
 
         // 3. Tabla
         doc.autoTable({
@@ -365,19 +479,9 @@ const ProductList = ({ products, isLoading }) => {
             {isLoading && <Loader />}
 
             {!isLoading && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* COLUMNA 1: Tarjeta de Resumen (Wisecrop Style) */}
-                    <div className="space-y-6">
-                        <InventorySummaryCard 
-                            products={products} 
-                            onCategorySelect={setSelectedCategory}
-                            selectedCategory={selectedCategory}
-                        />
-                        <InventoryLog />
-                    </div>
-
-                    {/* COLUMNA 2: Lista de Productos (Card con Scroll) */}
-                    <div className="bg-white rounded-xl shadow-md border border-gray-200 flex flex-col h-[600px]">
+                <div className="space-y-8">
+                    {/* SECCIÓN 1: Lista de Productos (Arriba, ancho completo) */}
+                    <div className="bg-white rounded-xl shadow-md border border-gray-200 flex flex-col h-[800px]">
                         <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center rounded-t-xl">
                             <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                                 <span className="text-blue-600">📋</span>
@@ -404,6 +508,7 @@ const ProductList = ({ products, isLoading }) => {
                                                 <th className="px-4 py-3 text-center">Categoría</th>
                                                 <th className="px-4 py-3 text-center">Stock</th>
                                                 <th className="px-4 py-3 text-center">Acciones</th>
+                                                <th className="px-4 py-3 text-center">Editado por</th>
                                             </tr> 
                                         </thead>
                                         <tbody>
@@ -441,6 +546,16 @@ const ProductList = ({ products, isLoading }) => {
                                                                         <AiTwotoneDelete size={18} />
                                                                     </button>
                                                                 )}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-3 text-center">
+                                                            <div className="flex flex-col items-center">
+                                                                <span className="text-xs font-bold text-gray-700">
+                                                                    {product.updatedBy || product.userName || "Sistema"}
+                                                                </span>
+                                                                <span className="text-[10px] text-gray-500">
+                                                                    {product.updatedAt ? new Date(product.updatedAt).toLocaleString() : product.createdAt ? new Date(product.createdAt).toLocaleString() : "N/A"}
+                                                                </span>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -485,16 +600,33 @@ const ProductList = ({ products, isLoading }) => {
                             />
                         </div>
                     </div>
+
+                    {/* SECCIÓN 2: Actividad Reciente (Abajo, ancho completo) */}
+                    <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+                         <h3 className="text-xl font-bold text-gray-800 mb-6 border-b pb-2 flex items-center">
+                            <span className="mr-2">📝</span> Registro de Actividad Reciente
+                         </h3>
+                         <div className="max-h-[500px] overflow-y-auto custom-scrollbar">
+                            <InventoryLog />
+                         </div>
+                    </div>
                 </div>
             )}
+            
+            {/* Modal de Exportación */}
+            <ExportOptionsModal 
+                isOpen={isExportModalOpen} 
+                onClose={() => setIsExportModalOpen(false)} 
+                onExport={ExportToPDF} 
+            />
             
             {/* Botones de Exportación Flotantes o al final */}
             <div className="flex justify-end mt-6 gap-3 px-4 sm:px-0">
                 <button onClick={ExportToExcel} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 shadow-sm text-sm font-medium transition">
                     <SiMicrosoftexcel /> Excel
                 </button>
-                <button onClick={ExportToPDF} className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 shadow-sm text-sm font-medium transition">
-                    PDF
+                <button onClick={() => setIsExportModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 shadow-sm text-sm font-medium transition">
+                    <AiOutlineFilePdf className="text-lg" /> PDF
                 </button>
             </div>
         </div>

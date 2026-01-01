@@ -304,7 +304,7 @@ import "react-quill/dist/quill.snow.css";
 import { RiProductHuntFill, RiGalleryLine } from "react-icons/ri";
 import { BiCategoryAlt } from "react-icons/bi";
 import { VscSignIn, VscSignOut, VscArchive } from "react-icons/vsc";
-import { FaPlusCircle, FaMinusCircle, FaSave, FaChevronDown, FaCheck } from "react-icons/fa"; // Añadimos FaCheck y FaChevronDown
+import { FaPlusCircle, FaMinusCircle, FaSave, FaChevronDown, FaCheck, FaKeyboard, FaList } from "react-icons/fa"; // Añadimos FaCheck, FaChevronDown, FaKeyboard y FaList
 
 // Lista de nombres de productos
 const PRODUCT_NAMES = [
@@ -475,6 +475,8 @@ total_price, // Nueva prop
 handleStockChange,
 }) => {
     // ... (otras lógicas como getNumericValue, baseEntradas, etc. se mantienen igual)
+    const [isManualInput, setIsManualInput] = useState(false); // Estao para alternar entre input manual y select
+
     const getNumericValue = (value) => {
         const cleanedValue = String(value || 0).replace(',', '.');
         const number = parseFloat(cleanedValue);
@@ -515,14 +517,44 @@ handleStockChange,
                         <div>
                             {/* Uso del nuevo componente SearchableSelect */}
                             <div className="mb-4">
-                                <SearchableSelect
-                                    options={PRODUCT_NAMES}
-                                    value={product?.name || ''}
-                                    onChange={handleInputChange}
-                                    placeholder="--- Seleccione un Producto ---"
-                                    name="name"
-                                    icon={RiProductHuntFill}
-                                />
+                                <div className="flex justify-between items-center mb-2">
+                                   <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                                      {isManualInput ? "Ingreso Manual" : "Selección de Lista"}
+                                   </span>
+                                   <button
+                                       type="button"
+                                       onClick={() => setIsManualInput(!isManualInput)}
+                                       className="text-xs flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-bold bg-indigo-50 px-2 py-1 rounded-lg transition-colors"
+                                   >
+                                       {isManualInput ? <><FaList/> Ver Lista</> : <><FaKeyboard/> Escribir Manual</>}
+                                   </button>
+                                </div>
+
+                                {isManualInput ? (
+                                    <>
+                                    <label className="flex items-center mb-1 text-gray-700 font-medium">
+                                        <RiProductHuntFill className="text-xl text-indigo-500 mr-2" /> Nombre:
+                                    </label>   
+                                    <input
+                                        className="outline-none rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 p-3 border border-gray-300 w-full transition-all duration-200"
+                                        type="text"
+                                        placeholder="Escribe el nombre del producto..."
+                                        name="name"
+                                        value={product?.name || ''}
+                                        onChange={handleInputChange}
+                                        required
+                                    />
+                                    </>
+                                ) : (
+                                    <SearchableSelect
+                                        options={PRODUCT_NAMES}
+                                        value={product?.name || ''}
+                                        onChange={handleInputChange}
+                                        placeholder="--- Seleccione un Producto ---"
+                                        name="name"
+                                        icon={RiProductHuntFill}
+                                    />
+                                )}
                             </div>
                             <div className="mb-4">
                                 <label className="flex items-center mb-1 text-gray-700 font-medium">

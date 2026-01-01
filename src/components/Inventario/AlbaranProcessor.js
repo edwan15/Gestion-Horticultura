@@ -21,13 +21,14 @@ const AlbaranProcessor = () => {
     const [parsedData, setParsedData] = useState(null);
     const [detectedCompany, setDetectedCompany] = useState(null);
     const [detectedDate, setDetectedDate] = useState(null);
+    const [movementType, setMovementType] = useState('in'); // 'in' = Entrada, 'out' = Salida
 
     // Cargar productos si no están cargados
     useEffect(() => {
-        if (!products.length) {
-            dispatch(getProducts());
+        if (userId && !products.length) {
+            dispatch(getProducts({ userId }));
         }
-    }, [dispatch, products.length]);
+    }, [dispatch, products.length, userId]);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -46,6 +47,30 @@ const AlbaranProcessor = () => {
         // Reemplazar coma decimal por punto
         clean = clean.replace(',', '.');
         return parseFloat(clean) || 0;
+    };
+
+    const levenshtein = (a, b) => {
+        if (a.length === 0) return b.length;
+        if (b.length === 0) return a.length;
+        
+        const matrix = [];
+        for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+        for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+
+        for (let i = 1; i <= b.length; i++) {
+            for (let j = 1; j <= a.length; j++) {
+                if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                    matrix[i][j] = matrix[i - 1][j - 1];
+                } else {
+                    matrix[i][j] = Math.min(
+                        matrix[i - 1][j - 1] + 1,
+                        matrix[i][j - 1] + 1,
+                        matrix[i - 1][j] + 1
+                    );
+                }
+            }
+        }
+        return matrix[b.length][a.length];
     };
 
     const processImage = async () => {
@@ -133,20 +158,43 @@ const AlbaranProcessor = () => {
         setDetectedCompany(company);
         setDetectedDate(date);
         
-        // Intentar emparejar con productos existentes
+        // Intentar emparejar con productos existentes usando Levenshtein
         const matchedProducts = extractedProducts.map(p => {
-            // Busqueda difusa simple o exacta por nombre (mejorable)
-            // Aquí buscamos si el nombre extraído contiene alguna parte del nombre en BD o viceversa
-            const existing = products.find(prod => 
-                prod.name.toLowerCase().includes(p.name.toLowerCase()) || 
-                p.name.toLowerCase().includes(prod.name.toLowerCase())
-            );
+            let bestMatch = null;
+            let minDistance = Infinity;
+
+            const pName = p.name.toLowerCase().trim();
+
+            products.forEach(prod => {
+                const dbName = prod.name.toLowerCase().trim();
+                
+                // 1. Coincidencia Exacta o Includes (prioridad máxima)
+                if (dbName.includes(pName) || pName.includes(dbName)) {
+                     // Preferimos la coincidencia más larga/precisa, pero por ahora tomamos la primera fuerte
+                     if (!bestMatch || (dbName === pName)) {
+                         bestMatch = prod;
+                         minDistance = 0;
+                     }
+                }
+
+                // 2. Fuzzy Match si no hay match directo
+                if (minDistance > 0) {
+                     const distance = levenshtein(pName, dbName);
+                     // Umbral: Permitimos hasta 3 caracteres de diferencia o 30% de longitud
+                     const threshold = Math.max(3, Math.floor(pName.length * 0.4));
+                     
+                     if (distance < minDistance && distance <= threshold) {
+                         minDistance = distance;
+                         bestMatch = prod;
+                     }
+                }
+            });
 
             return {
                 ...p,
-                matchId: existing ? existing._id : null,
-                matchName: existing ? existing.name : '',
-                status: existing ? 'matched' : 'new'
+                matchId: bestMatch ? (bestMatch.id || bestMatch._id) : null,
+                matchName: bestMatch ? bestMatch.name : '',
+                status: bestMatch ? 'matched' : 'new'
             };
         });
 
@@ -176,6 +224,7 @@ const AlbaranProcessor = () => {
         if (!parsedData || parsedData.length === 0) return;
 
         let processedCount = 0;
+        const formattedDate = detectedDate || new Date().toLocaleDateString();
 
         for (const item of parsedData) {
             // Solo procesar si tiene cantidad válida
@@ -185,19 +234,28 @@ const AlbaranProcessor = () => {
             
             // Si existe el producto (MATCHED), actualizamos
             if (item.status === 'matched' && item.matchId) {
-                const existingProduct = products.find(p => p._id === item.matchId);
+                const existingProduct = products.find(p => (p.id === item.matchId) || (p._id === item.matchId));
                 if (existingProduct) {
-                    const newEntradas = (parseFloat(existingProduct.entradas) || 0) + item.quantity;
-                    // No tocamos salidas, el stock se recalcula automaticamente: entradas - salidas
                     
+                    if (movementType === 'in') {
+                        // ENTRADA: Sumamos a entradas
+                        const newEntradas = (parseFloat(existingProduct.entradas) || 0) + item.quantity;
+                        productData.append("entradas", newEntradas);
+                        productData.append("salidas", existingProduct.salidas);
+                        productData.append("description", `[ENTRADA] Albarán ${detectedCompany} - ${formattedDate}`);
+                    } else {
+                        // SALIDA: Sumamos a salidas
+                        const newSalidas = (parseFloat(existingProduct.salidas) || 0) + item.quantity;
+                        productData.append("entradas", existingProduct.entradas);
+                        productData.append("salidas", newSalidas);
+                        productData.append("description", `[SALIDA] Albarán ${detectedCompany} - ${formattedDate}`);
+                    }
+
                     productData.append("name", existingProduct.name);
                     productData.append("category", existingProduct.category);
                     productData.append("price", existingProduct.price);
-                    productData.append("entradas", newEntradas);
-                    productData.append("salidas", existingProduct.salidas);
-                    productData.append("description", existingProduct.description);
-
-                    // LOG DE MOVIMIENTO (Idealmente el backend lo maneja, pero aquí simulamos la actualización completa)
+                    
+                    // LOG DE MOVIMIENTO Simulacion
                     try {
                         await dispatch(updateProduct({ id: item.matchId, formData: productData })).unwrap();
                         processedCount++;
@@ -207,18 +265,27 @@ const AlbaranProcessor = () => {
                     }
                 }
             } 
-            // Si es NUEVO, lo creamos (Opcional, según reglas de negocio. Aquí asumimos que si no existe, se crea)
+            // Si es NUEVO (Solo permitido en ENTRADAS por logica, pero si es salida de algo nuevo?? Asumimos entrada o creacion con stock inicial)
             else if (item.status === 'new') {
                 // Crear producto nuevo
-                productData.append("name", item.name); // Usamos el nombre del albarán
-                productData.append("sku", item.code);  // Usamos el código del albarán como SKU
-                productData.append("category", "Fitosanitarios"); // Default
+                productData.append("name", item.name); 
+                productData.append("sku", item.code);  
+                productData.append("category", "Fitosanitarios"); 
                 productData.append("price", 0); 
                 productData.append("userId", userId);
                 productData.append("userName", userName);
-                productData.append("entradas", item.quantity);
-                productData.append("salidas", 0);
-                productData.append("description", `Importado de Albarán ${detectedCompany} - ${detectedDate || 'S/F'}`);
+                
+                if (movementType === 'in') {
+                    productData.append("entradas", item.quantity);
+                    productData.append("salidas", 0);
+                } else {
+                    // Si creamos un producto con una SALIDA directamente... es raro (Stock negativo?). 
+                    // Lo dejamos como salida y 0 entrada.
+                    productData.append("entradas", 0);
+                    productData.append("salidas", item.quantity);
+                }
+
+                productData.append("description", `[${movementType === 'in' ? 'ENTRADA' : 'SALIDA'}] Nuevo de Albarán ${detectedCompany}`);
 
                 try {
                     await dispatch(createProduct(productData)).unwrap();
@@ -235,7 +302,9 @@ const AlbaranProcessor = () => {
         setImage(null);
         setImagePreview(null);
         // Recargar productos para reflejar cambios
-        dispatch(getProducts());
+        if (userId) {
+            dispatch(getProducts({ userId }));
+        }
     };
 
     return (
@@ -307,6 +376,35 @@ const AlbaranProcessor = () => {
                         <div className="text-right">
                             <p className="text-sm text-gray-500">Fecha:</p>
                             <p className="font-bold text-blue-800">{detectedDate || "No detectada"}</p>
+                        </div>
+                    </div>
+
+                    {/* SELECTOR DE TIPO DE MOVIMIENTO */}
+                    <div className="mb-6 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                        <p className="font-bold text-gray-700 mb-2 block">Tipo de Movimiento:</p>
+                        <div className="flex gap-6">
+                            <label className="flex items-center cursor-pointer">
+                                <input 
+                                    type="radio" 
+                                    name="movementType" 
+                                    value="in" 
+                                    checked={movementType === 'in'}
+                                    onChange={() => setMovementType('in')}
+                                    className="w-5 h-5 text-green-600 focus:ring-green-500 border-gray-300"
+                                />
+                                <span className="ml-2 font-medium text-gray-800">Entrada de Mercancía (Sumar Stock)</span>
+                            </label>
+                            <label className="flex items-center cursor-pointer">
+                                <input 
+                                    type="radio" 
+                                    name="movementType" 
+                                    value="out" 
+                                    checked={movementType === 'out'}
+                                    onChange={() => setMovementType('out')}
+                                    className="w-5 h-5 text-red-600 focus:ring-red-500 border-gray-300"
+                                />
+                                <span className="ml-2 font-medium text-gray-800">Salida / Uso (Restar Stock)</span>
+                            </label>
                         </div>
                     </div>
 

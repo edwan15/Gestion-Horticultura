@@ -87,8 +87,23 @@ const getLogs = async (token, limit = 50) => {
     return response.data;
 };
 
+const createLog = async (token, logData) => {
+    if (!token) {
+        throw new Error("Acceso denegado, no hay token de autenticación.");
+    }
+    const config = {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+        withCredentials: true,
+    };
+    const response = await axios.post(API_URL, logData, config);
+    return response.data;
+};
+
 const logService = {
     getLogs,
+    createLog,
 };
 
 export default logService;

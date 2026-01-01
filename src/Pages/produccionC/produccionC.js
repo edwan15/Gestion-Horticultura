@@ -23,6 +23,7 @@ import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import { selectUserId } from "../../features/auth/authSlice/authSlice";
+import { PRODUCT_CATALOG } from "../../Util/util";
 
 // IMPORTACION DE COMPONENTES EXTERNOS
 import CostEditForm from "../../components/CostEditForm";
@@ -38,6 +39,13 @@ import HomeContent from "../../components/HomeContent.js/HomeContent";
 import { firebaseConfig } from "../../firebaseConfig";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+
+// IMAGENES DE PRODUCTOS
+import img6410 from "../../asset/6410.png";
+import img4312 from "../../asset/4312.png";
+import imgCarton from "../../asset/Carton.webp";
+import imgNaranja from "../../asset/Naranja.jfif";
+import imgSamper from "../../asset/Samper.jfif";
 
 // =======================================================================
 // === CONFIGURACI├ôN Y UTILIDADES
@@ -87,13 +95,16 @@ const db = getFirestore(app);
 
 // --- DATOS FIJOS Y CONSTANTES ---
 const HOURLY_COST_RATE = 10;
-const PRODUCT_CATALOG = {
-  "IFCO 6410": 10,
-  "IFCO 4312": 5,
-  CARTON: 8,
-  "NARANJA 2": 16,
-  "SAMPER 1": 12,
-  "SAMPER 2": 15,
+// PRODUCT_CATALOG removal
+// PRODUCT_CATALOG imported from Util/util
+
+const PRODUCT_IMAGES = {
+  "IFCO 6410": img6410,
+  "IFCO 4312": img4312,
+  "CARTON": imgCarton,
+  "NARANJA 2°": imgNaranja,
+  "SAMPER 1°": imgSamper,
+  "SAMPER 2°": imgSamper,
 };
 
 // --- FUNCIONES DE UTILIDAD ---
@@ -1434,6 +1445,10 @@ const sanitizeForFirestore = (data) => {
             // 3. ACTUALIZAR factorA si el nombre del producto fue editado
             if (field === "productName") {
               newItem.factorA = PRODUCT_CATALOG[value] || 0;
+              // Asignar imagen automáticamente si existe en el mapa
+              if (PRODUCT_IMAGES[value]) {
+                newItem.imageUrl = PRODUCT_IMAGES[value];
+              }
             }
 
             return newItem;

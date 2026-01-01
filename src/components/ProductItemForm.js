@@ -146,7 +146,7 @@ const ProductItemForm = React.memo(
                       <img
                         src={item.imageUrl}
                         alt="Evidencia"
-                        className="w-full h-48 object-cover object-center"
+                        className="w-full h-32 object-contain object-center bg-slate-50"
                         onError={(e) => { e.target.style.display = 'none'; }}
                       />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
