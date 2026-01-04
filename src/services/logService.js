@@ -32,9 +32,6 @@ const getFirestoreLogs = async (limit, moduleFilter) => {
         
         // Intentamos filtrar por módulo si se provee
         if (moduleFilter) {
-            // Nota: Si falta índice, esto fallará. En ese caso, capturamos error y devolvemos sin filtrar (o array vacío)
-            // Para "Old Data Retrieval", a veces es mejor ser permisivo.
-            // Pero mantendremos el intento de filtrado para logs nuevos.
              q = query(logsCollectionRef, where("module", "==", moduleFilter), limitQuery(limit));
         }
 
@@ -58,13 +55,19 @@ const getFirestoreLogs = async (limit, moduleFilter) => {
                  source: 'firestore'
             }));
             
-            if (moduleFilter) {
-                return rawLogs.filter(l => !l.module || l.module === moduleFilter);
+            // Lógica estricta de separación en memoria (Backup)
+             if (moduleFilter) {
+                 if (moduleFilter === "INVENTORY") {
+                    // INVENTORY incluye 'INVENTORY' y logs sin módulo (legacy)
+                    return rawLogs.filter(l => l.module === "INVENTORY" || !l.module);
+                }
+                // Otros módulos son estrictos
+                return rawLogs.filter(l => l.module === moduleFilter);
             }
             return rawLogs;
-        } catch (e) {
-            console.error("Error crítico leyendo Firestore:", e);
-            return [];
+        } catch (e2) {
+             console.error("❌ Fallback query failed", e2);
+             return [];
         }
     }
 };
@@ -139,8 +142,7 @@ const getLogs = async (token, limit = 50, moduleFilter = null) => {
                 return l.module === "INVENTORY" || !l.module;
             }
             
-            // 2. Si estamos en PRODUCTION (u otro): SOLO aceptamos logs que sean explícitamente de ese módulo.
-            // Esto elimina el ruido de los logs antiguos en vistas nuevas.
+            // 2. Si estamos en PRODUCTION / TASK: SOLO aceptamos logs que sean explícitamente de ese módulo.
             return l.module === moduleFilter;
         });
     }

@@ -912,6 +912,18 @@ ${globalTotals?.totalResult?.toFixed(2) || "0.00"}
 </div>
 </div>
 </div>
+
+{/* 📝 REGISTRO DE ACTIVIDAD (TASK) - Separado e Independiente */}
+<div className="mt-8 border-t border-gray-100 pt-8 animate-fade-in px-4">
+<h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+<span className="bg-blue-100 p-2 rounded-lg text-blue-600 shadow-sm">
+📋
+</span>
+Registro de Actividad
+</h3>
+<InventoryLog module="TASK" />
+</div>
+
 </div>
 );
 };
@@ -2637,7 +2649,7 @@ const handleSaveStats = useCallback(
           await updateDoc(eventDocRef, eventData);
           setLastSaved("Producto");
           
-          // Log Event Update
+          // Log Event Update (TASK module)
           await logService.createLog({
             action: "UPDATE",
             details: `Producto actualizado: ${formTitle} (${dateKey})`,
@@ -2647,8 +2659,7 @@ const handleSaveStats = useCallback(
                  calendarId: selectedCalendarId, 
                  eventId: editingEventId, 
                  date: dateKey,
-                 title: formTitle,
-                 result: eventData.result 
+                 title: formTitle
             }
           });
 
@@ -2713,7 +2724,7 @@ const handleSaveStats = useCallback(
 
         console.log(`✅ Costes guardados en Firestore para: ${dateKey}`);
         
-        // Log Cost Update
+        // Log Cost Update (TASK module)
         await logService.createLog({
             action: "UPDATE",
             details: `Costos actualizados para el día ${dateKey}`,
@@ -2796,7 +2807,7 @@ const handleSaveStats = useCallback(
         const eventDocRef = doc(eventsRef, eventId);
         await deleteDoc(eventDocRef);
         
-        // Log Event Deletion
+        // Log Event Deletion (TASK module)
         await logService.createLog({
             action: "DELETE",
             details: `Producto eliminado del día ${formatDate(selectedDate)}`,
@@ -2804,7 +2815,7 @@ const handleSaveStats = useCallback(
             module: "TASK",
             metadata: { 
                  calendarId: selectedCalendarId, 
-                 eventId: eventId,
+                 eventId: eventId, 
                  date: formatDate(selectedDate)
             }
         });
