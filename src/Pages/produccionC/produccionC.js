@@ -47,6 +47,9 @@ import imgCarton from "../../asset/Carton.webp";
 import imgNaranja from "../../asset/Naranja.jfif";
 import imgSamper from "../../asset/Samper.jfif";
 
+import logService from "../../services/logService";
+import InventoryLog from "../../components/Inventario/InventoryLog";
+
 // =======================================================================
 // === CONFIGURACI├ôN Y UTILIDADES
 // =======================================================================
@@ -1660,6 +1663,22 @@ const sanitizeForFirestore = (data) => {
 
         // CORRECCI├ôN CLAVE: Volver a la vista de detalle del d├¡a para ver el resultado
         toast.success(`Datos guardados para ${dateKey}.`);
+
+        // Log the activity
+        await logService.createLog({
+            action: items ? (existingDayData.items?.length > 0 ? "UPDATE" : "CREATE") : "UPDATE",
+            details: items 
+                ? `Producción registrada/actualizada para el día ${dateKey}. Total: ${newDayData.dailyTotal}kg`
+                : `Costos actualizados para el día ${dateKey}.`,
+            userId: userId,
+            module: "PRODUCTION",
+            metadata: { 
+                dateKey, 
+                totalKg: newDayData.dailyTotal,
+                updates: items ? `${items.length} items` : "Cost data update"
+            }
+        });
+
         handleDayClick(dateKey, "day_view");
       } catch (error) {
         console.error("Error saving to Firestore:", error);
@@ -1898,6 +1917,9 @@ return(
                   />
                 </div>
               </div>
+              
+              {/* Activity Log Section */}
+              <InventoryLog module="PRODUCTION" />
             </div>
 
             {/* COLUMNA DERECHA: WIDGETS (4 columnas) */}

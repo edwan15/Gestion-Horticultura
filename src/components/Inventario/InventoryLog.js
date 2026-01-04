@@ -4,14 +4,14 @@ import { getLogs, selectLogs, selectIsLogLoading } from '../../features/logs/log
 import { FaHistory, FaPlusCircle, FaEdit, FaTrash, FaInfoCircle } from 'react-icons/fa';
 import Loader from '../../Util/Loader';
 
-const InventoryLog = () => {
+const InventoryLog = ({ module = "INVENTORY" }) => { // Por defecto INVENTORY para no romper compatibilidad
     const dispatch = useDispatch();
-    const logs = useSelector(selectLogs) || []; // 🛑 Asegurar que siempre sea un array
+    const logs = useSelector(selectLogs) || []; 
     const isLoading = useSelector(selectIsLogLoading);
 
     useEffect(() => {
-        dispatch(getLogs());
-    }, [dispatch]);
+        dispatch(getLogs(module));
+    }, [dispatch, module]);
 
     const getIcon = (action) => {
         switch (action) {
@@ -36,7 +36,7 @@ const InventoryLog = () => {
                     Registro de Actividad
                 </h3>
                 <button 
-                    onClick={() => dispatch(getLogs())}
+                    onClick={() => dispatch(getLogs(module))}
                     className="text-xs text-blue-600 hover:text-blue-800 font-medium"
                 >
                     Actualizar
@@ -62,6 +62,7 @@ const InventoryLog = () => {
                                 <div className="flex-1">
                                     <div className="flex justify-between items-start">
                                         <p className="text-sm font-semibold text-gray-800">
+                                            <span className="text-blue-600 font-bold text-xs mr-2">[{log.userName || "Usuario"}]</span>
                                             {log.details}
                                         </p>
                                         <span className="text-xs text-gray-400 whitespace-nowrap ml-2">

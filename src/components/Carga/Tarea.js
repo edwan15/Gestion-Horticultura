@@ -68,6 +68,9 @@ import {
   TrendingUp,
 } from "lucide-react";
 
+import logService from "../../services/logService";
+import InventoryLog from "../Inventario/InventoryLog";
+
 // 🔑 CORRECCIÓN 2: Definición de la función getCostsCollectionRef
 const getDailyCostsCollectionRef = (userId, calendarId) => {
   return collection(
@@ -2633,10 +2636,41 @@ const handleSaveStats = useCallback(
           const eventDocRef = doc(eventsRef, editingEventId);
           await updateDoc(eventDocRef, eventData);
           setLastSaved("Producto");
+          
+          // Log Event Update
+          await logService.createLog({
+            action: "UPDATE",
+            details: `Producto actualizado: ${formTitle} (${dateKey})`,
+            userId: userId,
+            module: "TASK",
+            metadata: { 
+                 calendarId: selectedCalendarId, 
+                 eventId: editingEventId, 
+                 date: dateKey,
+                 title: formTitle,
+                 result: eventData.result 
+            }
+          });
+
           resetFormAndScroll();
         } else {
-          await addDoc(eventsRef, eventData);
+          const docRef = await addDoc(eventsRef, eventData);
           setLastSaved("Producto");
+          
+          // Log Event Creation
+          await logService.createLog({
+            action: "CREATE",
+            details: `Producto registrado: ${formTitle} (${dateKey})`,
+            userId: userId,
+            module: "TASK",
+            metadata: { 
+                 calendarId: selectedCalendarId, 
+                 eventId: docRef.id, 
+                 date: dateKey,
+                 title: formTitle 
+            }
+          });
+
           resetFormAndScroll();
         }
       } catch (e) {
@@ -2678,6 +2712,19 @@ const handleSaveStats = useCallback(
         await setDoc(docRef, finalCostData, { merge: true });
 
         console.log(`✅ Costes guardados en Firestore para: ${dateKey}`);
+        
+        // Log Cost Update
+        await logService.createLog({
+            action: "UPDATE",
+            details: `Costos actualizados para el día ${dateKey}`,
+            userId: userId,
+            module: "TASK",
+            metadata: { 
+                 calendarId: selectedCalendarId, 
+                 date: dateKey,
+                 totalCost: finalCostData.totalCost
+            }
+        });
 
         // 5. 🌐 SINCRONIZACIÓN DE ESTADO: ACTUALIZAR EL DIVISOR GLOBAL
         // Esto actualiza el divisor que se usa en cálculos futuros.
@@ -2748,12 +2795,26 @@ const handleSaveStats = useCallback(
         const eventsRef = getEventsCollectionRef(userId, selectedCalendarId);
         const eventDocRef = doc(eventsRef, eventId);
         await deleteDoc(eventDocRef);
+        
+        // Log Event Deletion
+        await logService.createLog({
+            action: "DELETE",
+            details: `Producto eliminado del día ${formatDate(selectedDate)}`,
+            userId: userId,
+            module: "TASK",
+            metadata: { 
+                 calendarId: selectedCalendarId, 
+                 eventId: eventId,
+                 date: formatDate(selectedDate)
+            }
+        });
+
       } catch (e) {
         console.error("Error deleting event:", e);
         setError("Error al eliminar el producto: " + e.message);
       }
     },
-    [userId, selectedCalendarId]
+    [userId, selectedCalendarId, selectedDate]
   );
 
   const selectedCalendarName = useMemo(

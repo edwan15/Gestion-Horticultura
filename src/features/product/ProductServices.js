@@ -10,6 +10,7 @@ import {
     query,
     where
 } from "firebase/firestore";
+import logService from "../../services/logService";
 import { toast } from "react-toastify";
 
 // Referencia a la colección principal de productos
@@ -81,27 +82,12 @@ const convertFormDataToObject = (formData) => {
     return formData; // Si ya es objeto, lo devolvemos tal cual
 };
 
+
+
 // ======================================================================
-// 🚀 HELPER: CREAR LOG (FRONTEND)
+// 🚀 HELPER: CREAR LOG (DEPRECATED - USAR logService)
 // ======================================================================
-const createLog = async (action, details, userId, metadata = {}) => {
-    try {
-        if (!userId) {
-            console.warn("⚠️ No se pudo crear log: userId no disponible");
-            return;
-        }
-        await addDoc(logsCollectionRef, {
-            user: userId,
-            action,
-            details,
-            metadata,
-            createdAt: new Date()
-        });
-        console.log(`📝 Log creado desde Frontend: ${action} - ${details}`);
-    } catch (error) {
-        console.error("❌ Error al crear log en Frontend:", error);
-    }
-};
+// Se elimina la función local para usar el servicio centralizado.
 
 // ======================================================================
 // 1. CREATE PRODUCT
@@ -136,18 +122,19 @@ const createProduct = async (formData) => {
         const docRef = await addDoc(productsCollectionRef, productToSave);
 
         // 4. Crear Log
-        await createLog(
-            "CREATE", 
-            `Producto creado: ${productToSave.name}`, 
-            productToSave[USER_ID_FIELD], 
-            { 
+        await logService.createLog({
+            action: "CREATE",
+            details: `Producto creado: ${productToSave.name}`,
+            userId: productToSave[USER_ID_FIELD],
+            module: "INVENTORY",
+            metadata: { 
                 productId: docRef.id, 
                 name: productToSave.name,
                 category: productToSave.category || 'General',
                 initialStock: Number(productToSave.entradas) || 0,
                 price: Number(productToSave.price) || 0
             }
-        );
+        });
 
         toast.success("Producto creado exitosamente.");
         return {
@@ -207,12 +194,13 @@ const deleteProduct = async (id) => {
         await deleteDoc(docRef);
 
         if (productData) {
-            await createLog(
-                "DELETE", 
-                `Producto eliminado: ${productData.name}`, 
-                productData[USER_ID_FIELD], 
-                { productId: id, name: productData.name }
-            );
+            await logService.createLog({
+                action: "DELETE",
+                details: `Producto eliminado: ${productData.name}`,
+                userId: productData[USER_ID_FIELD],
+                module: "INVENTORY",
+                metadata: { productId: id, name: productData.name }
+            });
         }
 
         return id;
@@ -323,12 +311,13 @@ const updateProduct = async (id, productData) => {
 
         // 5. Log de actualización (Solo si hubo cambios)
         if (changedFields.length > 0) {
-            await createLog(
-                "UPDATE", 
-                `Producto actualizado: ${updatedData.name}`, 
-                updatedData[USER_ID_FIELD], 
-                { productId: id, changes: changedFields }
-            );
+            await logService.createLog({
+                action: "UPDATE",
+                details: `Producto actualizado: ${updatedData.name}`,
+                userId: updatedData[USER_ID_FIELD], 
+                module: "INVENTORY",
+                metadata: { productId: id, changes: changedFields }
+            });
         }
 
         return { id: updatedDoc.id, ...updatedData };

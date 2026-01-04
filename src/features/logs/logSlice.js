@@ -101,36 +101,30 @@ const initialState = {
 // 🔑 Obtener logs (Acción Asíncrona)
 export const getLogs = createAsyncThunk(
     "logs/getAll",
-    async (_, thunkAPI) => {
+    async (moduleFilter = null, thunkAPI) => {
         try {
             const { auth } = await import("../../firebaseConfig");
             const currentUser = auth.currentUser;
             
             if (!currentUser) {
-                return thunkAPI.rejectWithValue("No hay usuario autenticado. Por favor, inicia sesión.");
+                // return thunkAPI.rejectWithValue("No hay usuario autenticado. Por favor, inicia sesión.");
+                // Fallback silencioso o manejo especial si se requiere ver logs públicos (aunque no es el caso)
             }
 
-            // 🔑 Obtener un token fresco
-            const freshToken = await currentUser.getIdToken(true); 
+            // 🔑 Obtener un token fresco (opcional si usamos logService directo a Firestore, pero mantenemos por compatibilidad)
+            const freshToken = currentUser ? await currentUser.getIdToken(true) : null; 
             
-            // 1. Obtener los logs del servicio
-            const logs = await logService.getLogs(freshToken);
+            // 1. Obtener los logs del servicio (Pasamos moduleFilter)
+            const logs = await logService.getLogs(freshToken, 50, moduleFilter);
 
-            // 🛑 2. CORRECCIÓN DE SERIALIZACIÓN: Convertir Timestamp a string
+            // 🛑 2. CORRECCIÓN DE SERIALIZACIÓN
             const sanitizedLogs = logs.map(log => ({
                 ...log,
-                // Si 'createdAt' es un Timestamp de Firebase (tiene el método toDate), lo convertimos.
                 createdAt: log.createdAt && typeof log.createdAt.toDate === 'function' 
                            ? log.createdAt.toDate().toISOString() 
                            : log.createdAt, 
-                
-                // Si tienes otros campos de fecha (como 'updatedAt'), también deberías convertirlos aquí.
-                // updatedAt: log.updatedAt && typeof log.updatedAt.toDate === 'function' 
-                //            ? log.updatedAt.toDate().toISOString() 
-                //            : log.updatedAt,
             }));
             
-            // Devolvemos el array saneado, listo para ser guardado en Redux
             return sanitizedLogs;
             
         } catch (error) {

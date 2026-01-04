@@ -191,8 +191,10 @@ import {
     getProducts,
     updateProduct,
     selectIsLoading,
+
     selectProduct,
 } from "../../features/product/ProductSlice";
+import { selectName } from "../../features/auth/authSlice/authSlice"; // Importar selector de nombre
 import Loader from "../../Util/Loader";
 
 const EditProduct = () => {
@@ -201,6 +203,7 @@ const EditProduct = () => {
     const navigate = useNavigate();
     const productEdit = useSelector(selectProduct);
     const isLoading = useSelector(selectIsLoading);
+    const userName = useSelector(selectName); // Obtener nombre del usuario actual
     
     // Estados base del producto
     const [product, setProduct] = useState(productEdit);
@@ -403,28 +406,34 @@ const EditProduct = () => {
             formData.append("image", productImage);
         }
         
-        // 4. ENVÍO, MANEJO DE ESTADO Y REDIRECCIÓN
-        try {
-            await dispatch(updateProduct({ id, formData }));
-            
-            // **IMPORTANTE**: Actualizar los estados locales para reflejar el cambio y limpiar la UI.
-            setProduct(prevProduct => ({
-                ...prevProduct,
-                entradas: newEntradas, // Actualizamos las entradas locales
-                salidas: newSalidas,  // Actualizamos las salidas locales
-            }));
-            
-            // Limpiamos los campos funcionales
-            setIngresoCantidad(""); 
-            setEgresoCantidad(""); 
-            setTotalPrice(""); 
-            
-            await dispatch(getProducts());
-            navigate("/panel");
-        } catch (error) {
-            console.error("Error al guardar el producto:", error);
-        }
-    };
+    // 4. ENVÍO, MANEJO DE ESTADO Y REDIRECCIÓN
+    try {
+        // Añadir campos de auditoría (Editado por...)
+        formData.append("updatedBy", userName || "Usuario");
+        formData.append("updatedAt", new Date().toISOString());
+
+        await dispatch(updateProduct({ id, formData }));
+        
+        // **IMPORTANTE**: Actualizar los estados locales para reflejar el cambio y limpiar la UI.
+        setProduct(prevProduct => ({
+            ...prevProduct,
+            entradas: newEntradas, // Actualizamos las entradas locales
+            salidas: newSalidas,   // Actualizamos las salidas locales
+            updatedBy: userName || "Usuario",
+            updatedAt: new Date().toISOString()
+        }));
+        
+        // Limpiamos los campos funcionales
+        setIngresoCantidad(""); 
+        setEgresoCantidad(""); 
+        setTotalPrice(""); 
+        
+        await dispatch(getProducts());
+        navigate("/panel");
+    } catch (error) {
+        console.error("Error al guardar el producto:", error);
+    }
+  };
     
     // Cálculo del stock actual para pasar al ProductForm
     const getNumericValue = (val) => {
