@@ -46,7 +46,7 @@ const MapController = () => {
     return null;
 };
 
-const ActivitiesMap = ({ db, userId, activeTab }) => {
+const ActivitiesMap = ({ db, userId, activeTab, onGreenhouseSelect }) => {
     const [markers, setMarkers] = useState([]);
     const [loading, setLoading] = useState(true);
     
@@ -63,8 +63,12 @@ const ActivitiesMap = ({ db, userId, activeTab }) => {
         const x = e.originalEvent.clientX;
         const y = e.originalEvent.clientY;
 
-        setModalPosition({ x, y });
-        setSelectedGreenhouse(greenhouse);
+        if (onGreenhouseSelect) {
+            onGreenhouseSelect(greenhouse);
+        } else {
+            setModalPosition({ x, y });
+            setSelectedGreenhouse(greenhouse);
+        }
     };
 
     const [isEditMode, setIsEditMode] = useState(false);

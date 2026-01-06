@@ -52,6 +52,11 @@ const Menu = [
         icon: <AiFillFileText /> ,
         path: "/field-activities",
       },
+      {
+        title: "Actividades",
+        icon: <IoIosListBox />, // Using a list icon for now
+        path: "/actividades",
+      },
     ],
   },
   

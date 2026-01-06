@@ -60,6 +60,7 @@ import  CostesManager  from "./components/COSTOS/CostesManager";
 import CostesDashboard from "./components/COSTOS/CostesDashboard";
 import FarmSettings from "./Pages/FarmSettings/FarmSettings";
 import FieldActivities from "./components/FieldActivities";
+import ActivitiesPage from "./Pages/Activities/ActivitiesPage";
 import InventoryCostes from "./components/COSTOS/InventoryCostes";
 import ProductionCosts from "./components/COSTOS/ProductionCosts";
 import Catalog from "./components/Catalog/Catalog";
@@ -340,6 +341,12 @@ function App() {
                     <Route
                         path="/field-activities"
                         element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><FieldActivities /></ProtectedLayout></RoleRoute>}
+                    />
+
+                    {/* Nueva Página de Actividades */}
+                    <Route
+                        path="/actividades"
+                        element={<RoleRoute allowedRoles={ALL_ROLES}><ProtectedLayout><ActivitiesPage /></ProtectedLayout></RoleRoute>}
                     />
                     
                      {/* Registro de Horas (Nueva Página Completa) - Sin Layout para pantalla completa */}
