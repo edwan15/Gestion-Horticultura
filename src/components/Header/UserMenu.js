@@ -78,7 +78,7 @@ const UserMenu = () => {
                     >
                         <div className="p-4 border-b border-gray-100 bg-gray-50">
                             <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Cuenta</p>
-                            <p className="text-sm font-medium text-gray-900 truncate">{user?.email || "usuario@horticultura.com"}</p>
+                            <p className="text-sm font-medium text-gray-900 truncate">{user?.email || "Sin email registrado"}</p>
                         </div>
 
                         <div className="p-2">

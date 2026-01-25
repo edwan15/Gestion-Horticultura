@@ -17,7 +17,7 @@ const SOIL_TYPES = [
     'Otro'
 ];
 
-const ParcelModal = ({ isOpen, onClose, onSave, parcel, onDelete }) => {
+const ParcelModal = ({ isOpen, onClose, onSave, parcel, onDelete, crops = [] }) => {
     const [activeTab, setActiveTab] = useState('details'); // 'details' or 'geo'
     const [formData, setFormData] = useState({
         name: '',
@@ -199,10 +199,25 @@ const ParcelModal = ({ isOpen, onClose, onSave, parcel, onDelete }) => {
                                             <input type="text" name="parcelNumber" value={formData.parcelNumber} onChange={handleChange} className="w-full p-2 border-b border-gray-300 bg-transparent focus:border-emerald-500 focus:outline-none transition-colors" />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Tipo de suelo</label>
                                             <select name="soilType" value={formData.soilType} onChange={handleChange} className="w-full p-2 border-b border-gray-300 bg-transparent focus:border-emerald-500 focus:outline-none transition-colors">
                                                 <option value="">---------</option>
                                                 {SOIL_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Cultivo Actual</label>
+                                            <select 
+                                                name="crop" 
+                                                value={formData.crop || ''} 
+                                                onChange={handleChange} 
+                                                className="w-full p-2 border-b border-gray-300 bg-transparent focus:border-emerald-500 focus:outline-none transition-colors"
+                                            >
+                                                <option value="">Seleccionar cultivo...</option>
+                                                {crops.map(crop => (
+                                                    <option key={crop.id} value={crop.name}>
+                                                        {crop.name} {crop.cropType ? `(${crop.cropType})` : ''}
+                                                    </option>
+                                                ))}
                                             </select>
                                         </div>
                                          <div>

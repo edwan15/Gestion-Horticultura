@@ -61,7 +61,7 @@ const InventoryLog = ({ module = "INVENTORY" }) => { // Por defecto INVENTORY pa
                                 </div>
                                 <div className="flex-1">
                                     <div className="flex justify-between items-start">
-                                        <p className="text-sm font-semibold text-gray-800">
+                                        <p className="text-sm font-semibold text-gray-800 break-words whitespace-normal break-all">
                                             <span className="text-blue-600 font-bold text-xs mr-2">[{log.userName || "Usuario"}]</span>
                                             {log.details}
                                         </p>
@@ -74,7 +74,7 @@ const InventoryLog = ({ module = "INVENTORY" }) => { // Por defecto INVENTORY pa
                                             <p className="font-medium mb-1">Cambios:</p>
                                             <ul className="list-disc list-inside">
                                                 {log.metadata.changes.map((change, idx) => (
-                                                    <li key={idx}>{change}</li>
+                                                    <li key={idx} className="break-all whitespace-normal">{change}</li>
                                                 ))}
                                             </ul>
                                         </div>

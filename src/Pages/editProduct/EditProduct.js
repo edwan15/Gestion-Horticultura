@@ -429,7 +429,7 @@ const EditProduct = () => {
         setTotalPrice(""); 
         
         await dispatch(getProducts());
-        navigate("/panel");
+        navigate("/stock");
     } catch (error) {
         console.error("Error al guardar el producto:", error);
     }

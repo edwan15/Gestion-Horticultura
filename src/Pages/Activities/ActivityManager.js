@@ -50,7 +50,7 @@ const TaskCard = ({ task, onStatusChange, onDelete, onEdit }) => {
                     {PRIORITY_CONFIG[task.priority]?.label}
                 </span>
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                     {/* <button onClick={() => onEdit(task)} className="text-gray-400 hover:text-blue-500"><FaEdit /></button> */}
+                    <button onClick={() => onEdit(task)} className="text-gray-400 hover:text-blue-500"><FaEdit /></button>
                     <button onClick={() => onDelete(task.id)} className="text-gray-400 hover:text-red-500"><FaTrash /></button>
                 </div>
             </div>
@@ -61,7 +61,8 @@ const TaskCard = ({ task, onStatusChange, onDelete, onEdit }) => {
 
             {/* Footer: Date & Move Controls */}
             <div className="flex justify-between items-center pt-2 border-t border-gray-100 mt-2">
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-gray-400 flex items-center gap-1">
+                    {task.dueDate && <span className={`mr-2 font-bold ${new Date(task.dueDate) < new Date() ? 'text-red-500' : 'text-gray-500'}`}>{new Date(task.dueDate).toLocaleDateString()}</span>}
                     {task.createdAt?.toDate ? task.createdAt.toDate().toLocaleDateString() : 'Hoy'}
                 </span>
                 
@@ -108,7 +109,7 @@ const ActivityManager = ({ greenhouse, onBack }) => {
     
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [newTask, setNewTask] = useState({ title: '', description: '', priority: 'medium', status: 'pending' });
+    const [newTask, setNewTask] = useState({ title: '', description: '', priority: 'medium', status: 'pending', dueDate: '' });
 
     // --- FIRESTORE SYNC ---
     useEffect(() => {
@@ -131,21 +132,36 @@ const ActivityManager = ({ greenhouse, onBack }) => {
     }, [userId, greenhouse]);
 
     // --- ACTIONS ---
-    const handleAddTask = async (e) => {
+    const handleSaveTask = async (e) => {
         e.preventDefault();
         if(!newTask.title.trim()) return;
 
         const appId = getAppId();
         const collectionPath = `artifacts/${appId}/users/${userId}/greenhouses/${greenhouse.id}/activities`;
 
-        await addDoc(collection(db, collectionPath), {
-            ...newTask,
-            greenhouseId: greenhouse.id,
-            createdAt: serverTimestamp()
-        });
+        if (newTask.id) {
+             // Edit Mode
+             const docPath = `artifacts/${appId}/users/${userId}/greenhouses/${greenhouse.id}/activities/${newTask.id}`;
+             await updateDoc(doc(db, docPath), {
+                 ...newTask,
+                 updatedAt: serverTimestamp()
+             });
+        } else {
+            // Create Mode
+            await addDoc(collection(db, collectionPath), {
+                ...newTask,
+                greenhouseId: greenhouse.id,
+                createdAt: serverTimestamp()
+            });
+        }
 
         setIsModalOpen(false);
-        setNewTask({ title: '', description: '', priority: 'medium', status: 'pending' });
+        setNewTask({ title: '', description: '', priority: 'medium', status: 'pending', dueDate: '' });
+    };
+
+    const openEditModal = (task) => {
+        setNewTask({ ...task, dueDate: task.dueDate || '' });
+        setIsModalOpen(true);
     };
 
     const handleStatusChange = async (taskId, newStatus) => {
@@ -260,6 +276,7 @@ const ActivityManager = ({ greenhouse, onBack }) => {
                                             task={task} 
                                             onStatusChange={handleStatusChange}
                                             onDelete={handleDelete}
+                                            onEdit={openEditModal}
                                         />
                                     ))}
                                     {filteredTasks.filter(t => t.status === col.id).length === 0 && (
@@ -286,12 +303,12 @@ const ActivityManager = ({ greenhouse, onBack }) => {
                         >
                             <div className="bg-indigo-600 px-6 py-4 flex justify-between items-center">
                                 <h3 className="text-white font-bold text-lg flex items-center gap-2">
-                                    <FaPlus /> Nueva Tarea
+                                    <FaPlus /> {newTask.id ? 'Editar Tarea' : 'Nueva Tarea'}
                                 </h3>
                                 <button onClick={() => setIsModalOpen(false)} className="text-indigo-200 hover:text-white">✕</button>
                             </div>
                             
-                            <form onSubmit={handleAddTask} className="p-6 space-y-4">
+                             <form onSubmit={handleSaveTask} className="p-6 space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
                                     <input 
@@ -340,6 +357,16 @@ const ActivityManager = ({ greenhouse, onBack }) => {
                                             <option value="done">Completado</option>
                                         </select>
                                     </div>
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Fecha Límite</label>
+                                    <input 
+                                        type="date" 
+                                        value={newTask.dueDate}
+                                        onChange={e => setNewTask({...newTask, dueDate: e.target.value})}
+                                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                                    />
                                 </div>
 
                                 <div className="pt-4 flex gap-3">

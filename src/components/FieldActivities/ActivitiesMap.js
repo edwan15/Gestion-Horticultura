@@ -32,12 +32,13 @@ const greenhouseIcon = new L.Icon({
     shadowSize: [41, 41]
 });
 
-const MapController = () => {
+const MapController = ({ userId }) => {
     const map = useMapEvents({
         moveend: () => {
+            if (!userId) return;
             const center = map.getCenter();
             const zoom = map.getZoom();
-            localStorage.setItem('fieldActivities_mapState', JSON.stringify({ 
+            localStorage.setItem(`fieldActivities_mapState_${userId}`, JSON.stringify({ 
                 center: [center.lat, center.lng], 
                 zoom 
             }));
@@ -50,12 +51,29 @@ const ActivitiesMap = ({ db, userId, activeTab, onGreenhouseSelect }) => {
     const [markers, setMarkers] = useState([]);
     const [loading, setLoading] = useState(true);
     
-    // Initialize from localStorage or default
-    const savedState = JSON.parse(localStorage.getItem('fieldActivities_mapState') || 'null');
+    // Initialize from localStorage (User Specific) or default
+    // We defer the read until we have a userId, or just default to null if no userId yet
+    const getSavedState = () => {
+        if (!userId) return null;
+        return JSON.parse(localStorage.getItem(`fieldActivities_mapState_${userId}`) || 'null');
+    };
+
+    const savedState = getSavedState();
     const [farmCenter, setFarmCenter] = useState(savedState?.center || [37.825, -0.941]);
     const [zoomLevel, setZoomLevel] = useState(savedState?.zoom || 14);
     const [selectedGreenhouse, setSelectedGreenhouse] = useState(null);
     const [modalPosition, setModalPosition] = useState(null);
+
+    // Effect to update center if userId changes and we have a saved state for the NEW user
+    useEffect(() => {
+        if (userId) {
+            const userSavedState = JSON.parse(localStorage.getItem(`fieldActivities_mapState_${userId}`) || 'null');
+            if (userSavedState) {
+                setFarmCenter(userSavedState.center);
+                setZoomLevel(userSavedState.zoom);
+            }
+        }
+    }, [userId]);
 
     // Helper to handle greenhouse selection and positioning
     const handleGreenhouseClick = (greenhouse, e) => {
@@ -128,8 +146,9 @@ const ActivitiesMap = ({ db, userId, activeTab, onGreenhouseSelect }) => {
         const FARMS_PATH = `artifacts/${appId}/public/data/farms`;
 
         const fetchData = async () => {
-            // Fetch Farm Center ONLY if no saved state exists
-            if (!localStorage.getItem('fieldActivities_mapState')) {
+            // Fetch Farm Center
+            // Only fetch from DB if we don't have a saved state for THIS USER
+            if (!localStorage.getItem(`fieldActivities_mapState_${userId}`)) {
                 try {
                     const qFarm = query(collection(db, FARMS_PATH), where("userId", "==", userId));
                     const farmSnap = await getDocs(qFarm);
@@ -269,7 +288,7 @@ const ActivitiesMap = ({ db, userId, activeTab, onGreenhouseSelect }) => {
                 scrollWheelZoom={true}
                 style={{ height: "100%", width: "100%" }}
             >
-                <MapController />
+                <MapController userId={userId} />
                 <LayersControl position="topright">
                     <LayersControl.BaseLayer name="Mapa Normal">
                         <TileLayer
@@ -331,7 +350,7 @@ const ActivitiesMap = ({ db, userId, activeTab, onGreenhouseSelect }) => {
                                     offset={[0, 0]} 
                                     opacity={1} 
                                     permanent={true}
-                                    className="font-bold text-gray-800 bg-white/80 border-0 shadow-sm text-xs"
+                                    className="font-bold text-gray-800 bg-white border border-gray-200 shadow-md text-[10px] px-1 py-0.5 rounded whitespace-nowrap"
                                 >
                                    {marker.name}
                                 </Tooltip>
@@ -349,7 +368,7 @@ const ActivitiesMap = ({ db, userId, activeTab, onGreenhouseSelect }) => {
                                     offset={[0, -40]} 
                                     opacity={1} 
                                     permanent={true}
-                                    className="font-bold text-gray-800 bg-white/90 border-0 shadow-sm"
+                                    className="font-bold text-gray-800 bg-white border border-gray-200 shadow-md text-[10px] px-1 py-0.5 rounded whitespace-nowrap"
                                 >
                                    {marker.name}
                                 </Tooltip>

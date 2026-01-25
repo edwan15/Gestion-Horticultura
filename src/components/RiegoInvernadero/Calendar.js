@@ -283,7 +283,18 @@ const Calendar = ({ dailyData = {} }) => {
                     irrigationRecords.push({
                         dateRaw: dateKey, // Keep raw date for sorting
                         date: formatDateForLog(dateKey), // Formatted date for display
-                        invernadero: firstRecord.INVERNADERO || 'N/A',
+                        invernadero: (() => {
+                            const unique = [...new Set(dayRecords.map(r => r.INVERNADERO).filter(Boolean))];
+                            const sorted = unique.sort((a, b) => {
+                                const numA = parseInt((a.match(/\d+/) || [0])[0], 10);
+                                const numB = parseInt((b.match(/\d+/) || [0])[0], 10);
+                                return numA - numB;
+                            });
+                            return sorted.map(name => {
+                                const match = name.match(/\d+/);
+                                return match ? `INV${match[0]}` : name;
+                            }).join(', ') || 'N/A';
+                        })(),
                         sectors: dayRecords.length,
                         m2: dayM2.toFixed(2),
                         contador: contador // New field

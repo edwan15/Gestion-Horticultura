@@ -35,7 +35,14 @@ const LinkItem = ({ to, icon, label, setIsMenu }) => {
 
 const SideBar = ({ children }) => {
     const { isAdmin } = useAppContext();
-    const [isOpen, setIsOpen] = useState(true); 
+    const [isOpen, setIsOpen] = useState(() => {
+        const saved = localStorage.getItem('sidebarIsOpen');
+        return saved !== null ? JSON.parse(saved) : true;
+    });
+
+    useEffect(() => {
+        localStorage.setItem('sidebarIsOpen', JSON.stringify(isOpen));
+    }, [isOpen]); 
     const [isMenu, setIsMenu] = useState(false); 
     const navigate = useNavigate();
     const menuRef = useRef(null);
@@ -74,7 +81,7 @@ const SideBar = ({ children }) => {
             <motion.div
                 variants={desktopSidebarVariants}
                 animate={isOpen ? "open" : "closed"}
-                initial={false}
+                initial={isOpen ? "open" : "closed"}
                 className="hidden lg:flex flex-col bg-white text-gray-700 min-h-screen relative shadow-xl z-[3000] flex-shrink-0 border-r border-gray-200"
             >
                 {/* Header del Sidebar */}

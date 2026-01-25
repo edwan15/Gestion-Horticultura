@@ -424,6 +424,12 @@ const ProductList = ({ products, isLoading }) => {
             sortedItems.sort((a, b) => a.name.localeCompare(b.name));
         }
 
+        // --- FILTER: EXCLUDE ZERO STOCK ITEMS FROM PDF ---
+        sortedItems = sortedItems.filter(item => {
+            const stock = (item.entradas || 0) - (item.salidas || 0);
+            return stock !== 0; 
+        });
+
         const doc = new jsPDF();
 
         // 1. Agregar Logo
@@ -493,7 +499,7 @@ const ProductList = ({ products, isLoading }) => {
                         </div>
 
                         {/* Contenedor con Scroll */}
-                        <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
+                        <div className="flex-1 overflow-x-auto overflow-y-auto p-2 custom-scrollbar">
                             {products.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center h-full text-gray-500">
                                     <p>No hay productos registrados.</p>

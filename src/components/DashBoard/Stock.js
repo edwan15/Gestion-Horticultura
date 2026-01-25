@@ -68,7 +68,7 @@ const Stock = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: 0.2 }}
                         // Contenedor principal para la lista: amplio padding y sombra fuerte
-                        className="col-span-12 bg-white p-4 sm:p-6 rounded-2xl shadow-2xl border border-gray-100"
+                        className="col-span-12 bg-white p-4 sm:p-6 rounded-2xl shadow-2xl border border-gray-100 overflow-hidden"
                     >
                         <h3 className="text-xl font-bold mb-4 text-gray-700 flex items-center">
                             <FaChartLine className="mr-2 text-green-500"/> Gestión de Inventario
@@ -118,7 +118,7 @@ const Stock = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
-                    className="col-span-12 bg-white p-4 sm:p-6 rounded-2xl shadow-2xl border border-gray-100"
+                    className="col-span-12 bg-white p-4 sm:p-6 rounded-2xl shadow-2xl border border-gray-100 overflow-hidden"
                 >
                     <h3 className="text-xl font-bold  text-gray-700 flex items-center">
                         <FaChartLine className="mr-2 text-green-500"/> {isStandardUser ? "Mi Inventario" : "Productos Registrados"}

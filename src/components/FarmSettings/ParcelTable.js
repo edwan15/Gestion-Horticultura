@@ -212,7 +212,7 @@ const ParcelTable = ({ db, userId, currentUser }) => {
                                         </td>
                                         <td className="px-4 py-3 text-sm text-gray-600">
                                             <div className="bg-gray-100 text-gray-700 px-2 py-1 rounded inline-block text-xs font-medium">
-                                                {getCropNameForParcel(parcel.id)}
+                                                {parcel.crop || getCropNameForParcel(parcel.id)}
                                             </div>
                                         </td>
                                         <td className="px-4 py-3 text-sm text-gray-600">
@@ -324,6 +324,7 @@ const ParcelTable = ({ db, userId, currentUser }) => {
                     onSave={handleSave}
                     parcel={editingParcel}
                     onDelete={handleDelete}
+                    crops={crops}
                 />
             )}
         </div>

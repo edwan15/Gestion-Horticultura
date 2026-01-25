@@ -118,7 +118,7 @@ const DashBoard = () => {
     const greeting = userName ? `¡Hola, ${userName}!` : 'Bienvenido/a';
     
     return (
-        <div className="p-4 bg-gray-50 min-h-screen font-sans">
+        <div className="p-4 bg-gray-50 min-h-screen font-sans w-full overflow-x-hidden">
              {/* Main Card Container */}
             <div className="bg-white rounded-none shadow-xl border border-gray-200 overflow-hidden mb-8">
                 
@@ -158,7 +158,7 @@ const DashBoard = () => {
 
                 {/* TAB CONTENT: INVENTARIO GENERAL (TOTAL ENTRADAS) */}
                 {activeTab === 'inventario' && (
-                    <div className="animate-fadeIn">
+                    <div>
                         {/* Filters Section */}
                         <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-6 bg-white border-b border-gray-200">
                             <FilterInput label="Almacenes" placeholder="Todos" />
@@ -183,14 +183,16 @@ const DashBoard = () => {
                         </div>
 
                         {/* Totals Header Row */}
-                        <div className="bg-blue-50/50 p-4 grid grid-cols-12 gap-4 text-xs font-bold text-gray-600 border-b border-gray-100 items-center">
-                            <div className="col-span-3 lg:col-span-3 pl-2">Producto / Fabricante</div>
-                            <div className="col-span-2 lg:col-span-1 text-right">T. Ingresado</div>
-                            <div className="hidden lg:block lg:col-span-1 text-right">Valor Unit.</div>
-                            <div className="col-span-2 lg:col-span-2 text-right">Valor Total (Entradas)</div>
-                            <div className="col-span-2 lg:col-span-2 text-center">Finca / Fecha</div>
-                            <div className="col-span-3 lg:col-span-3 text-center">Acciones</div>
-                        </div>
+                        <div className="overflow-x-auto">
+                            <div className="w-full">
+                                <div className="bg-blue-50/50 p-4 grid grid-cols-12 gap-2 text-xs font-bold text-gray-600 border-b border-gray-100 items-center">
+                                    <div className="col-span-6 md:col-span-5 lg:col-span-3 pl-2">Producto / Fabricante</div>
+                                    <div className="col-span-3 md:col-span-2 lg:col-span-1 text-right">T. Ingresado</div>
+                                    <div className="hidden lg:block lg:col-span-1 text-right">Valor Unit.</div>
+                                    <div className="hidden md:block md:col-span-3 lg:col-span-2 text-right">Valor Total</div>
+                                    <div className="hidden lg:block lg:col-span-2 text-center">Finca / Fecha</div>
+                                    <div className="col-span-3 md:col-span-2 lg:col-span-3 text-center">Acciones</div>
+                                </div>
 
                          {/* Table Items (Mapped from Firestore Products) */}
                         <div className="divide-y divide-gray-100 max-h-[600px] overflow-y-auto custom-scrollbar">
@@ -208,28 +210,28 @@ const DashBoard = () => {
                                     const Icon = item.category === 'Fitosanitarios' ? FaSprayCan : FaLeaf;
 
                                     return (
-                                        <div key={item.id || item._id} className="p-4 grid grid-cols-12 gap-4 items-center hover:bg-gray-50 transition-colors group">
+                                        <div key={item.id || item._id} className="p-4 grid grid-cols-12 gap-2 items-center hover:bg-gray-50 transition-colors group">
                                             {/* Product Name & Info */}
-                                            <div className="col-span-3 lg:col-span-3 flex items-start gap-3">
+                                            <div className="col-span-6 md:col-span-5 lg:col-span-3 flex items-start gap-3 overflow-hidden">
                                                 <div className={`mt-1 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${categoryColor}`}>
                                                     <Icon className="text-sm" />
                                                 </div>
-                                                <div>
-                                                    <h3 className="text-sm font-bold text-gray-800 group-hover:text-emerald-700 transition-colors mb-0.5">{item.name}</h3>
-                                                    <p className="text-xs text-emerald-600 mb-0.5">{item.category}</p>
-                                                    <p className="text-[10px] text-gray-400 uppercase tracking-wide flex items-center gap-1">
-                                                        <FaIndustry className="text-[9px]" /> {item.manufacturer || 'Generico'}
+                                                <div className="min-w-0">
+                                                    <h3 className="text-sm font-bold text-gray-800 group-hover:text-emerald-700 transition-colors mb-0.5 truncate" title={item.name}>{item.name}</h3>
+                                                    <p className="text-xs text-emerald-600 mb-0.5 truncate">{item.category}</p>
+                                                    <p className="text-[10px] text-gray-400 uppercase tracking-wide flex items-center gap-1 truncate">
+                                                        <FaIndustry className="text-[9px] flex-shrink-0" /> <span className="truncate">{item.manufacturer || 'Generico'}</span>
                                                     </p>
                                                 </div>
                                             </div>
 
                                             {/* Quantity (Inputs) */}
-                                            <div className="col-span-2 lg:col-span-1 text-right">
+                                            <div className="col-span-3 md:col-span-2 lg:col-span-1 text-right">
                                                 <span className="text-sm font-bold text-blue-700">
                                                     {totalInputs.toLocaleString('es-ES')}
                                                 </span>
                                                 <span className="text-xs text-gray-500 ml-1">{item.unit || 'Ud'}</span>
-                                                <p className="text-[9px] text-gray-400 text-right">Total Ingresado</p>
+                                                <p className="text-[9px] text-gray-400 text-right truncate">Total Ingresado</p>
                                             </div>
 
                                             {/* Avg Value */}
@@ -238,19 +240,19 @@ const DashBoard = () => {
                                             </div>
 
                                             {/* Total Value */}
-                                            <div className="col-span-2 lg:col-span-2 text-right font-bold text-gray-900 text-sm">
+                                            <div className="hidden md:block md:col-span-3 lg:col-span-2 text-right font-bold text-gray-900 text-sm">
                                                 {totalValue.toLocaleString('es-ES', { minimumFractionDigits: 2 })} €
                                             </div>
 
                                              {/* Warehouse & Date */}
-                                             <div className="col-span-2 lg:col-span-2 flex flex-col items-center justify-center text-center">
-                                                <span className="text-xs font-bold text-gray-800 mb-1">{item.userName || userName}</span>
+                                             <div className="hidden lg:block lg:col-span-2 flex flex-col items-center justify-center text-center">
+                                                <span className="text-xs font-bold text-gray-800 mb-1 truncate max-w-full">{item.userName || userName}</span>
                                                 <span className="text-[10px] text-gray-400">
                                                     {new Date().toLocaleDateString()}
                                                 </span>
                                             </div>
 
-                                            <div className="col-span-3 lg:col-span-3 flex justify-center items-center gap-2">
+                                            <div className="col-span-3 md:col-span-2 lg:col-span-3 flex justify-center items-center gap-2">
                                                 <Link to={`/product-detail/${item.id || item._id}`} className="text-purple-500 hover:text-purple-700 p-1 rounded hover:bg-purple-50 transition-colors" title="Ver Detalle">
                                                     <AiFillEye size={18} />
                                                 </Link>
@@ -270,14 +272,16 @@ const DashBoard = () => {
                                 })
                             )}
                         </div>
+                            </div>
+                        </div>
                     </div>
                 )}
 
                 {/* TAB CONTENT: MOVIMIENTOS */}
                 {/* TAB CONTENT: MOVIMIENTOS */}
                 {activeTab === 'movimientos' && (
-                    <div className="animate-fadeIn p-6">
-                        <div className="overflow-hidden border border-gray-100 rounded-xl shadow-sm bg-white">
+                    <div className="p-6">
+                        <div className="overflow-x-auto border border-gray-100 rounded-xl shadow-sm bg-white">
                             <table className="min-w-full divide-y divide-gray-100">
                                 <thead className="bg-gray-50/50">
                                     <tr>
@@ -494,7 +498,7 @@ const DashBoard = () => {
             {/* --- SECCIONES ADICIONALES --- */}
             
             {/* 1. Registro de Actividades (Preserved Functionality) */}
-            <div className="mb-8 animate-fadeIn">
+            <div className="mb-8">
                 <InventoryLog />
             </div>
 
