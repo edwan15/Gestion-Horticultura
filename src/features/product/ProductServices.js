@@ -15,7 +15,6 @@ import { toast } from "react-toastify";
 
 // Referencia a la colección principal de productos
 const productsCollectionRef = collection(db, "products");
-const logsCollectionRef = collection(db, "logs");
 
 // Campo que guarda el ID del propietario en Firestore
 const USER_ID_FIELD = "userId"; 
@@ -302,8 +301,8 @@ const updateProduct = async (id, productData) => {
             const oldValue = currentData[key];
             const newValue = updateObject[key];
 
-            // Comparación laxa
-            if (newValue != oldValue) {
+            // Comparación laxa -> estricta (corrigiendo warning)
+            if (newValue !== oldValue) {
                 // Formato por defecto para otros campos
                 changedFields.push(`${key}: ${newValue}`);
             }

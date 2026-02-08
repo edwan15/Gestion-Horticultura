@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-// import { useReactToPrint } from 'react-to-print'; // Removed
 
 const InventoryCostes = () => {
   // --- STATE: INVERNADEROS & MAP EDITING ---
@@ -7,11 +6,10 @@ const InventoryCostes = () => {
     { 
       id: 1, 
       area: '3.850 Ha', 
-      points: '5,0 100,0 100,75 85,95 40,100 0,85', 
+      points: '5,0 100,0 100,75 85,95 40,100 0,85', // Converted to SVG points
       cultivo: 'Inv 1 Pimiento Cali Rojo 2026',
       notas: '',
-      lines: [],
-      textPos: { x: 50, y: 50 } 
+      lines: [] // Array of {x1, y1, x2, y2}
     },
     { 
       id: 2, 
@@ -19,8 +17,7 @@ const InventoryCostes = () => {
       points: '15,0 100,10 85,100 0,85', 
       cultivo: 'Inv 2 Calabacín 2026',
       notas: '',
-      lines: [],
-      textPos: { x: 50, y: 50 }
+      lines: []
     },
     { 
       id: 3, 
@@ -28,8 +25,7 @@ const InventoryCostes = () => {
       points: '0,0 100,0 100,100 25,100 25,75 0,75', 
       cultivo: 'Pimiento Avileses',
       notas: '99.710 plantas totales',
-      lines: [],
-      textPos: { x: 50, y: 50 }
+      lines: []
     },
     { 
       id: 4, 
@@ -37,8 +33,7 @@ const InventoryCostes = () => {
       points: '20,0 100,5 80,100 0,95', 
       cultivo: 'Inv 4 Calabacín 2026',
       notas: '',
-      lines: [],
-      textPos: { x: 50, y: 50 }
+      lines: []
     },
     { 
       id: 5, 
@@ -46,17 +41,108 @@ const InventoryCostes = () => {
       points: '10,0 90,0 100,100 0,100', 
       cultivo: 'Pimiento Tallante',
       notas: '29.795 plantas totales',
-      lines: [],
-      textPos: { x: 50, y: 50 }
+      lines: []
     }
   ]);
 
   const [mapEditMode, setMapEditMode] = useState(false);
-  const [textMoveMode, setTextMoveMode] = useState(false);
-  const [draggingText, setDraggingText] = useState({ active: false, invId: null, startX: 0, startY: 0 });
   const [drawingState, setDrawingState] = useState({ active: false, start: null, currentInvId: null });
-  
-  // --- PRINT REF & HANDLER ---
+
+  // Update text/notes of greenhouse
+  const handleUpdateGreenhouse = (id, field, value) => {
+    setInvernaderos(prev => prev.map(inv => 
+      inv.id === id ? { ...inv, [field]: value } : inv
+    ));
+  };
+
+  // --- MAP INTERACTION HANDLERS ---
+  const getCoordinates = (e, svgElement) => {
+    const point = svgElement.createSVGPoint();
+    point.x = e.clientX;
+    point.y = e.clientY;
+    const svgPoint = point.matrixTransform(svgElement.getScreenCTM().inverse());
+    return { x: svgPoint.x, y: svgPoint.y };
+  };
+
+  const handleSvgClick = (e, invId) => {
+    if (!mapEditMode) return;
+
+    const coords = getCoordinates(e, e.currentTarget);
+
+    if (!drawingState.active) {
+      // Start drawing
+      setDrawingState({ active: true, start: coords, currentInvId: invId });
+    } else {
+      // Finish drawing (if in same greenhouse)
+      if (drawingState.currentInvId === invId) {
+        setInvernaderos(prev => prev.map(inv => {
+          if (inv.id === invId) {
+            return {
+              ...inv,
+              lines: [...inv.lines, { x1: drawingState.start.x, y1: drawingState.start.y, x2: coords.x, y2: coords.y }]
+            };
+          }
+          return inv;
+        }));
+      }
+      setDrawingState({ active: false, start: null, currentInvId: null });
+    }
+  };
+
+  const clearLines = (invId) => {
+    setInvernaderos(prev => prev.map(inv => 
+        inv.id === invId ? { ...inv, lines: [] } : inv
+    ));
+  };
+
+
+  // --- STATE: REGISTROS CRUD ---
+  const [registros, setRegistros] = useState([
+    { id: 1, fecha: '16/01/2026', variedad: 'TALLANTE (INVERNADERO 5)', semillas: '29.795', marco: '1-8X6 FILAS', estado: 'ACTIVO' },
+    { id: 2, fecha: '12/01/2026', variedad: 'AVILESES (INVERNADERO 3)', semillas: '61.360', marco: '1-8X6 FILAS', estado: 'ACTIVO' },
+    { id: 3, fecha: '10/01/2026', variedad: 'AVILESES (INVERNADERO 3)', semillas: '38.350', marco: '1-8X6 FILAS', estado: 'ACTIVO' },
+    { id: 4, fecha: '12/01/2026', variedad: 'ALYSSUM LOBULA', semillas: '600', marco: 'AUXILIAR', estado: 'ACTIVO' }
+  ]);
+
+  const [editingRowId, setEditingRowId] = useState(null);
+  const [tempRowData, setTempRowData] = useState({});
+
+  // CRUD Handlers
+  const handleAddNew = () => {
+    const newId = Math.max(...registros.map(r => r.id), 0) + 1;
+    const newRow = { id: newId, fecha: '', variedad: '', semillas: '', marco: '', estado: 'ACTIVO' };
+    setRegistros([...registros, newRow]);
+    setEditingRowId(newId);
+    setTempRowData(newRow);
+  };
+
+  const handleEditRow = (row) => {
+    setEditingRowId(row.id);
+    setTempRowData(row);
+  };
+
+  const handleSaveRow = () => {
+    setRegistros(prev => prev.map(r => r.id === editingRowId ? tempRowData : r));
+    setEditingRowId(null);
+    setTempRowData({});
+  };
+
+  const handleCancelEdit = () => {
+    // If it was a new row (empty values), we might want to delete it, but simplistic approach: just stop editing
+    setEditingRowId(null);
+    setTempRowData({});
+  };
+
+  const handleDeleteRow = (id) => {
+    if (window.confirm('¿Estás seguro de eliminar este registro?')) {
+      setRegistros(prev => prev.filter(r => r.id !== id));
+    }
+  };
+
+  const handleInputChange = (field, value) => {
+    setTempRowData(prev => ({ ...prev, [field]: value }));
+  };
+
   // --- SCRIPTS LOADING & EXPORT HANDLER ---
   useEffect(() => {
     const loadScript = (src) => {
@@ -101,9 +187,6 @@ const InventoryCostes = () => {
             // (html2canvas ignores @media print, so we do this manually)
             const noPrintElements = clonedDoc.querySelectorAll('.no-print');
             noPrintElements.forEach(el => el.style.display = 'none');
-
-            // Force grid 3 columns if needed (tailwind lg:grid-cols-3 might rely on viewport)
-            // But windowWidth: 1600 usually handles it.
         }
       });
 
@@ -141,137 +224,6 @@ const InventoryCostes = () => {
     } finally {
       setIsExporting(false);
     }
-  };
-
-  // Update text/notes of greenhouse
-  const handleUpdateGreenhouse = (id, field, value) => {
-    setInvernaderos(prev => prev.map(inv => 
-      inv.id === id ? { ...inv, [field]: value } : inv
-    ));
-  };
-
-  // --- MAP INTERACTION HANDLERS ---
-  const getCoordinates = (e, svgElement) => {
-    const point = svgElement.createSVGPoint();
-    point.x = e.clientX;
-    point.y = e.clientY;
-    const svgPoint = point.matrixTransform(svgElement.getScreenCTM().inverse());
-    return { x: svgPoint.x, y: svgPoint.y };
-  };
-
-  const handleSvgClick = (e, invId) => {
-    if (!mapEditMode) return;
-
-    const coords = getCoordinates(e, e.currentTarget);
-
-    if (!drawingState.active) {
-      setDrawingState({ active: true, start: coords, currentInvId: invId });
-    } else {
-      if (drawingState.currentInvId === invId) {
-        setInvernaderos(prev => prev.map(inv => {
-          if (inv.id === invId) {
-            return {
-              ...inv,
-              lines: [...inv.lines, { x1: drawingState.start.x, y1: drawingState.start.y, x2: coords.x, y2: coords.y }]
-            };
-          }
-          return inv;
-        }));
-      }
-      setDrawingState({ active: false, start: null, currentInvId: null });
-    }
-  };
-
-  const clearLines = (invId) => {
-    setInvernaderos(prev => prev.map(inv => 
-        inv.id === invId ? { ...inv, lines: [] } : inv
-    ));
-  };
-
-
-  // --- TEXT DRAGGING HANDLERS ---
-  const handleTextMouseDown = (e, invId) => {
-    if (!textMoveMode) return;
-    e.preventDefault();
-    e.stopPropagation(); // Prevent map click
-    setDraggingText({ active: true, invId });
-  };
-
-  const handleTextMouseMove = (e, containerRef) => {
-    if (!draggingText.active || !containerRef) return;
-    
-    const rect = containerRef.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100; // Corrected calculation
-
-    // Clamp values between 0 and 100 to keep inside container
-    const clampedX = Math.max(0, Math.min(100, x));
-    const clampedY = Math.max(0, Math.min(100, y));
-
-    setInvernaderos(prev => prev.map(inv => 
-      inv.id === draggingText.invId ? { ...inv, textPos: { x: clampedX, y: clampedY } } : inv
-    ));
-  };
-
-  const handleTextMouseUp = () => {
-    setDraggingText({ active: false, invId: null, startX: 0, startY: 0 });
-  };
-  
-  // Effect to handle global mouse up/move for smoother dragging
-  useEffect(() => {
-    const handleGlobalMouseUp = () => {
-       if (draggingText.active) handleTextMouseUp();
-    };
-    window.addEventListener('mouseup', handleGlobalMouseUp);
-    return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
-  }, [draggingText.active]);
-
-
-
-  // --- STATE: REGISTROS CRUD ---
-  const [registros, setRegistros] = useState([
-    { id: 1, fecha: '16/01/2026', variedad: 'TALLANTE (INVERNADERO 5)', semillas: '29.795', marco: '1-8X6 FILAS', estado: 'ACTIVO' },
-    { id: 2, fecha: '12/01/2026', variedad: 'AVILESES (INVERNADERO 3)', semillas: '61.360', marco: '1-8X6 FILAS', estado: 'ACTIVO' },
-    { id: 3, fecha: '10/01/2026', variedad: 'AVILESES (INVERNADERO 3)', semillas: '38.350', marco: '1-8X6 FILAS', estado: 'ACTIVO' },
-    { id: 4, fecha: '12/01/2026', variedad: 'ALYSSUM LOBULA', semillas: '600', marco: 'AUXILIAR', estado: 'ACTIVO' }
-  ]);
-
-  const [editingRowId, setEditingRowId] = useState(null);
-  const [tempRowData, setTempRowData] = useState({});
-
-  // CRUD Handlers
-  const handleAddNew = () => {
-    const newId = Math.max(...registros.map(r => r.id), 0) + 1;
-    const newRow = { id: newId, fecha: '', variedad: '', semillas: '', marco: '', estado: 'ACTIVO' };
-    setRegistros([...registros, newRow]);
-    setEditingRowId(newId);
-    setTempRowData(newRow);
-  };
-
-  const handleEditRow = (row) => {
-    setEditingRowId(row.id);
-    setTempRowData(row);
-  };
-
-  const handleSaveRow = () => {
-    setRegistros(prev => prev.map(r => r.id === editingRowId ? tempRowData : r));
-    setEditingRowId(null);
-    setTempRowData({});
-  };
-
-  const handleCancelEdit = () => {
-    setEditingRowId(null);
-    setTempRowData({});
-  };
-
-  const handleDeleteRow = (id) => {
-    if (window.confirm('¿Estás seguro de eliminar este registro?')) {
-      setRegistros(prev => prev.filter(r => r.id !== id));
-    }
-  };
-
-  const handleInputChange = (field, value) => {
-    setTempRowData(prev => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -313,14 +265,6 @@ const InventoryCostes = () => {
             >
             {mapEditMode ? 'Salir Modo Edición' : 'Editar / Dividir Parcelas'}
             </button>
-            <button 
-                onClick={() => setTextMoveMode(!textMoveMode)}
-                className={`ml-2 px-4 py-2 rounded-lg font-bold text-sm shadow transition-colors ${
-                    textMoveMode ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-slate-700 text-white hover:bg-slate-800'
-                }`}
-            >
-                {textMoveMode ? 'Terminar Mover' : 'Mover Etiquetas'}
-            </button>
         </div>
 
         {/* Greenhouses Grid */}
@@ -341,18 +285,14 @@ const InventoryCostes = () => {
                 </div>
 
                 <div 
-                    className={`aspect-video w-full relative flex p-4 bg-slate-50 group print:bg-white ${mapEditMode ? 'cursor-crosshair' : ''}`}
-                    onMouseMove={(e) => handleTextMouseMove(e, e.currentTarget)}
+                    className={`aspect-video w-full relative flex items-center justify-center p-4 bg-slate-50 group print:bg-white ${mapEditMode ? 'cursor-crosshair' : ''}`}
                 >
                 {/* SVG Visualization */}
                 <svg 
                     viewBox="0 0 100 100" 
                     preserveAspectRatio="none"
-                    className="w-full h-full drop-shadow-md print:drop-shadow-none absolute inset-0 pointer-events-none" 
-                    // Made pointer-events-none so we can drag text easier, 
-                    // but we need to re-enable them for drawing lines.
-                    // Actually, for drawing lines we need clicks on the SVG or container.
-                    // Let's use logic below to handle clicks properly.
+                    className="w-full h-full drop-shadow-md print:drop-shadow-none" 
+                    onClick={(e) => handleSvgClick(e, inv.id)}
                 >
                     <polygon 
                         points={inv.points} 
@@ -360,9 +300,7 @@ const InventoryCostes = () => {
                         stroke="#3b82f6" 
                         strokeWidth="1"
                         vectorEffect="non-scaling-stroke"
-                        style={{ fillOpacity: 0.6, pointerEvents: mapEditMode ? 'auto' : 'none' }}
-                        // Only auto pointer events on polygon when in map edit mode
-                        onClick={(e) => handleSvgClick(e, inv.id)}
+                        style={{ fillOpacity: 0.6 }}
                     />
                     {inv.lines.map((line, i) => (
                         <line 
@@ -380,33 +318,19 @@ const InventoryCostes = () => {
                     )}
                 </svg>
 
-                <div 
-                    className={`absolute flex flex-col items-center justify-center p-2 text-center transition-shadow
-                        ${textMoveMode ? 'cursor-move ring-2 ring-orange-400 bg-white/50 rounded-lg shadow-lg z-10' : ''} 
-                        ${mapEditMode ? 'pointer-events-none opacity-50' : ''}
-                    `}
-                    style={{ 
-                        left: `${inv.textPos ? inv.textPos.x : 50}%`, 
-                        top: `${inv.textPos ? inv.textPos.y : 50}%`, 
-                        transform: 'translate(-50%, -50%)',
-                        width: '80%' // Constrain width reasonably
-                    }}
-                    onMouseDown={(e) => handleTextMouseDown(e, inv.id)}
-                >
+                <div className={`absolute inset-0 flex flex-col items-center justify-center p-6 text-center ${mapEditMode ? 'pointer-events-none opacity-50' : ''}`}>
                     <input
                     type="text"
                     value={inv.cultivo}
                     onChange={(e) => handleUpdateGreenhouse(inv.id, 'cultivo', e.target.value)}
                     className="bg-transparent border-b border-transparent hover:border-blue-400 focus:border-blue-600 focus:bg-white/80 text-sm font-bold text-slate-800 w-full text-center outline-none transition-all placeholder:text-slate-400"
                     placeholder="Cultivo..."
-                    disabled={textMoveMode} // Disable typing while moving
                     />
                     <textarea
                     value={inv.notas}
                     onChange={(e) => handleUpdateGreenhouse(inv.id, 'notas', e.target.value)}
                     className="bg-transparent border-none text-[11px] text-slate-600 w-full text-center mt-2 resize-none h-16 outline-none hover:bg-white/50 focus:bg-white/80 rounded p-1 transition-all placeholder:text-slate-300"
                     placeholder="Notas..."
-                    disabled={textMoveMode} // Disable typing while moving
                     />
                 </div>
                 </div>
@@ -501,7 +425,6 @@ const InventoryCostes = () => {
             {isExporting ? 'Generando PDF...' : 'Exportar PDF'}
          </button>
       </div>
-
     </div>
   );
 };
